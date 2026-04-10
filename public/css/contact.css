@@ -1,0 +1,342 @@
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* PAGE HERO */
+.page-hero {
+    background: linear-gradient(135deg, var(--primary), #1E293B);
+    color: white;
+    padding: 5rem 0;
+    text-align: center;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.hero-badge svg {
+    color: var(--secondary);
+}
+
+.page-hero h1 {
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.page-hero p {
+    font-size: 1.25rem;
+    color: #D1D5DB;
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+/* PAGE CONTENT */
+.page-content {
+    padding: 5rem 0;
+    min-height: calc(100vh - 4rem);
+}
+
+/* UNIVERSITY CARD */
+.university-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.university-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.university-icon {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.university-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.university-header p {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.university-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.contact-info {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.contact-item {
+    display: flex;
+    gap: 1rem;
+}
+
+.contact-icon {
+    width: 3rem;
+    height: 3rem;
+    background: var(--background);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary);
+    flex-shrink: 0;
+}
+
+.contact-item h3 {
+    margin-bottom: 0.5rem;
+}
+
+.contact-item p {
+    margin: 0;
+}
+
+.contact-item a {
+    color: var(--secondary);
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
+.project-info {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(20, 184, 166, 0.1));
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.project-info h3 {
+    margin-bottom: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #D1D5DB;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span:first-child {
+    font-weight: 500;
+}
+
+.status-active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* SECTION HEADER */
+.section-header {
+    text-align: center;
+    margin: 5rem 0 3rem;
+}
+
+.section-icon {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+}
+
+.section-header h2 {
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+/* TEAM GRID */
+.team-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.team-card {
+    background: linear-gradient(135deg, var(--background), white);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.team-card:hover {
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+.team-avatar {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.team-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.team-role {
+    color: var(--secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.team-resp {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* ADVISER CARD */
+.adviser-card {
+    background: linear-gradient(135deg, var(--primary), #1E293B);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    color: white;
+    box-shadow: var(--shadow-xl);
+}
+
+.adviser-icon {
+    width: 3rem;
+    height: 3rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+}
+
+.adviser-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.adviser-card h3 {
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.adviser-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.adviser-avatar {
+    width: 5rem;
+    height: 5rem;
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.adviser-content h4 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.adviser-title {
+    color: #D1D5DB;
+    margin-bottom: 0.75rem;
+}
+
+.adviser-desc {
+    color: #9CA3AF;
+    margin: 0;
+}
+
+
+/* RESPONSIVE DESIGN */
+@media (min-width: 640px) {
+    .logo-text {
+        display: block;
+    }
+    
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-menu-btn {
+        display: none;
+    }
+    
+    .nav-links {
+        display: flex;
+    }
+    
+    h1 { font-size: 3rem; }
+    h2 { font-size: 2.25rem; }
+    
+    .university-content {
+        grid-template-columns: 1fr 1fr;
+    }
+}
