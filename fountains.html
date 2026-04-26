@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fountain Status - AquaMonitor</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/tab-logo-icon.ico">
+
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/fountains.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script defer src="js/fountains.js"></script>
+    <script defer src="js/components.js"></script>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav class="navbar" id="navbar-placeholder"></nav>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <div class="page-hero">
+            <div class="container">
+                <div class="hero-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Campus Locations</span>
+                </div>
+                <h1>Fountain Status</h1>
+                <p>Real-time monitoring status for drinking water facilities across the Antipolo Campus.</p>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="status-summary">
+                    <div class="summary-card">
+                        <span class="summary-val">4</span>
+                        <span class="summary-lbl">Active Fountains</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-val status-online">100%</span>
+                        <span class="summary-lbl">Operational Rate</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-val">Safe</span>
+                        <span class="summary-lbl">Overall Quality</span>
+                    </div>
+                </div>
+
+                <div class="fountains-grid">
+                    <div class="fountain-card">
+                        <div class="fountain-header">
+                            <h3>Main Building Lobby</h3>
+                            <span class="status-badge online">Active</span>
+                        </div>
+                        <div class="fountain-body">
+                            <div class="param-row">
+                                <span>pH Level</span>
+                                <span class="param-val">7.2</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Turbidity</span>
+                                <span class="param-val">2.1 NTU</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Temperature</span>
+                                <span class="param-val">24.5°C</span>
+                            </div>
+                            <div class="param-row">
+                                <span>TDS</span>
+                                <span class="param-val">120 ppm</span>
+                            </div>
+                        </div>
+                        <div class="fountain-footer">
+                            <span class="last-checked">Last synced: 2 mins ago</span>
+                        </div>
+                    </div>
+
+                    <div class="fountain-card">
+                        <div class="fountain-header">
+                            <h3>Library Area (3rd Floor)</h3>
+                            <span class="status-badge online">Active</span>
+                        </div>
+                        <div class="fountain-body">
+                            <div class="param-row">
+                                <span>pH Level</span>
+                                <span class="param-val">7.3</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Turbidity</span>
+                                <span class="param-val">2.3 NTU</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Temperature</span>
+                                <span class="param-val">24.1°C</span>
+                            </div>
+                            <div class="param-row">
+                                <span>TDS</span>
+                                <span class="param-val">135 ppm</span>
+                            </div>
+                        </div>
+                        <div class="fountain-footer">
+                            <span class="last-checked">Last synced: 5 mins ago</span>
+                        </div>
+                    </div>
+
+                    <div class="fountain-card">
+                        <div class="fountain-header">
+                            <h3>IT Department Hallway</h3>
+                            <span class="status-badge online">Active</span>
+                        </div>
+                        <div class="fountain-body">
+                            <div class="param-row">
+                                <span>pH Level</span>
+                                <span class="param-val">7.1</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Turbidity</span>
+                                <span class="param-val">2.5 NTU</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Temperature</span>
+                                <span class="param-val">24.8°C</span>
+                            </div>
+                            <div class="param-row">
+                                <span>TDS</span>
+                                <span class="param-val">110 ppm</span>
+                            </div>
+                        </div>
+                        <div class="fountain-footer">
+                            <span class="last-checked">Last synced: 1 min ago</span>
+                        </div>
+                    </div>
+
+                    <div class="fountain-card">
+                        <div class="fountain-header">
+                            <h3>Student Center</h3>
+                            <span class="status-badge online">Active</span>
+                        </div>
+                        <div class="fountain-body">
+                            <div class="param-row">
+                                <span>pH Level</span>
+                                <span class="param-val">7.2</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Turbidity</span>
+                                <span class="param-val">2.2 NTU</span>
+                            </div>
+                            <div class="param-row">
+                                <span>Temperature</span>
+                                <span class="param-val">25.1°C</span>
+                            </div>
+                            <div class="param-row">
+                                <span>TDS</span>
+                                <span class="param-val">125 ppm</span>
+                            </div>
+                        </div>
+                        <div class="fountain-footer">
+                            <span class="last-checked">Last synced: Just now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="footer-placeholder"></footer>
+</body>
+</html>

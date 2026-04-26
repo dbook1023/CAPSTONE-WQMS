@@ -1,0 +1,138 @@
+/* research.css */
+.section-grid {
+    margin-bottom: 4rem;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    gap: 2rem 4rem;
+}
+
+.tech-stack {
+    background: white;
+    padding: 3rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--shadow-xl);
+    margin-bottom: 4rem;
+    border: 1px solid var(--border);
+}
+
+.tech-stack h2 {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.tech-items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.tech-item {
+    padding: 1.5rem;
+    background: var(--background);
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.tech-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--secondary);
+    box-shadow: var(--shadow-lg);
+}
+
+.tech-item h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--secondary);
+}
+
+.methodology h2 {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.step {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.step:not(:nth-child(3)):not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 1.5rem;
+    top: 3.5rem;
+    bottom: -0.5rem;
+    width: 2px;
+    background: var(--border);
+}
+
+.step-num {
+    width: 3rem;
+    height: 3rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.parameters-section {
+    background: var(--primary);
+    color: white;
+    padding: 3.5rem;
+    border-radius: 1.5rem;
+}
+
+.parameters-section h2 {
+    color: white;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.param-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.param-icon {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--secondary);
+    margin-bottom: 1rem;
+}
+
+.param-card h3 {
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.param-card p {
+    color: #94A3B8;
+    margin: 0;
+}
+
+@media (max-width: 992px) {
+    .section-grid, .params-grid, .steps-grid, .tech-items {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,122 @@
+/* fountains.css */
+.status-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.summary-val {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.summary-val.status-online {
+    color: var(--accent);
+}
+
+.summary-lbl {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fountains-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.fountain-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s ease;
+}
+
+.fountain-card:hover {
+    transform: translateY(-5px);
+}
+
+.fountain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.fountain-header h3 {
+    font-size: 1.125rem;
+    max-width: 70%;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.online {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.fountain-body {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 0;
+    margin-bottom: 1.25rem;
+}
+
+.param-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.param-row:last-child {
+    margin-bottom: 0;
+}
+
+.param-row span:first-child {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.param-row .param-val {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.fountain-footer {
+    text-align: right;
+}
+
+.last-checked {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+@media (max-width: 640px) {
+    .status-summary {
+        grid-template-columns: 1fr;
+    }
+}

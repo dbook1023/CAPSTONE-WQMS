@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research - AquaMonitor</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/tab-logo-icon.ico">
+
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/research.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script defer src="js/research.js"></script>
+    <script defer src="js/components.js"></script>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav class="navbar" id="navbar-placeholder"></nav>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <div class="page-hero">
+            <div class="container">
+                <div class="hero-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span>Methodology & Tech</span>
+                </div>
+                <h1>Research & Methodology</h1>
+                <p>Technical deep dive into the ESP32-based monitoring system and data collection processes.</p>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="tech-stack">
+                    <h2>Technology Stack</h2>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <h3>ESP32 Microcontroller</h3>
+                            <p>The heart of our system, providing WiFi connectivity and processing power for sensor data integration.</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>IoT Sensor Array</h3>
+                            <p>Specialized sensors for measuring pH level, Turbidity (NTU), Temperature (°C), and TDS (ppm) with high accuracy.</p>
+                        </div>
+                        <div class="tech-item">
+                            <h3>Web Analytics</h3>
+                            <p>Custom dashboard built with HTML5/CSS3 and JavaScript for real-time data visualization.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div class="methodology">
+                        <h2>The Research Process</h2>
+                        <div class="steps-grid">
+                            <div class="step">
+                                <div class="step-num">01</div>
+                                <div class="step-content">
+                                    <h3>Sensor Calibration</h3>
+                                    <p>Rigorous testing and calibration using standard solutions to ensure measurement accuracy across all units.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">02</div>
+                                <div class="step-content">
+                                    <h3>Data Acquisition</h3>
+                                    <p>Continuous polling of sensor data by the ESP32, which is then processed and formatted for cloud transmission.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">03</div>
+                                <div class="step-content">
+                                    <h3>Analytics & Visualization</h3>
+                                    <p>The web application retrieves data and performs trend analysis to identify variations in water quality over time.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">04</div>
+                                <div class="step-content">
+                                    <h3>Data Transmission</h3>
+                                    <p>Implementing secure communication protocols to ensure reliable transfer of sensor readings to the database.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">05</div>
+                                <div class="step-content">
+                                    <h3>Performance Evaluation</h3>
+                                    <p>Testing individual sensor modules under various environmental conditions to verify response time and precision.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">06</div>
+                                <div class="step-content">
+                                    <h3>System Deployment</h3>
+                                    <p>Final implementation of monitoring units in campus locations to evaluate real-word safety and impact.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="parameters-section">
+                    <h2>Monitored Parameters</h2>
+                    <div class="params-grid">
+                        <div class="param-card">
+                            <div class="param-icon">pH</div>
+                            <h3>pH Value</h3>
+                            <p>Measures the acidity or alkalinity of the water. Crucial for ensuring the water is within the safe potable range of 6.5 to 8.5.</p>
+                        </div>
+                        <div class="param-card">
+                            <div class="param-icon">NTU</div>
+                            <h3>Turbidity</h3>
+                            <p>Measures the cloudiness or haziness caused by individual particles. Low turbidity is a key indicator of clean, high-quality water.</p>
+                        </div>
+                        <div class="param-card">
+                            <div class="param-icon">°C</div>
+                            <h3>Temperature</h3>
+                            <p>Monitors thermal variations which can affect the effectiveness of disinfection and the solubility of chemical constituents.</p>
+                        </div>
+                        <div class="param-card">
+                            <div class="param-icon">ppm</div>
+                            <h3>TDS</h3>
+                            <p>Total Dissolved Solids measures the combined content of all inorganic and organic substances contained in a liquid. It evaluates the overall water purity.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="footer-placeholder"></footer>
+</body>
+</html>

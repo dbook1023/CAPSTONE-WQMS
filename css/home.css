@@ -1,8 +1,4 @@
-.container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-}
+
 
 /* BUTTONS CSS */
 .btn {
@@ -102,22 +98,7 @@
     gap: 3rem;
 }
 
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    margin-bottom: 1.5rem;
-    width: fit-content;
-}
 
-.hero-badge svg {
-    color: var(--secondary);
-}
 
 .hero-title {
     font-size: 2.5rem;
@@ -179,7 +160,7 @@
 .stat-card-1 { animation-delay: 0.3s; }
 .stat-card-2 { animation-delay: 0.4s; }
 .stat-card-3 { animation-delay: 0.5s; }
-.stat-card-status { animation-delay: 0.6s; }
+.stat-card-4 { animation-delay: 0.6s; }
 
 @keyframes slideInRight {
     from {
@@ -221,33 +202,6 @@
     color: var(--accent);
 }
 
-.stat-card-status {
-    background: linear-gradient(135deg, var(--accent), #0D9488);
-    border: none;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.status-online {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: white;
-    font-weight: 500;
-}
-
-.status-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    background: white;
-    border-radius: 50%;
-    animation: blink 2s ease-in-out infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
 
 .hero-wave {
     position: absolute;
@@ -269,20 +223,7 @@
     background: white;
 }
 
-.section-header {
-    text-align: center;
-    margin-bottom: 4rem;
-}
 
-.section-header h2 {
-    margin-bottom: 1rem;
-}
-
-.section-header p {
-    font-size: 1.25rem;
-    max-width: 48rem;
-    margin: 0 auto;
-}
 
 .features-grid {
     display: grid;
@@ -364,27 +305,12 @@
 
 /* RESPONSIVE DESIGN */
 @media (min-width: 640px) {
-    .logo-text {
-        display: block;
-    }
-    
     .features-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .footer-content {
-        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (min-width: 768px) {
-    .mobile-menu-btn {
-        display: none;
-    }
-    
-    .nav-links {
-        display: flex;
-    }
     
     .hero-content {
         grid-template-columns: 1fr 1fr;

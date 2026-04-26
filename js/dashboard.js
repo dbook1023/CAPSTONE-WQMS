@@ -1,18 +1,23 @@
 // Dashboard JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // Set current year in footer
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-    
     // Update last updated time
     updateLastUpdated();
     setInterval(updateLastUpdated, 60000); // Update every minute
     
-    // Mobile menu
-    setupMobileMenu();
-    
     // Initialize charts
     initializeCharts();
+
+    // Start Real-time simulation
+    startSimulation();
 });
+
+// Global state for simulation
+let currentData = {
+    ph: 7.2,
+    turbidity: 2.3,
+    temp: 24.5,
+    tds: 125
+};
 
 function updateLastUpdated() {
     const now = new Date();
@@ -31,91 +36,87 @@ function updateLastUpdated() {
     }
 }
 
-function setupMobileMenu() {
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const navLinks = document.getElementById('navLinks');
-    
-    mobileMenuBtn.addEventListener('click', function() {
-        this.classList.toggle('active');
+function startSimulation() {
+    setInterval(() => {
+        // Fluctuating values within safe ranges
+        currentData.ph = +(currentData.ph + (Math.random() - 0.5) * 0.1).toFixed(1);
+        currentData.turbidity = +(currentData.turbidity + (Math.random() - 0.5) * 0.2).toFixed(1);
+        currentData.temp = +(currentData.temp + (Math.random() - 0.5) * 0.2).toFixed(1);
+        currentData.tds = Math.floor(currentData.tds + (Math.random() - 0.5) * 5);
+
+        // Clamping values to sensible ranges
+        if (currentData.ph < 6.5) currentData.ph = 6.6;
+        if (currentData.ph > 8.5) currentData.ph = 8.4;
+        if (currentData.turbidity < 0.5) currentData.turbidity = 1.0;
+        if (currentData.turbidity > 4.5) currentData.turbidity = 4.0;
+        if (currentData.temp < 20) currentData.temp = 22;
+        if (currentData.temp > 30) currentData.temp = 28;
+        if (currentData.tds < 50) currentData.tds = 100;
+        if (currentData.tds > 400) currentData.tds = 350;
+
+        // Update UI
+        updateUIDisplay();
         
-        if (this.classList.contains('active')) {
-            navLinks.style.display = 'flex';
-            navLinks.style.flexDirection = 'column';
-            navLinks.style.position = 'absolute';
-            navLinks.style.top = '4rem';
-            navLinks.style.left = '0';
-            navLinks.style.right = '0';
-            navLinks.style.backgroundColor = 'white';
-            navLinks.style.padding = '1rem';
-            navLinks.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-            navLinks.style.zIndex = '999';
-        } else {
-            navLinks.style.display = 'none';
-        }
-    });
-    
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.nav-content')) {
-            mobileMenuBtn.classList.remove('active');
-            if (window.innerWidth < 768) {
-                navLinks.style.display = 'none';
-            }
-        }
-    });
-    
-    window.addEventListener('resize', function() {
-        if (window.innerWidth >= 768) {
-            navLinks.style.display = 'flex';
-            navLinks.style.flexDirection = 'row';
-            navLinks.style.position = 'static';
-            navLinks.style.padding = '0';
-            navLinks.style.boxShadow = 'none';
-        } else {
-            if (!mobileMenuBtn.classList.contains('active')) {
-                navLinks.style.display = 'none';
-            }
-        }
-    });
+        // Refresh charts with updated "last" data point
+        initializeCharts();
+    }, 5000); // Update every 5 seconds
+}
+
+function updateUIDisplay() {
+    const phEl = document.getElementById('val-ph');
+    const turbEl = document.getElementById('val-ntu');
+    const tempEl = document.getElementById('val-temp');
+    const tdsEl = document.getElementById('val-tds');
+
+    if (phEl) phEl.textContent = currentData.ph;
+    if (turbEl) turbEl.textContent = currentData.turbidity;
+    if (tempEl) tempEl.textContent = currentData.temp;
+    if (tdsEl) tdsEl.textContent = currentData.tds;
 }
 
 function initializeCharts() {
+    // Labels for the last 6 data points
+    const labels = ['12:00', '14:00', '16:00', '18:00', '20:00', 'Now'];
+    
+    // Mock historical data + current simulated data
+    const phData = [7.1, 7.2, 7.3, 7.2, 7.1, currentData.ph];
+    const turbData = [2.1, 2.3, 2.5, 2.4, 2.2, currentData.turbidity];
+    const tempData = [23.5, 23.2, 24.1, 25.3, 24.8, currentData.temp];
+    const tdsData = [120, 125, 115, 130, 122, currentData.tds];
+
     // pH Chart
     const phCanvas = document.getElementById('phChart');
     if (phCanvas) {
-        drawLineChart(phCanvas, 
-            ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-            [7.1, 7.2, 7.3, 7.2, 7.1, 7.2],
-            '#14B8A6',
-            'pH Level'
-        );
+        drawLineChart(phCanvas, labels, phData, '#14B8A6', 'pH Level');
     }
     
     // Turbidity Chart
     const turbidityCanvas = document.getElementById('turbidityChart');
     if (turbidityCanvas) {
-        drawBarChart(turbidityCanvas,
-            ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-            [2.1, 2.3, 2.5, 2.4, 2.2, 2.3],
-            '#38BDF8',
-            'Turbidity (NTU)'
-        );
+        drawBarChart(turbidityCanvas, labels, turbData, '#38BDF8', 'Turbidity (NTU)');
     }
     
     // Temperature Chart
     const tempCanvas = document.getElementById('temperatureChart');
     if (tempCanvas) {
-        drawLineChart(tempCanvas,
-            ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-            [23.5, 23.2, 24.1, 25.3, 24.8, 24.0],
-            '#14B8A6',
-            'Temperature (°C)'
-        );
+        drawLineChart(tempCanvas, labels, tempData, '#F59E0B', 'Temperature (°C)');
+    }
+    
+    // TDS Chart
+    const tdsCanvas = document.getElementById('tdsChart');
+    if (tdsCanvas) {
+        drawLineChart(tdsCanvas, labels, tdsData, '#8B5CF6', 'TDS (ppm)');
     }
     
     // Multi-parameter Chart
     const multiCanvas = document.getElementById('multiChart');
     if (multiCanvas) {
-        drawMultiLineChart(multiCanvas);
+        drawMultiLineChart(multiCanvas, labels, [
+            { data: phData, color: '#14B8A6', label: 'pH' },
+            { data: turbData, color: '#38BDF8', label: 'Turbidity' },
+            { data: tempData, color: '#F59E0B', label: 'Temp' },
+            { data: tdsData, color: '#8B5CF6', label: 'TDS' }
+        ]);
     }
 }
 
@@ -132,10 +133,10 @@ function drawLineChart(canvas, labels, data, color, label) {
     
     const maxValue = Math.max(...data);
     const minValue = Math.min(...data);
-    const valueRange = maxValue - minValue;
+    const valueRange = Math.max(maxValue - minValue, 0.1);
     const scaledMin = minValue - valueRange * 0.2;
     const scaledMax = maxValue + valueRange * 0.2;
-    const scaledRange = scaledMax - scaledMin;
+    const scaledRange = Math.max(scaledMax - scaledMin, 0.1);
     
     // Draw grid
     ctx.strokeStyle = '#f0f0f0';
@@ -177,7 +178,7 @@ function drawLineChart(canvas, labels, data, color, label) {
     
     // Draw area gradient
     const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
-    gradient.addColorStop(0, color + '80');
+    gradient.addColorStop(0, color + '40');
     gradient.addColorStop(1, color + '00');
     
     // Draw area
@@ -234,7 +235,7 @@ function drawBarChart(canvas, labels, data, color, label) {
     
     ctx.clearRect(0, 0, width, height);
     
-    const maxValue = Math.max(...data);
+    const maxValue = Math.max(...data, 1);
     const barWidth = chartWidth / data.length * 0.7;
     const barSpacing = chartWidth / data.length;
     
@@ -290,7 +291,7 @@ function drawBarChart(canvas, labels, data, color, label) {
     });
 }
 
-function drawMultiLineChart(canvas) {
+function drawMultiLineChart(canvas, labels, datasets) {
     const ctx = canvas.getContext('2d');
     const width = canvas.width = canvas.offsetWidth;
     const height = canvas.height = 300;
@@ -299,20 +300,13 @@ function drawMultiLineChart(canvas) {
     const chartWidth = width - padding * 2;
     const chartHeight = height - padding * 2;
     
-    const labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
-    const datasets = [
-        { data: [7.1, 7.2, 7.3, 7.2, 7.1, 7.2], color: '#14B8A6', label: 'pH' },
-        { data: [2.1, 2.3, 2.5, 2.4, 2.2, 2.3], color: '#38BDF8', label: 'Turbidity' },
-        { data: [23.5, 23.2, 24.1, 25.3, 24.8, 24.0], color: '#0F172A', label: 'Temp' }
-    ];
-    
     ctx.clearRect(0, 0, width, height);
     
     // Normalize data
     const normalizedData = datasets.map(dataset => {
         const min = Math.min(...dataset.data);
         const max = Math.max(...dataset.data);
-        const range = max - min;
+        const range = Math.max(max - min, 0.1);
         return {
             ...dataset,
             normalized: dataset.data.map(v => (v - min) / range)
@@ -384,6 +378,8 @@ function drawMultiLineChart(canvas) {
 }
 
 function roundRect(ctx, x, y, width, height, radius) {
+    if (height < 0) return; // Prevent negative heights
+    ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
     ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
@@ -392,9 +388,11 @@ function roundRect(ctx, x, y, width, height, radius) {
     ctx.quadraticCurveTo(x, y + height, x, y + height);
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
 }
 
 // Handle window resize for charts
 window.addEventListener('resize', function() {
     initializeCharts();
 });
+;

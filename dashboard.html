@@ -4,49 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AquaMonitor</title>
-    <link rel="icon" type="image/x-icon" href="/public/assets/images/tab-logo-icon.ico">
-
-    <link rel="stylesheet" href="/public/css/nav.css">
-    <link rel="stylesheet" href="/public/css/shared.css">
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/tab-logo-icon.ico">
+ 
+     <link rel="stylesheet" href="css/nav.css">
+     <link rel="stylesheet" href="css/shared.css">
+     <link rel="stylesheet" href="css/dashboard.css">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <script defer src="/public/js/dashboard.js"></script>
+    <script defer src="js/dashboard.js"></script>
+    <script defer src="js/components.js"></script>
 </head>
 <body>
     <!-- NAVIGATION -->
-    <nav class="navbar" id="navbar">
-        <div class="container">
-            <div class="nav-content">
-                <a href="index.html" class="logo">
-                    <div class="logo-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                        </svg>
-                    </div>
-                    <span class="logo-text">AquaMonitor</span>
-                </a>
-
-                <div class="nav-links" id="navLinks">
-                    <a href="/public/index.html" class="nav-link">Home</a>
-                    <a href="/public/dashboard.html" class="nav-link active">Dashboard</a>
-                    <a href="/public/about.html" class="nav-link">About</a>
-                    <a href="/public/research.html" class="nav-link">Research</a>
-                    <a href="/public/fountains.html" class="nav-link">Fountain Status</a>
-                    <a href="/public/contact.html" class="nav-link">Contact</a>
-                </div>
-
-                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </nav>
+    <nav class="navbar" id="navbar-placeholder"></nav>
 
     <!-- MAIN CONTENT -->
     <main class="page-content">
@@ -88,7 +61,7 @@
                     </div>
                     <h3>pH Level</h3>
                     <div class="card-value">
-                        <span class="value">7.2</span>
+                        <span class="value" id="val-ph">7.2</span>
                         <span class="unit">pH</span>
                     </div>
                     <div class="card-trend">
@@ -103,7 +76,7 @@
                     <div class="card-header">
                         <div class="card-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
                             </svg>
                         </div>
                         <div class="card-badge badge-safe">
@@ -116,7 +89,7 @@
                     </div>
                     <h3>Turbidity</h3>
                     <div class="card-value">
-                        <span class="value">2.3</span>
+                        <span class="value" id="val-ntu">2.3</span>
                         <span class="unit">NTU</span>
                     </div>
                     <div class="card-trend">
@@ -141,11 +114,34 @@
                     </div>
                     <h3>Temperature</h3>
                     <div class="card-value">
-                        <span class="value">24</span>
+                        <span class="value" id="val-temp">24.5</span>
                         <span class="unit">°C</span>
                     </div>
                     <div class="card-trend">
                         -0.5°C from peak
+                    </div>
+                </div>
+
+                <div class="dashboard-card card-safe">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span style="font-weight: 800; font-size: 1.25rem;">TDS</span>
+                        </div>
+                        <div class="card-badge badge-safe">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            Safe
+                        </div>
+                    </div>
+                    <h3>Total Dissolved Solids</h3>
+                    <div class="card-value">
+                        <span class="value" id="val-tds">125</span>
+                        <span class="unit">ppm</span>
+                    </div>
+                    <div class="card-trend">
+                        Optimal purity
                     </div>
                 </div>
             </div>
@@ -165,6 +161,11 @@
                 <div class="chart-card">
                     <h3>Temperature Monitoring</h3>
                     <canvas id="temperatureChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3>TDS Levels</h3>
+                    <canvas id="tdsChart"></canvas>
                 </div>
 
                 <div class="chart-card">
@@ -192,42 +193,17 @@
                         <p>Safe Range: 15°C - 30°C</p>
                         <p>Current: Optimal</p>
                     </div>
+                    <div class="standard-item">
+                        <h4>TDS (Total Dissolved Solids)</h4>
+                        <p>Safe Range: < 500 ppm</p>
+                        <p>Current: Excellent purity</p>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-col">
-                    <div class="footer-logo">
-                        <div class="logo-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                            </svg>
-                        </div>
-                        <span>AquaMonitor</span>
-                    </div>
-                    <p>ESP32-Based Water Quality Monitoring System with Web Analytics</p>
-                </div>
-
-                <div class="footer-col">
-                    <h3>University</h3>
-                    <p>Our Lady of Fatima University<br>Antipolo Campus</p>
-                </div>
-
-                <div class="footer-col">
-                    <h3>Contact</h3>
-                    <p>capstone@fatima.edu.ph</p>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; <span id="currentYear"></span> Our Lady of Fatima University. Capstone Project.</p>
-            </div>
-        </div>
-    </footer>
+    <footer class="footer" id="footer-placeholder"></footer>
 </body>
 </html>

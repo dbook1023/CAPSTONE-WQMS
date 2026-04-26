@@ -1,0 +1,101 @@
+/* about.css */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.about-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+}
+
+.about-card h2 {
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.about-card h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+.primary-card {
+    background: var(--primary);
+    color: white;
+}
+
+.primary-card h2 {
+    color: white;
+}
+
+.mission-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mission-icon {
+    flex-shrink: 0;
+    color: var(--secondary);
+}
+
+.mission-item p {
+    color: #CBD5E1;
+    margin: 0;
+}
+
+.university-section {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.uni-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.uni-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.uni-stat {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.stat-num {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.stat-txt {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .about-grid, .uni-grid {
+        grid-template-columns: 1fr;
+    }
+}

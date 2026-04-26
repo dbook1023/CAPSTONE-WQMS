@@ -4,49 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - AquaMonitor</title>
-    <link rel="icon" type="image/x-icon" href="/public/assets/images/tab-logo-icon.ico">
-
-    <link rel="stylesheet" href="/public/css/nav.css">
-    <link rel="stylesheet" href="/public/css/shared.css">
-    <link rel="stylesheet" href="/public/css/contact.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/tab-logo-icon.ico">
+ 
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/contact.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <script defer src="/public/js/contact.js"></script>
+    <script defer src="js/contact.js"></script>
+    <script defer src="js/components.js"></script>
 </head>
 <body>
     <!-- NAVIGATION -->
-    <nav class="navbar" id="navbar">
-        <div class="container">
-            <div class="nav-content">
-                <a href="index.html" class="logo">
-                    <div class="logo-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                        </svg>
-                    </div>
-                    <span class="logo-text">AquaMonitor</span>
-                </a>
-
-                <div class="nav-links" id="navLinks">
-                    <a href="/public/index.html" class="nav-link">Home</a>
-                    <a href="/public/dashboard.html" class="nav-link active">Dashboard</a>
-                    <a href="/public/about.html" class="nav-link">About</a>
-                    <a href="/public/research.html" class="nav-link">Research</a>
-                    <a href="/public/fountains.html" class="nav-link">Fountain Status</a>
-                    <a href="/public/contact.html" class="nav-link">Contact</a>
-                </div>
-
-                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
-    </nav>
+    <nav class="navbar" id="navbar-placeholder"></nav>
 
 
     <!-- MAIN CONTENT -->
@@ -224,38 +197,8 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-col">
-                    <div class="footer-logo">
-                        <div class="logo-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                            </svg>
-                        </div>
-                        <span>AquaMonitor</span>
-                    </div>
-                    <p>ESP32-Based Water Quality Monitoring System with Web Analytics</p>
-                </div>
+    <footer class="footer" id="footer-placeholder"></footer>
 
-                <div class="footer-col">
-                    <h3>University</h3>
-                    <p>Our Lady of Fatima University<br>Antipolo Campus</p>
-                </div>
-
-                <div class="footer-col">
-                    <h3>Contact</h3>
-                    <p>capstone@fatima.edu.ph</p>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; <span id="currentYear"></span> Our Lady of Fatima University. Capstone Project.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="contact.js"></script>
+    <script src="js/contact.js"></script>
 </body>
 </html>
