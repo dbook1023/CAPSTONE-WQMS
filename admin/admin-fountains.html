@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fountain Status - Aqua Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="admin-css/admin-shared.css">
+    <link rel="stylesheet" href="admin-css/admin-sidebar.css">
+    <link rel="stylesheet" href="admin-css/admin-fountains.css">
+
+    <script defer src="admin-js/admin-fountains.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR-->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div class="logo-text">
+                <span class="brand-name">Admin Panel</span>
+                <span class="brand-subtitle">Aqua Monitor</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="admin-dashboard.html" class="nav-item" data-label="Dashboard">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="admin-fountains.html" class="nav-item active" data-label="Fountain Status">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+            <span class="nav-label">Fountain Status</span>
+        </a>
+        <a href="admin-alerts.html" class="nav-item" data-label="Alerts">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+            <span class="nav-label">Alerts</span>
+        </a>
+        <a href="admin-users.html" class="nav-item" data-label="User Management">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="nav-label">User Management</span>
+        </a>
+        <a href="admin-reports.html" class="nav-item" data-label="Reports">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+            <span class="nav-label">Reports</span>
+        </a>
+        <a href="admin-settings.html" class="nav-item" data-label="Settings">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+            <span class="nav-label">Settings</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile-card">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <div class="user-name">Admin User</div>
+                <div class="user-email">admin@olfu.edu.ph</div>
+            </div>
+        </div>
+        <a href="#" class="nav-item logout-item" data-label="Logout">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+            <span class="nav-label">Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content" id="mainContent">
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <div class="header-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="header-titles">
+                <h1>Fountain Status Monitor</h1>
+                <p>Manage and monitor all drinking fountains</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost" id="refreshBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Refresh All
+            </button>
+            <button class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="search-bar-wrap">
+        <div class="search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Search fountains by name, location, or ID..." />
+        </div>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- STATS -->
+        <div class="stat-grid">
+            <!-- ONLINE INDICATOR -->
+            <div class="stat-card green">
+                <div class="stat-card-top">
+                    <div class="stat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-badge">Active</div>
+                </div>
+                <div class="stat-label">Online Fountains</div>
+                <div class="stat-value">2</div>
+                <div class="stat-sub">All systems operational</div>
+            </div>
+
+            <!-- WARNING INDICATOR -->
+            <div class="stat-card orange">
+                <div class="stat-card-top">
+                    <div class="stat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="stat-badge">Attention</div>
+                </div>
+                <div class="stat-label">Warning Status</div>
+                <div class="stat-value">1</div>
+                <div class="stat-sub">Requires monitoring</div>
+            </div>
+
+            <!-- OFFLINE INDICATOR -->
+            <div class="stat-card red">
+                <div class="stat-card-top">
+                    <div class="stat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <div class="stat-badge">Critical</div>
+                </div>
+                <div class="stat-label">Offline Fountains</div>
+                <div class="stat-value">1</div>
+                <div class="stat-sub">Immediate action needed</div>
+            </div>
+        </div>
+
+        <!-- FOUNTAIN CARDS -->
+        <div class="fountains-grid" id="fountainsGrid">
+
+            <!-- F001 – SPCB Building -->
+            <div class="fountain-card" data-name="SPCB Building" data-location="Near Main Entrance" data-id="F001">
+                <div class="fc-top">
+                    <span class="fc-id">F001</span>
+                    <span class="fc-badge online">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Online
+                    </span>
+                </div>
+                <div class="fc-title">SPCB Building</div>
+                <div class="fc-location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Near Main Entrance
+                </div>
+                <div class="fc-metrics">
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">pH Level</div>
+                        <div class="fc-metric-value">7.2</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Turbidity</div>
+                        <div class="fc-metric-value teal">2.3 NTU</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Temp</div>
+                        <div class="fc-metric-value teal">24°C</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">TDS</div>
+                        <div class="fc-metric-value teal">125 ppm</div>
+                    </div>
+                </div>
+                <hr class="fc-divider">
+                <div class="fc-updated">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Last updated: 2 minutes ago
+                </div>
+                <div class="fc-bottom">
+                    <div class="fc-monitoring">
+                        Monitoring:
+                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
+                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <span class="monitoring-status enabled">Enabled</span>
+                    </div>
+                    <button class="configure-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Configure
+                    </button>
+                </div>
+            </div>
+
+            <!-- F002 – JSB Building (WARNING) -->
+            <div class="fountain-card" data-name="JSB Building" data-location="2nd Floor Lab Area" data-id="F002">
+                <div class="fc-top">
+                    <span class="fc-id">F002</span>
+                    <span class="fc-badge warning">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Warning
+                    </span>
+                </div>
+                <div class="fc-title">JSB Building</div>
+                <div class="fc-location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    1st Floor Area
+                </div>
+                <div class="fc-metrics">
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">pH Level</div>
+                        <div class="fc-metric-value">6.8</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Turbidity</div>
+                        <div class="fc-metric-value teal">4.2 NTU</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Temp</div>
+                        <div class="fc-metric-value teal">26°C</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">TDS</div>
+                        <div class="fc-metric-value warning">450 ppm</div>
+                    </div>
+                </div>
+                <hr class="fc-divider">
+                <div class="fc-updated">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Last updated: 3 minutes ago
+                </div>
+                <div class="fc-bottom">
+                    <div class="fc-monitoring">
+                        Monitoring:
+                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
+                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <span class="monitoring-status enabled">Enabled</span>
+                    </div>
+                    <button class="configure-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Configure
+                    </button>
+                </div>
+            </div>
+
+            <!-- F003 – Canteen Area -->
+            <div class="fountain-card" data-name="Canteen Area" data-location="Main Dining Area" data-id="F003">
+                <div class="fc-top">
+                    <span class="fc-id">F003</span>
+                    <span class="fc-badge online">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Online
+                    </span>
+                </div>
+                <div class="fc-title">Canteen Area</div>
+                <div class="fc-location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Near Food Canteen
+                </div>
+                <div class="fc-metrics">
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">pH Level</div>
+                        <div class="fc-metric-value">7.2</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Turbidity</div>
+                        <div class="fc-metric-value teal">2.0 NTU</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">Temp</div>
+                        <div class="fc-metric-value teal">23°C</div>
+                    </div>
+                    <div class="fc-metric">
+                        <div class="fc-metric-label">TDS</div>
+                        <div class="fc-metric-value teal">110 ppm</div>
+                    </div>
+                </div>
+                <hr class="fc-divider">
+                <div class="fc-updated">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Last updated: 2 minutes ago
+                </div>
+                <div class="fc-bottom">
+                    <div class="fc-monitoring">
+                        Monitoring:
+                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
+                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <span class="monitoring-status enabled">Enabled</span>
+                    </div>
+                    <button class="configure-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Configure
+                    </button>
+                </div>
+            </div>
+
+            <!-- F004 – SCH Court (OFFLINE) -->
+            <div class="fountain-card" data-name="SCH Court" data-location="Gymnasium Entrance" data-id="F007">
+                <div class="fc-top">
+                    <span class="fc-id">F004</span>
+                    <span class="fc-badge offline">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        Offline
+                    </span>
+                </div>
+                <div class="fc-title">SCH Court</div>
+                <div class="fc-location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Near SCH Court
+                </div>
+                <div class="fc-offline-banner">
+                    This fountain is currently offline. No data available.
+                </div>
+                <hr class="fc-divider">
+                <div class="fc-updated">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Last updated: 2 hours ago
+                </div>
+                <div class="fc-bottom">
+                    <div class="fc-monitoring">
+                        Monitoring:
+                        <div class="toggle-wrap disabled">
+                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                        </div>
+                        <span class="monitoring-status disabled">Disabled</span>
+                    </div>
+                    <button class="configure-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Configure
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /fountains-grid -->
+
+        <!-- STATUS LEGEND -->
+        <div class="legend-section">
+            <h3>Status Legend &amp; Actions</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-icon green">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="legend-text">
+                        <h4>Online</h4>
+                        <p>All parameters within safe limits. Water quality is good.</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon orange">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="legend-text">
+                        <h4>Warning</h4>
+                        <p>One or more parameters approaching threshold limits.</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon red">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <div class="legend-text">
+                        <h4>Offline</h4>
+                        <p>System not responding. Maintenance required.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-body -->
+</main>
+</body>
+</html>

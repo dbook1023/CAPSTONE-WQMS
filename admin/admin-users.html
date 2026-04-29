@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Aqua Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="admin-css/admin-shared.css">
+    <link rel="stylesheet" href="admin-css/admin-users.css">
+    <link rel="stylesheet" href="admin-css/admin-sidebar.css">
+
+    <script defer src="admin-js/admin-users.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR-->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div class="logo-text">
+                <span class="brand-name">Admin Panel</span>
+                <span class="brand-subtitle">Aqua Monitor</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="admin-dashboard.html" class="nav-item" data-label="Dashboard">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="admin-fountains.html" class="nav-item" data-label="Fountain Status">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
+            <span class="nav-label">Fountain Status</span>
+        </a>
+        <a href="admin-alerts.html" class="nav-item" data-label="Alerts">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+            <span class="nav-label">Alerts</span>
+        </a>
+        <a href="admin-users.html" class="nav-item active" data-label="User Management">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="nav-label">User Management</span>
+        </a>
+        <a href="admin-reports.html" class="nav-item" data-label="Reports">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+            <span class="nav-label">Reports</span>
+        </a>
+        <a href="admin-settings.html" class="nav-item" data-label="Settings">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+            <span class="nav-label">Settings</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile-card">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <div class="user-name">Admin User</div>
+                <div class="user-email">admin@olfu.edu.ph</div>
+            </div>
+        </div>
+        <a href="#" class="nav-item logout-item" data-label="Logout">
+            <div class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+            <span class="nav-label">Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="top-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div><div class="header-title">User Management</div><div class="header-sub">Manage system users and permissions</div></div>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('open')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Add User
+        </button>
+    </div>
+
+    <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search users by name or email...">
+    </div>
+
+    <div class="page-body">
+
+        <!-- ROLE CARDS -->
+        <div class="role-grid">
+            <div class="role-card purple">
+                <div class="role-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="role-label">Administrators</div>
+                <div class="role-count">1</div>
+                <div class="role-sub">Full system access</div>
+            </div>
+            <div class="role-card teal">
+                <div class="role-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="role-label">Operators</div>
+                <div class="role-count">2</div>
+                <div class="role-sub">Can modify settings</div>
+            </div>
+            <div class="role-card slate">
+                <div class="role-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="role-label">Viewers</div>
+                <div class="role-count">2</div>
+                <div class="role-sub">Read-only access</div>
+            </div>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="table-wrap">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Last Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-search="admin user admin@olfu.edu.ph u001">
+                        <td><div class="user-cell"><div class="user-av">AU</div><div><div class="user-display-name">Admin User</div><div class="user-id">U001</div></div></div></td>
+                        <td><div class="email-cell"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>admin@olfu.edu.ph</div></td>
+                        <td><span class="role-badge admin">Admin</span></td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td>2 minutes ago</td>
+                        <td><button class="actions-btn">⋮</button></td>
+                    </tr>
+                    <tr data-search="john doe john.doe@olfu.edu.ph u002 operator">
+                        <td><div class="user-cell"><div class="user-av">JD</div><div><div class="user-display-name">John Doe</div><div class="user-id">U002</div></div></div></td>
+                        <td><div class="email-cell"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>john.doe@olfu.edu.ph</div></td>
+                        <td><span class="role-badge operator">Operator</span></td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td>1 hour ago</td>
+                        <td><button class="actions-btn">⋮</button></td>
+                    </tr>
+                    <tr data-search="jane smith jane.smith@olfu.edu.ph u003 operator">
+                        <td><div class="user-cell"><div class="user-av">JS</div><div><div class="user-display-name">Jane Smith</div><div class="user-id">U003</div></div></div></td>
+                        <td><div class="email-cell"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>jane.smith@olfu.edu.ph</div></td>
+                        <td><span class="role-badge operator">Operator</span></td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td>3 hours ago</td>
+                        <td><button class="actions-btn">⋮</button></td>
+                    </tr>
+                    <tr data-search="bob wilson bob.wilson@olfu.edu.ph u004 viewer">
+                        <td><div class="user-cell"><div class="user-av">BW</div><div><div class="user-display-name">Bob Wilson</div><div class="user-id">U004</div></div></div></td>
+                        <td><div class="email-cell"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>bob.wilson@olfu.edu.ph</div></td>
+                        <td><span class="role-badge viewer">Viewer</span></td>
+                        <td><span class="status-badge active">Active</span></td>
+                        <td>1 day ago</td>
+                        <td><button class="actions-btn">⋮</button></td>
+                    </tr>
+                    <tr data-search="alice johnson alice.johnson@olfu.edu.ph u005 viewer inactive">
+                        <td><div class="user-cell"><div class="user-av">AJ</div><div><div class="user-display-name">Alice Johnson</div><div class="user-id">U005</div></div></div></td>
+                        <td><div class="email-cell"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>alice.johnson@olfu.edu.ph</div></td>
+                        <td><span class="role-badge viewer">Viewer</span></td>
+                        <td><span class="status-badge inactive">Inactive</span></td>
+                        <td>1 week ago</td>
+                        <td><button class="actions-btn">⋮</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal">
+        <h2>Add New User</h2>
+        <p>Fill in the details to create a new user account.</p>
+        <div class="form-row">
+            <div class="form-group"><label>First Name</label><input type="text" placeholder="e.g. John"></div>
+            <div class="form-group"><label>Last Name</label><input type="text" placeholder="e.g. Doe"></div>
+        </div>
+        <div class="form-group"><label>Email Address</label><input type="email" placeholder="user@olfu.edu.ph"></div>
+        <div class="form-group">
+            <label>Role</label>
+            <select>
+                <option>Select a role...</option>
+                <option>Admin</option>
+                <option>Operator</option>
+                <option>Viewer</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
+            <button class="btn btn-primary">Create User</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -159,7 +159,7 @@ function drawLineChart(canvas, labels, data, color, label) {
     ctx.stroke();
     
     // Draw labels
-    ctx.fillStyle = '#6B7280';
+    ctx.fillStyle = '#9CA3AF';
     ctx.font = '12px Inter';
     ctx.textAlign = 'center';
     

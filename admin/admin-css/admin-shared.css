@@ -1,0 +1,25 @@
+:root {
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 72px;
+    --sidebar-bg: #111827;
+    --sidebar-border: rgba(255, 255, 255, 0.05);
+    --accent-teal: #14B8A6;
+    --accent-cyan: #22D3EE;
+    --text-muted: #9CA3AF;
+    --active-bg: #14B8A6;
+    --bg: #f0f4f8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    display: flex;
+    min-height: 100vh;
+    color: #1e293b;
+}
