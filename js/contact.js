@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', function() {
     // Scroll animations
     setupScrollAnimations();
 });
@@ -7,7 +8,7 @@ function setupScrollAnimations() {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
+
     const observer = new IntersectionObserver(function(entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -16,9 +17,9 @@ function setupScrollAnimations() {
             }
         });
     }, observerOptions);
-    
+
     const animatedElements = document.querySelectorAll('.team-card, .adviser-card');
-    
+
     animatedElements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';

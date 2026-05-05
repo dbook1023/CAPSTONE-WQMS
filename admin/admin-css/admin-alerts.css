@@ -1,94 +1,13 @@
 .main-content {
     margin-left: var(--sidebar-width);
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background: white;
 }
 
-.top-header {
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #e2e8f0;
-    background: white;
-    flex-shrink: 0;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.header-icon-box {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.3);
-    flex-shrink: 0;
-}
-
-.header-titles h1 {
-    font-family: 'Poppins', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.2;
-}
-
-.header-titles p {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: 1px;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-    font-family: 'Inter', sans-serif;
-}
-
-.btn-ghost {
-    background: transparent;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-}
-
-.btn-ghost:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-}
-
-.btn-primary {
-    background: var(--accent-teal);
-    color: white;
-    border: 1px solid transparent;
-}
-
-.btn-primary:hover {
-    background: #0d9488;
-}
 
 .search-bar-wrap {
     padding: 14px 32px;
@@ -165,8 +84,8 @@
 }
 
 .stat-icon {
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
     background: rgba(255, 255, 255, 0.22);
     border-radius: 12px;
     display: flex;
@@ -198,6 +117,9 @@
     display: flex;
     align-items: center;
     gap: 0;
+    max-width: 100%;
+    overflow: hidden;
+    flex-wrap: wrap;
     background: white;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
@@ -210,8 +132,8 @@
     border-radius: 7px;
     border: none;
     background: transparent;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
     color: #64748b;
     cursor: pointer;
     transition: all 0.18s;
@@ -271,7 +193,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
     margin-top: 2px;
 }
 
@@ -382,16 +303,15 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 9px 18px;
+    padding: 6px 10px;
     border-radius: 9px;
     background: var(--accent-teal);
     color: white;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     border: none;
     cursor: pointer;
     white-space: nowrap;
-    flex-shrink: 0;
     font-family: 'Inter', sans-serif;
     transition: background 0.2s;
     align-self: center;
@@ -411,4 +331,81 @@
 /* Hidden state for filter */
 .alert-card.hidden {
     display: none;
+}
+
+/* ══════════════════════════════════════════ */
+/* RESPONSIVE DESIGN - MOBILE & TABLET       */
+/* ══════════════════════════════════════════ */
+
+/* MOBILE (< 768px) */
+@media (max-width: 767px) {
+    .main-content {
+        margin-left: 0;
+    }
+
+
+    .search-bar-wrap {
+        padding: 12px 16px;
+    }
+
+    .page-body {
+        padding: 16px;
+    }
+
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+        font-size: 36px;
+    }
+
+    .alert-card {
+        padding: 16px;
+        flex-direction: column;
+    }
+
+    .resolve-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .alert-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* TABLET (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .main-content {
+        margin-left: var(--sidebar-collapsed-width);
+    }
+
+    .top-header {
+        padding: 12px 16px;
+    }
+
+    .search-bar-wrap {
+        padding: 12px 24px;
+    }
+
+    .page-body {
+        padding: 20px 24px;
+    }
+
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-value {
+        font-size: 40px;
+    }
+}
+
+/* DESKTOP (> 1024px) */
+@media (min-width: 1024px) {
+    .stat-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }

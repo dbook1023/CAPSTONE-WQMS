@@ -1,0 +1,74 @@
+/* ── ADMIN AUTH OVERRIDES ── */
+
+.auth-side-form {
+    background: radial-gradient(circle at top right, #0f172a 0%, #020617 100%); /* Deep midnight background */
+}
+
+.auth-form-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.auth-form-header h2 {
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+.auth-form-header p {
+    color: #94A3B8;
+}
+
+.form-group label {
+    color: #CBD5E1;
+    font-weight: 500;
+}
+
+.form-control {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: #10b981; /* Emerald accent */
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.form-control::placeholder {
+    color: #475569;
+}
+
+.admin-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald Gradient */
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.4);
+}
+
+.auth-back-link span {
+    color: #64748B;
+}
+
+.auth-back-link a {
+    color: #10b981;
+}
+
+.forgot-password {
+    color: #10b981;
+}
+
+.input-icon {
+    color: #64748B;
+}

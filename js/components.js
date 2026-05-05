@@ -39,6 +39,9 @@ function initNavbar() {
         }
     });
 
+    // Update Auth UI
+    updateAuthUI();
+
     // Mobile menu toggle
     if (mobileMenuBtn && navLinksContainer) {
         mobileMenuBtn.addEventListener('click', function(e) {
@@ -79,4 +82,40 @@ function initFooter() {
     if (yearEl) {
         yearEl.textContent = new Date().getFullYear();
     }
+}
+
+/**
+ * Update Auth UI in Navbar
+ */
+function updateAuthUI() {
+    const navAuth = document.getElementById('navAuth');
+    if (!navAuth) return;
+
+    const session = localStorage.getItem('aqua_monitor_session');
+    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+    const pathPrefix = isInSubdir ? '../' : '';
+
+    if (session) {
+        const user = JSON.parse(session);
+        const dashboardPath = user.role === 'admin' ? 'admin/admin-dashboard.html' : 'user/user-dashboard.html';
+        const finalDashboardPath = isInSubdir ? (window.location.pathname.includes(user.role) ? '#' : pathPrefix + dashboardPath) : dashboardPath;
+        
+        navAuth.innerHTML = `
+            <a href="${finalDashboardPath}" class="nav-link" style="font-weight: 500;">Dashboard</a>
+            <button onclick="handleGlobalLogout()" class="btn-login" style="background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);">Logout</button>
+        `;
+    } else {
+        navAuth.innerHTML = `
+            <a href="${pathPrefix}login.html" class="btn-login">Sign In</a>
+        `;
+    }
+}
+
+/**
+ * Global Logout Handler
+ */
+function handleGlobalLogout() {
+    localStorage.removeItem('aqua_monitor_session');
+    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+    window.location.href = isInSubdir ? '../index.html' : 'index.html';
 }

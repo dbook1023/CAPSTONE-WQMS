@@ -199,6 +199,7 @@
     padding: 2rem;
     color: white;
     box-shadow: var(--shadow-xl);
+    margin-bottom: 3rem;
 }
 
 .adviser-icon {
@@ -248,17 +249,21 @@
 .adviser-content h4 {
     color: white;
     font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .adviser-title {
     color: #D1D5DB;
     margin-bottom: 0.75rem;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
 .adviser-desc {
     color: #9CA3AF;
     margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 
