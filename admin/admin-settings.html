@@ -62,6 +62,10 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                 System
             </button>
+            <button class="stab" data-tab="profile" onclick="switchTab(this,'profile')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile
+            </button>
         </div>
 
         <!-- THRESHOLDS TAB -->
@@ -262,6 +266,53 @@
                     <div class="toggle-row">
                         <div class="toggle-info"><h4>Debug Logging</h4><p>Enable verbose logs for troubleshooting</p></div>
                         <div class="toggle-wrap" onclick="this.classList.toggle('on')"><div class="toggle-track"><div class="toggle-thumb"></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFILE TAB -->
+            <div class="tab-panel" id="panel-profile">
+                <div class="settings-card">
+                    <h3>Account Profile</h3>
+                    <div class="profile-upload-section">
+                        <div class="profile-preview-container">
+                            <img src="../assets/images/default-avatar.png" alt="Profile Preview" id="profilePreview" class="profile-preview-img">
+                            <div class="upload-overlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                            <input type="file" id="profileUpload" accept="image/*" class="profile-file-input">
+                        </div>
+                        <div class="profile-upload-info">
+                            <h4>Profile Picture</h4>
+                            <p>Upload a new profile picture. Recommended size: 256x256px.</p>
+                            <div class="upload-actions">
+                                <button class="btn btn-primary" onclick="document.getElementById('profileUpload').click()">
+                                    Change Photo
+                                </button>
+                                <button class="btn btn-ghost" onclick="removeProfilePhoto()">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-grid" style="margin-top: 32px;">
+                        <div class="field-group">
+                            <div class="field-label">Full Name</div>
+                            <input class="field-input" type="text" value="Admin User">
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Email Address</div>
+                            <input class="field-input" type="email" value="admin@olfu.edu.ph">
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Job Title</div>
+                            <input class="field-input" type="text" value="System Administrator">
+                        </div>
+                        <div class="field-group">
+                            <div class="field-label">Employee ID</div>
+                            <input class="field-input" type="text" value="OLFU-ADM-2025" readonly>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -74,7 +74,30 @@
             <div class="tab-panel active" id="panel-profile">
                 <div class="settings-card">
                     <h3>Personal Information</h3>
-                    <div class="field-grid">
+                    
+                    <div class="profile-upload-section">
+                        <div class="profile-preview-container">
+                            <img src="../assets/images/default-avatar.png" alt="Profile Preview" id="profilePreview" class="profile-preview-img">
+                            <div class="upload-overlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                            <input type="file" id="profileUpload" accept="image/*" class="profile-file-input">
+                        </div>
+                        <div class="profile-upload-info">
+                            <h4>Profile Picture</h4>
+                            <p>Upload a new profile picture. Recommended size: 256x256px.</p>
+                            <div class="upload-actions">
+                                <button class="btn btn-primary" onclick="document.getElementById('profileUpload').click()">
+                                    Change Photo
+                                </button>
+                                <button class="btn btn-ghost" onclick="removeProfilePhoto()">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-grid" style="margin-top: 32px;">
                         <div class="field-group">
                             <div class="field-label">Full Name</div>
                             <input class="field-input" type="text" value="John Doe">

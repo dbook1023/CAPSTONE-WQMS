@@ -87,9 +87,9 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--primary);
 }
 
-h1 { font-size: 2.5rem; font-weight: 700; }
-h2 { font-size: 2rem; font-weight: 600; }
-h3 { font-size: 1.5rem; font-weight: 600; }
+h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; }
+h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 600; }
+h3 { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 600; }
 
 p { 
     margin-bottom: 1rem; 
@@ -108,7 +108,7 @@ ul { list-style: none; }
 .page-hero {
     background: linear-gradient(135deg, var(--primary), #1E293B);
     color: white;
-    padding: 5rem 0;
+    padding: clamp(3rem, 10vw, 5rem) 0;
     text-align: center;
 }
 
@@ -134,14 +134,14 @@ ul { list-style: none; }
 }
 
 .page-hero p {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
     color: #D1D5DB;
     max-width: 48rem;
     margin: 0 auto;
 }
 
 .page-content {
-    padding: 5rem 0;
+    padding: clamp(2rem, 8vw, 5rem) 0;
     min-height: calc(100vh - 4rem);
 }
 

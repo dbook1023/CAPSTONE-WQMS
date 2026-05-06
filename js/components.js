@@ -4,8 +4,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadComponent('navbar-placeholder', 'components/navbar.html', initNavbar);
-    loadComponent('footer-placeholder', 'components/footer.html', initFooter);
+    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+    const pathPrefix = isInSubdir ? '../' : '';
+    
+    loadComponent('navbar-placeholder', pathPrefix + 'components/navbar.html', initNavbar);
+    loadComponent('footer-placeholder', pathPrefix + 'components/footer.html', initFooter);
 });
 
 async function loadComponent(id, path, callback) {
