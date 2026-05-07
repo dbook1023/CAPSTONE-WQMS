@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Aqua Monitor</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../assets/css/user/user-shared.css">
+    <link rel="stylesheet" href="../assets/css/user/user-sidebar.css">
+    
+    <!-- Page Specific Styles -->
+    <link rel="stylesheet" href="../assets/css/user/user-dashboard.css">
+    
+    <!-- Scripts -->
+    <script defer src="../assets/js/user/user-shared.js"></script>
+    <script defer src="../assets/js/user/user-dashboard.js"></script>
+</head>
+<body>
+
+<div id="sidebarMount"></div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay"></div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content" id="mainContent">
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="header-left">
+            <div class="header-titles">
+                <h1 class="header-title">My Dashboard</h1>
+                <p class="header-sub">Personalized monitoring based on PNSDW AO 2017-0010</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost" id="refreshBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <span>Refresh Data</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- LAST UPDATED BAR -->
+    <div class="last-updated-bar">
+        <div class="status-dot"></div>
+        <span id="lastUpdatedBar">Live updates enabled</span>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- METRIC CARDS -->
+        <div class="metric-grid">
+            <!-- pH Level -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    </div>
+                    <div class="safe-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Safe
+                    </div>
+                </div>
+                <div class="metric-label">pH Level</div>
+                <div class="metric-value">7.2<span class="metric-unit">pH</span></div>
+                <div class="metric-trend">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    Within safe range
+                </div>
+            </div>
+
+            <!-- TURBIDITY -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    </div>
+                    <div class="safe-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Excellent
+                    </div>
+                </div>
+                <div class="metric-label">Turbidity</div>
+                <div class="metric-value">2.3<span class="metric-unit">NTU</span></div>
+                <div class="metric-trend">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    Crystal clear
+                </div>
+            </div>
+
+            <!-- TEMPERATURE -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                    </div>
+                    <div class="safe-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Optimal
+                    </div>
+                </div>
+                <div class="metric-label">Temperature</div>
+                <div class="metric-value">24<span class="metric-unit">°C</span></div>
+                <div class="metric-trend">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+                    Perfect for drinking
+                </div>
+            </div>
+
+            <!-- TDS -->
+            <div class="metric-card">
+                <div class="metric-card-top">
+                    <div class="metric-icon">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 3h15M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3M6 14h12"/></svg>
+                    </div>
+                    <div class="safe-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Pure
+                    </div>
+                </div>
+                <div class="metric-label">TDS</div>
+                <div class="metric-value">125<span class="metric-unit">ppm</span></div>
+                <div class="metric-trend">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Excellent purity level
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS ROW -->
+        <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>pH Level Trend</h3>
+                    <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #14B8A6;"></div>
+                </div>
+                <div class="chart-wrap"><canvas id="phChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Turbidity Levels</h3>
+                    <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8;"></div>
+                </div>
+                <div class="chart-wrap"><canvas id="turbidityChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Temperature History</h3>
+                    <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                </div>
+                <div class="chart-wrap"><canvas id="tempChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>TDS Purity Analysis</h3>
+                    <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></div>
+                </div>
+                <div class="chart-wrap"><canvas id="tdsChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- TREND ANALYSIS SECTION -->
+        <div class="trend-section">
+            <div class="section-title-wrap">
+                <h2>Weekly Trend Insights</h2>
+                <span class="trend-period">Analytics for May 1 - May 7</span>
+            </div>
+            
+            <div class="trend-insights-grid">
+                <div class="insight-card">
+                    <div class="insight-icon" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="insight-info">
+                        <h4>Water Quality</h4>
+                        <div class="insight-value">Highly Safe</div>
+                        <p>Consistency is 15% better than last week</p>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon" style="background: rgba(56, 189, 248, 0.1); color: #38BDF8;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    </div>
+                    <div class="insight-info">
+                        <h4>Purity Level</h4>
+                        <div class="insight-value">99.1%</div>
+                        <p>Based on TDS/Turbidity average</p>
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    </div>
+                    <div class="insight-info">
+                        <h4>Health Impact</h4>
+                        <div class="insight-value">Optimal</div>
+                        <p>Ideal mineral balance for hydration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WATER QUALITY STANDARDS -->
+        <div class="standards-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0;">Water Quality Standards</h2>
+                <span style="font-size: 11px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Ref: PNSDW AO 2017-0010</span>
+            </div>
+            <div class="standards-grid">
+                <div class="standard-card">
+                    <h4>pH Level</h4>
+                    <p>Safe Range: 6.5 - 8.5 pH<br>Current: Within safe limits</p>
+                </div>
+                <div class="standard-card">
+                    <h4>Turbidity</h4>
+                    <p>Safe Range: &lt; 5 NTU<br>Current: Excellent clarity</p>
+                </div>
+                <div class="standard-card">
+                    <h4>Temperature</h4>
+                    <p>Safe Range: 15°C - 30°C<br>Current: Optimal</p>
+                </div>
+                <div class="standard-card">
+                    <h4>TDS</h4>
+                    <p>Safe Range: &lt; 500 ppm<br>Current: Excellent purity</p>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-body -->
+
+</main>
+
+</body>
+</html>

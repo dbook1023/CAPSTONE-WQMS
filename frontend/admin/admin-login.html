@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Login - Aqua Monitor</title>
-    <link rel="icon" type="image/x-icon" href="frontend/assets/images/tab-logo-icon.ico">
+    <title>Admin Login - Aqua Monitor</title>
+    <link rel="icon" type="image/x-icon" href="../assets/images/tab-logo-icon.ico">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,12 +15,13 @@
         rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="frontend/assets/css/shared/shared.css">
-    <link rel="stylesheet" href="frontend/assets/css/shared/auth.css">
+    <link rel="stylesheet" href="../assets/css/shared/shared.css">
+    <link rel="stylesheet" href="../assets/css/shared/auth.css">
+    <link rel="stylesheet" href="../assets/css/admin/admin-auth.css">
 
     <!-- Scripts -->
-    <script defer src="frontend/assets/js/shared/utils.js"></script>
-    <script defer src="frontend/assets/js/shared/auth.js"></script>
+    <script defer src="../assets/js/shared/utils.js"></script>
+    <script defer src="../assets/js/shared/auth.js"></script>
 </head>
 
 <body>
@@ -29,7 +30,7 @@
         <!-- LEFT SIDE: IMAGE -->
         <div class="auth-side-image">
             <video autoplay muted loop playsinline class="auth-video-bg">
-                <source src="frontend/assets/images/bg-video.mp4" type="video/mp4">
+                <source src="../assets/images/bg-video.mp4" type="video/mp4">
             </video>
             <div class="auth-side-overlay"></div>
 
@@ -41,9 +42,9 @@
                 <span>Aqua Monitor</span>
             </div>
             <div class="auth-side-content">
-                <h1>Safe Water for the School Campus.</h1>
-                <p>Access real-time water quality analytics and fountain status across the university facilities for the
-                    engineering department maintenance team.</p>
+                <h1>Campus Management Portal.</h1>
+                <p>Secure access for managing school water quality of drinking fountains, sensor calibration, and
+                    facility permissions.</p>
             </div>
             <div class="auth-side-footer">
                 <p style="font-size: 0.8125rem; color: rgba(255,255,255,0.6);">© 2026 Aqua Monitor. All rights reserved.
@@ -55,29 +56,28 @@
         <div class="auth-side-form">
             <div class="auth-form-card">
                 <div class="auth-form-header">
-                    <h2>Staff Sign In</h2>
-                    <p>Welcome back! Please enter your details to access the maintenance portal.</p>
+                    <h2>Admin Login</h2>
+                    <p>Please enter your administrator credentials.</p>
                 </div>
 
-                <form id="loginForm" onsubmit="handleLogin(event, 'user')">
+                <form id="adminLoginForm" onsubmit="handleLogin(event, 'admin')">
                     <div class="form-group">
-                        <label for="email">Email Address</label>
+                        <label for="adminEmail">Admin ID / Email</label>
                         <div class="input-wrapper">
                             <span class="input-icon">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path
-                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                    </path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
                                 </svg>
                             </span>
-                            <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                            <input type="text" id="adminEmail" class="form-control" placeholder="Admin identifier"
+                                required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Password</label>
+                        <label for="adminPassword">Password</label>
                         <div class="input-wrapper">
                             <span class="input-icon">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -86,8 +86,9 @@
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                 </svg>
                             </span>
-                            <input type="password" id="password" class="form-control" placeholder="••••••••" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <input type="password" id="adminPassword" class="form-control" placeholder="••••••••"
+                                required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('adminPassword')">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -97,29 +98,20 @@
                         </div>
                     </div>
 
-                    <div class="form-footer-links">
-                        <label class="remember-me">
-                            <input type="checkbox">
-                            <span>Remember for 30 days</span>
-                        </label>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+                    <div class="form-footer-links" style="justify-content: flex-end;">
+                        <a href="#" class="forgot-password">Forgot admin password?</a>
                     </div>
 
                     <div id="authMessage" class="auth-message"></div>
 
-                    <button type="submit" class="btn btn-auth">
-                        Sign In
+                    <button type="submit" class="btn btn-auth admin-btn">
+                        Access Portal
                     </button>
                 </form>
 
                 <div class="auth-back-link">
-                    <span>Not a user?</span>
-                    <a href="index.html">Back to Home</a>
-                </div>
-
-                <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8125rem;">
-                    <a href="frontend/admin/admin-login.html" style="color: #94A3B8; text-decoration: underline;">Are you an
-                        Admin? Sign in here.</a>
+                    <span>System Administrator?</span>
+                    <a href="../index.html">Main Site</a>
                 </div>
             </div>
         </div>
