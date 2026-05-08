@@ -124,7 +124,7 @@ function updateAuthUI() {
         
         navAuth.innerHTML = `
             <a href="${finalDashboardPath}" class="nav-link" style="font-weight: 500;">Dashboard</a>
-            <button onclick="handleGlobalLogout()" class="btn-login" style="background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);">Logout</button>
+            <button onclick="handleGlobalLogout()" class="btn-logout">Logout</button>
         `;
     } else {
         navAuth.innerHTML = `

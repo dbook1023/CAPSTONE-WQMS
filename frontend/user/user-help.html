@@ -9,26 +9,19 @@
     <link rel="stylesheet" href="../assets/css/user/user-sidebar.css">
     <link rel="stylesheet" href="../assets/css/user/user-help.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        .main { margin-left: 240px; }
-        @media (max-width: 1024px) { .main { margin-left: 0; } }
-        .top-header { padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .header-left { display: flex; align-items: center; gap: 14px; flex: none; }
-        .header-actions { flex-shrink: 0; }
-    </style>
 </head>
 <body>
     <div id="sidebarMount"></div>
     <div class="sidebar-overlay"></div>
 
-    <main class="main">
+    <main class="main-content">
         <header class="top-header">
+            <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="header-left">
-                <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
                 <div class="header-titles">
                     <h1 class="header-title">Help & Support</h1>
                 </div>

@@ -332,6 +332,33 @@ canvas {
     }
 }
 
+/* ── ULTRA-NARROW SCREENS (<400px) ── */
+@media (max-width: 400px) {
+    .top-header {
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .header-titles h1,
+    .header-title {
+        font-size: 13px;
+    }
+
+    /* Icon-only buttons on very small screens */
+    .header-actions .btn span {
+        display: none;
+    }
+
+    .header-actions .btn {
+        padding: 8px;
+        gap: 0;
+    }
+
+    .header-actions {
+        gap: 4px;
+    }
+}
+
 /* ── UNIVERSAL MODAL SYSTEM ── */
 .modal-overlay {
     position: fixed;

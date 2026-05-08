@@ -10,11 +10,14 @@
     <link rel="stylesheet" href="../assets/css/user/user-help.css"> <!-- Reusing styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        .main { margin-left: 240px; }
-        @media (max-width: 1024px) { .main { margin-left: 0; } }
-        .top-header { padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .header-left { display: flex; align-items: center; gap: 14px; flex: none; }
-        .header-actions { flex-shrink: 0; }
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
         .admin-badge {
             background: var(--accent-teal);
             color: white;
@@ -27,6 +30,14 @@
             margin-bottom: 10px;
             display: inline-block;
         }
+
+        /* Responsive margin overrides */
+        @media (max-width: 767px) {
+            .main { margin-left: 0; }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .main { margin-left: var(--sidebar-collapsed-width); }
+        }
     </style>
 </head>
 <body>
@@ -35,12 +46,12 @@
 
     <main class="main">
         <header class="top-header">
+            <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="header-left">
-                <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
                 <div class="header-titles">
                     <h1 class="header-title">Admin Help Center</h1>
                 </div>

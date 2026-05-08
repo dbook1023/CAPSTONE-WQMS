@@ -150,24 +150,44 @@
 
 /* AUTH BUTTONS */
 .nav-auth {
-    display: flex;
-    align-items: center;
-    padding-top: 0.5rem;
-    margin-top: 0.5rem;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    margin-top: 0.75rem;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
+    width: 100%;
 }
 
-.btn-login {
-    width: 100%;
+.nav-auth .nav-link,
+.nav-auth .btn-login {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+}
+
+.nav-auth .nav-link {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 0.75rem;
+    font-weight: 500;
+}
+
+.btn-login, .btn-logout {
     text-align: center;
-    padding: 0.6rem 1.25rem;
-    background: linear-gradient(135deg, var(--secondary), var(--accent));
-    color: white;
+    padding: 0.75rem 1rem;
     border-radius: 0.75rem;
     font-weight: 600;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
-    display: block;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    color: white;
     box-shadow: 0 4px 10px rgba(20, 184, 166, 0.2);
 }
 
@@ -177,16 +197,55 @@
     box-shadow: 0 6px 15px rgba(20, 184, 166, 0.3);
 }
 
+.btn-logout {
+    background: rgba(239, 68, 68, 0.1);
+    color: #FCA5A5;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: translateY(-1px);
+}
+
+.nav-auth .nav-link,
+.nav-auth .btn-login,
+.nav-auth .btn-logout {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+}
+
+@media (max-width: 400px) {
+    .nav-links.active {
+        padding: 0.75rem;
+    }
+    
+    .nav-link {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+    }
+}
+
 @media (min-width: 768px) {
     .nav-auth {
+        flex-direction: row;
         padding-top: 0;
         margin-top: 0;
         margin-left: 1rem;
         border-top: none;
-        display: flex;
+        gap: 0.25rem;
     }
 
-    .btn-login {
+    .nav-auth .nav-link {
         width: auto;
+    }
+
+    .btn-login, .btn-logout {
+        width: auto;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
     }
 }
