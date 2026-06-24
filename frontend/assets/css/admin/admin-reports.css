@@ -159,7 +159,7 @@
 /* Recent Reports */
 .recent-section {
     background: white;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
     border: 1px solid #e8edf2;
     overflow: hidden;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
@@ -199,7 +199,7 @@
     height: 34px;
     min-width: 34px;
     background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
-    border-radius: 10px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;

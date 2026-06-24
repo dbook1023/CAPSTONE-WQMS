@@ -17,7 +17,10 @@
     <link rel="stylesheet" href="../assets/css/user/user-reports.css">
     
     <!-- Scripts -->
+    <script defer src="../assets/js/shared/api.js"></script>
     <script defer src="../assets/js/user/user-shared.js"></script>
+    <script defer src="../assets/js/user/user-reports.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -37,8 +40,12 @@
         </div>
         <div class="header-actions">
             <button class="btn btn-ghost" id="viewStandardsBtn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                 <span>Water Standards</span>
+            </button>
+            <button class="btn btn-primary" id="downloadLatestBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download Latest</span>
             </button>
         </div>
     </div>
@@ -54,8 +61,8 @@
                     <div class="stat-badge">Synced</div>
                 </div>
                 <div class="stat-label">Available Reports</div>
-                <div class="stat-value">12</div>
-                <div class="stat-sub">Updated May 2026</div>
+                <div class="stat-value" id="availableReportsValue">--</div>
+                <div class="stat-sub">Live database data</div>
             </div>
             <div class="stat-card glass-card">
                 <div class="stat-card-top">
@@ -64,9 +71,9 @@
                     </div>
                     <div class="stat-badge grey">Analytics</div>
                 </div>
-                <div class="stat-label">Total Downloads</div>
-                <div class="stat-value">48</div>
-                <div class="stat-sub">Past 12 months</div>
+                <div class="stat-label">Reports Downloaded</div>
+                <div class="stat-value" id="reportDownloadsValue">--</div>
+                <div class="stat-sub">Tracked in activity log</div>
             </div>
             <div class="stat-card glass-card">
                 <div class="stat-card-top">
@@ -74,9 +81,9 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     </div>
                 </div>
-                <div class="stat-label">Next Audit</div>
-                <div class="stat-value">June 1</div>
-                <div class="stat-sub">In 26 days</div>
+                <div class="stat-label">Next Scheduled Audit</div>
+                <div class="stat-value" id="nextAuditValue">--</div>
+                <div class="stat-sub">From admin settings</div>
             </div>
         </div>
 
@@ -94,214 +101,29 @@
             </div>
             
             <div class="reports-list">
-                <!-- REPORT ITEM 1 -->
-                <div class="report-item">
-                    <div class="report-info">
-                        <div class="report-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        </div>
-                        <div class="report-details">
-                            <h4>April 2026 Water Quality Audit</h4>
-                            <p>Full spectrum analysis of pH, TDS, and Turbidity levels • 2.4 MB</p>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <div class="premium-dl-container">
-                            <label class="dl-btn-label">
-                                <input type="checkbox" class="input" />
-                                <span class="circle">
-                                    <!-- Arrow Icon -->
-                                    <svg class="icon arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 14-4-4m4 4 4-4"></path>
-                                    </svg>
-                                    <div class="square"></div>
-                                    <!-- Check Icon -->
-                                    <svg class="icon check" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </span>
-                                <p class="title">Download</p>
-                                <p class="title">Saved</p>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                <!-- Injected by JS -->
+            </div>
 
-                <!-- REPORT ITEM 2 -->
-                <div class="report-item">
-                    <div class="report-info">
-                        <div class="report-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        </div>
-                        <div class="report-details">
-                            <h4>March 2026 Water Quality Audit</h4>
-                            <p>Monthly compliance check for workplace water systems • 2.1 MB</p>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <div class="premium-dl-container">
-                            <label class="dl-btn-label">
-                                <input type="checkbox" class="input" />
-                                <span class="circle">
-                                    <!-- Arrow Icon -->
-                                    <svg class="icon arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 14-4-4m4 4 4-4"></path>
-                                    </svg>
-                                    <div class="square"></div>
-                                    <!-- Check Icon -->
-                                    <svg class="icon check" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </span>
-                                <p class="title">Download</p>
-                                <p class="title">Saved</p>
-                            </label>
-                        </div>
-                    </div>
+            <!-- PAGINATION FOOTER -->
+            <div class="table-footer">
+                <div class="table-info">
+                    Showing <span>1</span> to <span>4</span> of <span>12</span> reports
                 </div>
-
-                <!-- REPORT ITEM 3 -->
-                <div class="report-item">
-                    <div class="report-info">
-                        <div class="report-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        </div>
-                        <div class="report-details">
-                            <h4>February 2026 Water Quality Audit</h4>
-                            <p>Annual inspection report and calibration results • 2.3 MB</p>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <div class="premium-dl-container">
-                            <label class="dl-btn-label">
-                                <input type="checkbox" class="input" />
-                                <span class="circle">
-                                    <!-- Arrow Icon -->
-                                    <svg class="icon arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 14-4-4m4 4 4-4"></path>
-                                    </svg>
-                                    <div class="square"></div>
-                                    <!-- Check Icon -->
-                                    <svg class="icon check" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </span>
-                                <p class="title">Download</p>
-                                <p class="title">Saved</p>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- REPORT ITEM 4 -->
-                <div class="report-item">
-                    <div class="report-info">
-                        <div class="report-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        </div>
-                        <div class="report-details">
-                            <h4>January 2026 Water Quality Audit</h4>
-                            <p>Quarterly maintenance summary and system health check • 1.9 MB</p>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <div class="premium-dl-container">
-                            <label class="dl-btn-label">
-                                <input type="checkbox" class="input" />
-                                <span class="circle">
-                                    <!-- Arrow Icon -->
-                                    <svg class="icon arrow" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m0 14-4-4m4 4 4-4"></path>
-                                    </svg>
-                                    <div class="square"></div>
-                                    <!-- Check Icon -->
-                                    <svg class="icon check" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </span>
-                                <p class="title">Download</p>
-                                <p class="title">Saved</p>
-                            </label>
-                        </div>
-                    </div>
+                <div class="pagination">
+                    <button class="pg-btn disabled">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button class="pg-btn active">1</button>
+                    <button class="pg-btn">2</button>
+                    <button class="pg-btn">3</button>
+                    <button class="pg-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-<!-- STANDARDS MODAL -->
-<div class="modal-overlay" id="standardsModal">
-    <div class="modal" style="max-width: 800px;">
-        <div class="modal-header">
-            <h2>PNSDW Water Standards</h2>
-            <p>Philippine National Standards for Drinking Water (AO 2017-0010)</p>
-        </div>
-        <div class="modal-body">
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Ideal Range</th>
-                        <th>Warning Limit</th>
-                        <th>Critical Threshold</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>pH Level</strong></td>
-                        <td><span class="status-indicator status-ideal">7.0 - 8.0</span></td>
-                        <td><span class="status-indicator status-warning">6.4 - 8.6</span></td>
-                        <td><span class="status-indicator status-critical">&lt; 6.3 / &gt; 8.7</span></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Turbidity</strong></td>
-                        <td><span class="status-indicator status-ideal">0 - 1 NTU</span></td>
-                        <td><span class="status-indicator status-warning">3 - 5 NTU</span></td>
-                        <td><span class="status-indicator status-critical">&gt; 5 NTU</span></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Total Dissolved Solids (TDS)</strong></td>
-                        <td><span class="status-indicator status-ideal">50 - 300 ppm</span></td>
-                        <td><span class="status-indicator status-warning">400 - 500 ppm</span></td>
-                        <td><span class="status-indicator status-critical">&gt; 500 ppm</span></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Temperature</strong></td>
-                        <td><span class="status-indicator status-ideal">25 - 30°C</span></td>
-                        <td><span class="status-indicator status-warning">30 - 32°C</span></td>
-                        <td><span class="status-indicator status-critical">&gt; 32°C</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(15, 23, 42, 0.05); border-radius: 1rem;">
-                <h4 style="margin-bottom: 0.5rem; color: var(--primary);">Note on Standards</h4>
-                <p style="font-size: 0.875rem; color: var(--text-light); margin: 0;">These standards are based on the latest Philippine National Standards for Drinking Water. Aqua Monitor follows these guidelines to ensure the safety of all OLFU campus drinking fountains.</p>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" id="closeModalBtn" style="min-width: 120px;">Got it</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const modal = document.getElementById('standardsModal');
-    const openBtn = document.getElementById('viewStandardsBtn');
-    const closeBtn = document.getElementById('closeModalBtn');
-
-    if (openBtn) {
-        openBtn.addEventListener('click', () => modal.classList.add('open'));
-    }
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => modal.classList.remove('open'));
-    }
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('open');
-        });
-    }
-</script>
 </body>
 </html>

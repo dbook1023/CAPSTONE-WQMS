@@ -494,3 +494,141 @@ body.sidebar-collapsed .main-content {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* ── ACTIONS DROPDOWN ────────────────────────── */
+.actions-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.actions-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.actions-btn:hover {
+    color: #475569;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    background-color: white;
+    min-width: 120px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    z-index: 100;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-content button {
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.dropdown-content button:hover {
+    background-color: #f8fafc;
+}
+
+.dropdown-content button.delete-action {
+    color: #ef4444;
+}
+
+.dropdown-content button.delete-action:hover {
+    background-color: #fef2f2;
+}
+
+/* ── FOUNTAIN MODAL ──────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-overlay.open .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.modal-header p {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ── UTILITY CLASSES ─────────────────────────── */
+.loading-state p, .empty-state p, .error-state p {
+    font-size: 14px;
+    font-weight: 500;
+}

@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="../assets/css/user/user-dashboard.css">
     
     <!-- Scripts -->
+    <script defer src="../assets/js/shared/api.js"></script>
     <script defer src="../assets/js/user/user-shared.js"></script>
     <script defer src="../assets/js/user/user-dashboard.js"></script>
 </head>
@@ -79,10 +80,10 @@
                     </div>
                 </div>
                 <div class="metric-label">pH Level</div>
-                <div class="metric-value">7.2<span class="metric-unit">pH</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-ph">--<span class="metric-unit">pH</span></div>
+                <div class="metric-trend" id="trend-ph">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                    Within safe range
+                    --
                 </div>
             </div>
 
@@ -98,10 +99,10 @@
                     </div>
                 </div>
                 <div class="metric-label">Turbidity</div>
-                <div class="metric-value">2.3<span class="metric-unit">NTU</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-turbidity">--<span class="metric-unit">NTU</span></div>
+                <div class="metric-trend" id="trend-turbidity">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                    Crystal clear
+                    --
                 </div>
             </div>
 
@@ -117,10 +118,10 @@
                     </div>
                 </div>
                 <div class="metric-label">Temperature</div>
-                <div class="metric-value">24<span class="metric-unit">°C</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-temp">--<span class="metric-unit">°C</span></div>
+                <div class="metric-trend" id="trend-temp">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-                    Perfect for drinking
+                    --
                 </div>
             </div>
 
@@ -136,10 +137,10 @@
                     </div>
                 </div>
                 <div class="metric-label">TDS</div>
-                <div class="metric-value">125<span class="metric-unit">ppm</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-tds">--<span class="metric-unit">ppm</span></div>
+                <div class="metric-trend" id="trend-tds">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    Excellent purity level
+                    --
                 </div>
             </div>
         </div>
@@ -180,7 +181,7 @@
         <div class="trend-section">
             <div class="section-title-wrap">
                 <h2>Weekly Trend Insights</h2>
-                <span class="trend-period">Analytics for May 1 - May 7</span>
+                <span class="trend-period" id="trendPeriod">Current Session Analytics</span>
             </div>
             
             <div class="trend-insights-grid">
@@ -190,8 +191,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Water Quality</h4>
-                        <div class="insight-value">Highly Safe</div>
-                        <p>Consistency is 15% better than last week</p>
+                        <div class="insight-value" id="qualityValue">--</div>
+                        <p id="qualityDesc">Waiting for sensor data...</p>
                     </div>
                 </div>
 
@@ -201,8 +202,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Purity Level</h4>
-                        <div class="insight-value">99.1%</div>
-                        <p>Based on TDS/Turbidity average</p>
+                        <div class="insight-value" id="purityValue">--</div>
+                        <p id="purityDesc">Based on TDS/Turbidity average</p>
                     </div>
                 </div>
 
@@ -212,8 +213,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Health Impact</h4>
-                        <div class="insight-value">Optimal</div>
-                        <p>Ideal mineral balance for hydration</p>
+                        <div class="insight-value" id="healthValue">--</div>
+                        <p id="healthDesc">Mineral balance analysis</p>
                     </div>
                 </div>
             </div>
@@ -228,19 +229,19 @@
             <div class="standards-grid">
                 <div class="standard-card">
                     <h4>pH Level</h4>
-                    <p>Safe Range: 6.5 - 8.5 pH<br>Current: Within safe limits</p>
+                    <p>Safe Range: 6.5 - 8.5 pH<br>Current: <span id="status-ph">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>Turbidity</h4>
-                    <p>Safe Range: &lt; 5 NTU<br>Current: Excellent clarity</p>
+                    <p>Safe Range: &lt; 5 NTU<br>Current: <span id="status-turbidity">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>Temperature</h4>
-                    <p>Safe Range: 15°C - 30°C<br>Current: Optimal</p>
+                    <p>Safe Range: 15°C - 30°C<br>Current: <span id="status-temp">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>TDS</h4>
-                    <p>Safe Range: &lt; 500 ppm<br>Current: Excellent purity</p>
+                    <p>Safe Range: &lt; 500 ppm<br>Current: <span id="status-tds">--</span></p>
                 </div>
             </div>
         </div>

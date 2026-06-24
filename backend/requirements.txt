@@ -1,6 +1,11 @@
-flask
-flask-cors
-flask-socketio
-eventlet
-mysql-connector-python
-python-dotenv
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.5
+eventlet==0.33.3
+mysql-connector-python==8.2.0
+python-dotenv==1.0.0
+SQLAlchemy==2.0.20
+PyMySQL==1.1.0
+bcrypt==4.1.1
+Werkzeug==3.0.1
+

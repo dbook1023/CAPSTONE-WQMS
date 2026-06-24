@@ -113,14 +113,15 @@ function updateAuthUI() {
     const navAuth = document.getElementById('navAuth');
     if (!navAuth) return;
 
-    const session = localStorage.getItem('aqua_monitor_session');
+    const session = localStorage.getItem('aqua_monitor_admin_session') || localStorage.getItem('aqua_monitor_user_session');
     const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
     const pathPrefix = isInSubdir ? '../../' : '';
 
     if (session) {
         const user = JSON.parse(session);
-        const dashboardPath = user.role === 'admin' ? 'frontend/admin/admin-dashboard.html' : 'frontend/user/user-dashboard.html';
-        const finalDashboardPath = isInSubdir ? (window.location.pathname.includes(user.role) ? '#' : pathPrefix + dashboardPath) : dashboardPath;
+        const role = user.role ? user.role.toLowerCase() : '';
+        const dashboardPath = role === 'admin' ? 'frontend/admin/admin-dashboard.html' : 'frontend/user/user-dashboard.html';
+        const finalDashboardPath = isInSubdir ? (window.location.pathname.includes(role) ? '#' : pathPrefix + dashboardPath) : dashboardPath;
         
         navAuth.innerHTML = `
             <a href="${finalDashboardPath}" class="nav-link" style="font-weight: 500;">Dashboard</a>
@@ -137,7 +138,8 @@ function updateAuthUI() {
  * Global Logout Handler
  */
 function handleGlobalLogout() {
-    localStorage.removeItem('aqua_monitor_session');
+    localStorage.removeItem('aqua_monitor_admin_session');
+    localStorage.removeItem('aqua_monitor_user_session');
     const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
     window.location.href = isInSubdir ? '../../index.html' : 'index.html';
 }

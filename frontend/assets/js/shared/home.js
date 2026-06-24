@@ -9,27 +9,44 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navbar scroll effect
     initNavbarScroll();
 
-    // Animate stats counters
-    animateCounters();
+    // Fetch and animate stats counters
+    fetchAndAnimateStats();
 });
 
 /**
- * Animate stats counters in the hero section
+ * Fetch latest sensor data and animate counters in the hero section
  */
-function animateCounters() {
-    const stats = [
-        { id: 'stat-ph', target: 7.2, decimals: 1 },
-        { id: 'stat-ntu', target: 2.3, decimals: 1 },
-        { id: 'stat-temp', target: 24, decimals: 0 },
-        { id: 'stat-tds', target: 125, decimals: 0 }
-    ];
+async function fetchAndAnimateStats() {
+    const statsElements = {
+        ph: document.getElementById('stat-ph'),
+        turbidity: document.getElementById('stat-ntu'),
+        temp: document.getElementById('stat-temp'),
+        tds: document.getElementById('stat-tds')
+    };
 
-    stats.forEach(stat => {
-        const el = document.getElementById(stat.id);
-        if (el) {
-            countUp(el, stat.target, stat.decimals);
+    try {
+        // We use the API if available, otherwise fallback to defaults
+        if (window.API && window.API.sensors) {
+            const latest = await window.API.sensors.getLatest();
+            if (latest && latest.length > 0) {
+                const data = latest[0];
+                
+                if (statsElements.ph) countUp(statsElements.ph, parseFloat(data.ph), 1);
+                if (statsElements.turbidity) countUp(statsElements.turbidity, parseFloat(data.turbidity), 1);
+                if (statsElements.temp) countUp(statsElements.temp, parseFloat(data.temperature), 0);
+                if (statsElements.tds) countUp(statsElements.tds, parseFloat(data.tds), 0);
+                return;
+            }
         }
-    });
+    } catch (error) {
+        console.error('Failed to fetch home stats:', error);
+    }
+
+    // Fallback/Default values if API fails or no data
+    if (statsElements.ph) statsElements.ph.textContent = '--';
+    if (statsElements.turbidity) statsElements.turbidity.textContent = '--';
+    if (statsElements.temp) statsElements.temp.textContent = '--';
+    if (statsElements.tds) statsElements.tds.textContent = '--';
 }
 
 function countUp(el, target, decimals) {
@@ -141,24 +158,4 @@ window.addEventListener('scroll', function() {
         const speed = 0.5 + (index * 0.2);
         circle.style.transform = `translateY(${scrolled * speed}px)`;
     });
-});
-
-/**
- * Navbar scroll effect
- */
-let lastScroll = 0;
-const navbar = document.getElementById('navbar-placeholder');
-
-window.addEventListener('scroll', function() {
-    const currentScroll = window.pageYOffset;
-    
-    if (navbar) {
-        if (currentScroll > 100) {
-            navbar.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-        } else {
-            navbar.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
-        }
-    }
-    
-    lastScroll = currentScroll;
 });

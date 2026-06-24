@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../assets/images/tab-logo-icon.ico">
+    <title>Hardware Registry - Aqua Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css/admin/admin-shared.css">
+    <link rel="stylesheet" href="../assets/css/admin/admin-sidebar.css">
+    <link rel="stylesheet" href="../assets/css/admin/admin-sensors.css"> 
+
+    <script defer src="../assets/js/shared/api.js"></script>
+    <script defer src="../assets/js/admin/admin-sensors.js"></script>
+    <script defer src="../assets/js/admin/admin-shared.js"></script>
+</head>
+<body>
+
+<div id="sidebarMount"></div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay"></div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content" id="mainContent">
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <button class="hamburger-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="header-left">
+            <div class="header-titles">
+                <h1 class="header-title">Hardware Registry</h1>
+                <p class="header-sub">Manage and assign ESP32 sensor units</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="addDeviceBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Register Device</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+        
+        <!-- DEVICE TABLE -->
+        <div class="table-container glass-card">
+            <div class="table-header">
+                <div class="table-title">Registered Sensors</div>
+                <div class="table-actions">
+                    <div class="table-search">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="deviceSearch" placeholder="Search serial numbers...">
+                    </div>
+                </div>
+            </div>
+
+            <table class="premium-table" id="devicesTable">
+                <thead>
+                    <tr>
+                        <th>Device Serial</th>
+                        <th>Assigned Fountain</th>
+                        <th>Fountain ID</th>
+                        <th>Status</th>
+                        <th>Last Seen</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="devicesTableBody">
+                    <!-- Dynamic Content -->
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 48px; color: #64748b;">
+                            Loading hardware devices...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="table-footer">
+                <div class="table-info">
+                    Showing <span id="count">0</span> devices
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-body -->
+</main>
+
+<!-- REGISTER/EDIT MODAL -->
+<div class="modal-overlay" id="deviceModal">
+    <div class="modal" style="max-width: 450px;">
+        <div class="modal-header">
+            <h2 id="modalTitle">Register New Device</h2>
+            <p>Enter the MAC address printed on your ESP32</p>
+        </div>
+        <form id="deviceForm">
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 8px;">Hardware Serial (MAC Address)</label>
+                    <input type="text" id="serialInput" required placeholder="e.g. 246F28A1B2C3" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: 'Inter';">
+                    <small style="display: block; margin-top: 6px; color: #94a3b8; font-size: 11px;">Copy this from the ESP32 Serial Monitor output</small>
+                    
+                    <!-- REASSIGNMENT EXPLANATION NOTICE -->
+                    <div style="background: #f0fdfa; border: 1px solid #ccfbf1; padding: 10px 12px; border-radius: 8px; font-size: 11px; color: #0d9488; margin-top: 10px; line-height: 1.4; display: flex; gap: 8px; align-items: flex-start;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top: 2px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>💡 Plug & Play Swapping:</strong> If this serial number is already registered to a different fountain, saving it here will automatically transfer the hardware to the new fountain. Historical logs are fully preserved!</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 8px;">Assign to Fountain</label>
+                    <select id="fountainSelect" required style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: 'Inter'; background: white; margin-bottom: 20px;">
+                        <option value="" disabled selected>Select a fountain...</option>
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="closeModal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="saveBtn">Register Device</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

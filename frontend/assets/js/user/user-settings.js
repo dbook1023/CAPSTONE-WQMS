@@ -5,6 +5,27 @@ function switchTab(btn, tabId) {
     document.getElementById('panel-' + tabId).classList.add('active');
 }
 
+async function fetchProfile() {
+    try {
+        // Use the global API service from api.js
+        // If api.js is not loaded, we need to make sure it is in the HTML
+        if (typeof API !== 'undefined' && API.users && API.users.getMe) {
+            const user = await API.users.getMe();
+            if (user) {
+                const nameInput = document.querySelector('input[value="John Doe"]');
+                const emailInput = document.querySelector('input[value="john.doe@olfu.edu.ph"]');
+                const staffIdInput = document.querySelector('input[value="2024-0001"]');
+                
+                if (nameInput) nameInput.value = user.name;
+                if (emailInput) emailInput.value = user.email;
+                if (staffIdInput) staffIdInput.value = `USR-${String(user.id).padStart(4, '0')}`;
+            }
+        }
+    } catch (error) {
+        console.error('Failed to fetch profile:', error);
+    }
+}
+
 function saveChanges() {
     // Sanitize all inputs in the current view
     const inputs = document.querySelectorAll('.field-input');
@@ -21,6 +42,7 @@ function saveChanges() {
 
 // ── PROFILE IMAGE UPLOAD ──
 document.addEventListener('DOMContentLoaded', function() {
+    fetchProfile();
     const profileUpload = document.getElementById('profileUpload');
     const profilePreview = document.getElementById('profilePreview');
 

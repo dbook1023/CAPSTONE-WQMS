@@ -13,6 +13,7 @@
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <!-- Shared Styles -->
     <link rel="stylesheet" href="../assets/css/user/user-shared.css">
@@ -22,8 +23,172 @@
     <link rel="stylesheet" href="../assets/css/user/user-monitoring.css">
     
     <!-- Scripts -->
+    <script defer src="../assets/js/shared/api.js"></script>
+    <script defer src="../assets/js/shared/action-guidance.js"></script>
     <script defer src="../assets/js/user/user-shared.js"></script>
     <script defer src="../assets/js/user/user-monitoring.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* ── CHART CARDS RESPONSIVE ── */
+                margin-top: 20px !important;
+                border-radius: 16px !important;
+            }
+            .comparison-section table {
+                font-size: 0.75rem !important;
+            }
+            .comparison-section th,
+            .comparison-section td {
+                padding: 8px 10px !important;
+                white-space: nowrap;
+            }
+
+            /* Modal mobile padding reduction */
+            .modal-header {
+                padding: 20px 20px 14px !important;
+            }
+            .modal-body {
+                padding: 16px 20px !important;
+            }
+            .modal-footer {
+                padding: 14px 20px 20px !important;
+            }
+        }
+
+        /* ── MORE ACTIONS DROPDOWN ── */
+        #moreActionsWrap {
+            display: none;
+            position: relative;
+        }
+
+        #moreActionsDropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            width: 200px;
+            padding: 8px;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #moreActionsDropdown.open {
+            display: flex;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover:not(:disabled) {
+            background: rgba(20, 184, 166, 0.08);
+            color: #14b8a6;
+        }
+
+        .dropdown-item:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dropdown-item svg {
+            color: #64748b;
+            transition: color 0.2s ease;
+        }
+
+        .dropdown-item:hover:not(:disabled) svg {
+            color: #14b8a6;
+        }
+
+        /* Desktop vs Tablet action bar */
+        @media (max-width: 1024px) {
+            .header-btn-desktop {
+                display: none !important;
+            }
+            #moreActionsWrap {
+                display: inline-block;
+            }
+        }
+
+        /* ── GUIDE MODAL ── */
+        .guide-modal-custom {
+            max-width: 550px !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            border-radius: 24px !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        @media (max-width: 640px) {
+            /* Guide modal becomes a bottom sheet on mobile */
+            #guideModal {
+                align-items: flex-end !important;
+                padding: 0 !important;
+            }
+            .guide-modal-custom {
+                max-width: 100% !important;
+                width: 100% !important;
+                border-radius: 24px 24px 0 0 !important;
+                max-height: 85vh !important;
+                overflow-y: auto !important;
+            }
+            .guide-modal-custom .modal-header {
+                padding: 20px 20px 12px !important;
+                position: sticky;
+                top: 0;
+                background: rgba(255, 255, 255, 0.98);
+                z-index: 1;
+            }
+            .guide-modal-custom .modal-body {
+                padding: 12px 20px 20px !important;
+            }
+            .guide-modal-custom .modal-footer {
+                padding: 14px 20px 24px !important;
+                position: sticky;
+                bottom: 0;
+                background: rgba(248, 250, 252, 0.98);
+            }
+            .guide-modal-custom .modal-header h2 {
+                font-size: 1.1rem !important;
+            }
+
+            /* Selection & Report modals also get mobile treatment */
+            #selectionModal,
+            #reportModal {
+                padding: 10px !important;
+            }
+            #selectionModal .modal,
+            #reportModal .modal {
+                max-width: 100% !important;
+                border-radius: 20px !important;
+            }
+            #reportModal .modal-body > div:first-child > div {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -49,19 +214,60 @@
             </div>
         </div>
         <div class="header-actions">
-            <button class="btn btn-ghost" id="viewStandardsBtn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <button class="btn btn-ghost header-btn-desktop" id="openGuideBtn" title="How to Use" style="background: rgba(20, 184, 166, 0.08); color: #14b8a6; border: 1.5px solid rgba(20, 184, 166, 0.15);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>How to Use</span>
+            </button>
+            <button class="btn btn-ghost header-btn-desktop" id="viewStandardsBtn" title="View Water Standards">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                 <span>View Standards</span>
             </button>
-            <button class="btn btn-primary" id="startReadingBtn">
+            <button class="btn btn-ghost header-btn-desktop" id="saveReadingBtn" title="Save Snapshot" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                <span>Save Snapshot</span>
+            </button>
+            <button class="btn btn-primary" id="startReadingBtn" title="Start Telemetry Stream">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                 <span>Start Reading</span>
             </button>
-            <button class="btn btn-ghost" id="refreshBtn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                <span>Refresh All</span>
+            <button class="btn btn-ghost header-btn-desktop" id="scanNewBtn" title="Scan Fountains">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <span>Scan New</span>
             </button>
-        </div>
+            <button class="btn btn-ghost header-btn-desktop" id="generateReportBtn" title="Download Session PDF" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Generate Report</span>
+            </button>
+
+                <!-- More Actions Dropdown (Responsive Tablet/Mobile) -->
+                <div id="moreActionsWrap">
+                    <button class="btn btn-ghost" id="moreActionsBtn" title="More Actions" style="background: rgba(20, 184, 166, 0.08); color: #14b8a6; border: 1.5px solid rgba(20, 184, 166, 0.15); padding: 0; width: 36px; height: 36px; min-width: 36px; display: flex; justify-content: center; align-items: center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="moreActionsDropdown">
+                        <button class="dropdown-item" id="openGuideBtnMobile">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span>How to Use</span>
+                        </button>
+                        <button class="dropdown-item" id="viewStandardsBtnMobile">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            <span>View Standards</span>
+                        </button>
+                        <button class="dropdown-item" id="scanNewBtnMobile">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                            <span>Scan New</span>
+                        </button>
+                        <button class="dropdown-item" id="saveReadingBtnMobile" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            <span>Save Snapshot</span>
+                        </button>
+                        <button class="dropdown-item" id="generateReportBtnMobile" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            <span>Generate Report</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
     </div>
 
     <!-- SEARCH BAR -->
@@ -78,203 +284,290 @@
 
         <!-- FOUNTAIN CARDS -->
         <div class="fountains-grid" id="fountainsGrid">
-
-            <!-- F001 – SPCB Building -->
-            <div class="fountain-card" data-name="SPCB Building" data-location="Near Main Entrance" data-id="F001">
-                <div class="fc-top">
-                    <span class="fc-id">F001</span>
-                    <span class="fc-badge online">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        Online
-                    </span>
-                </div>
-                <div class="fc-title">SPCB Building</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Near Main Entrance
-                </div>
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">7.2</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">2.3 NTU</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">24°C</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value teal">125 ppm</div>
-                    </div>
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 2 minutes ago
-                </div>
-            </div>
-
-            <!-- F002 – JSB Building -->
-            <div class="fountain-card" data-name="JSB Building" data-location="1st Floor Area" data-id="F002">
-                <div class="fc-top">
-                    <span class="fc-id">F002</span>
-                    <span class="fc-badge online">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        Online
-                    </span>
-                </div>
-                <div class="fc-title">JSB Building</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    1st Floor Area
-                </div>
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">6.8</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">4.2 NTU</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">26°C</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value warning">450 ppm</div>
-                    </div>
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 3 minutes ago
-                </div>
-            </div>
-
+            <!-- Dynamically populated by user-monitoring.js -->
         </div><!-- /fountains-grid -->
 
         <!-- LIVE SENSOR ANALYTICS -->
         <div class="charts-section" style="margin-top: 32px;">
-            <div class="section-header" style="margin-bottom: 20px;">
-                <h2 style="font-family: 'Poppins'; font-size: 1.25rem; font-weight: 600; color: #1e293b;">Live Sensor Analytics</h2>
-                <p style="font-size: 0.875rem; color: #64748b;">Real-time performance metrics and calibration data</p>
+            <div class="section-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="font-family: 'Poppins'; font-size: 1.25rem; font-weight: 600; color: #1e293b; margin: 0;">Live Sensor Analytics</h2>
+                    <div id="connectionStatus" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <div class="status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></div>
+                        <span style="font-size: 0.75rem; color: #64748b;">Ready to monitor</span>
+                    </div>
+                </div>
+                <div id="sessionCounterBadge" style="display: none; padding: 6px 14px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 20px; font-size: 0.85rem; font-weight: 700; border: 1.5px solid rgba(20, 184, 166, 0.2); box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.05);">
+                    0 Readings
+                </div>
             </div>
             
-            <div class="charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div class="charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
                 <!-- pH Level Chart -->
-                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <div class="chart-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b;">pH Level Stability</h3>
-                        <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #14B8A6;"></div>
+                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 32px;">
+                    <div class="chart-card-header" style="flex: 0 0 220px; margin-bottom: 0;">
+                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 8px;">pH Level Stability</h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #14B8A6;"></div>
+                            <span style="font-size: 0.75rem; color: #64748b;">Real-time</span>
+                        </div>
                     </div>
-                    <div class="chart-wrap" style="height: 180px;"><canvas id="phChart"></canvas></div>
+                    <div class="chart-wrap" style="flex: 1; height: 180px;"><canvas id="phChart"></canvas></div>
                 </div>
 
                 <!-- Turbidity Chart -->
-                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <div class="chart-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b;">Turbidity Analysis</h3>
-                        <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8;"></div>
+                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 32px;">
+                    <div class="chart-card-header" style="flex: 0 0 220px; margin-bottom: 0;">
+                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Turbidity Analysis</h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8;"></div>
+                            <span style="font-size: 0.75rem; color: #64748b;">Real-time</span>
+                        </div>
                     </div>
-                    <div class="chart-wrap" style="height: 180px;"><canvas id="turbidityChart"></canvas></div>
+                    <div class="chart-wrap" style="flex: 1; height: 180px;"><canvas id="turbidityChart"></canvas></div>
                 </div>
 
                 <!-- Temperature Chart -->
-                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <div class="chart-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b;">Temperature Monitoring</h3>
-                        <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 32px;">
+                    <div class="chart-card-header" style="flex: 0 0 220px; margin-bottom: 0;">
+                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Temperature Monitoring</h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                            <span style="font-size: 0.75rem; color: #64748b;">Real-time</span>
+                        </div>
                     </div>
-                    <div class="chart-wrap" style="height: 180px;"><canvas id="tempChart"></canvas></div>
+                    <div class="chart-wrap" style="flex: 1; height: 180px;"><canvas id="tempChart"></canvas></div>
                 </div>
 
                 <!-- TDS Chart -->
-                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                    <div class="chart-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b;">TDS Purity Level</h3>
-                        <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></div>
+                <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 32px;">
+                    <div class="chart-card-header" style="flex: 0 0 220px; margin-bottom: 0;">
+                        <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 8px;">TDS Purity Level</h3>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="legend-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></div>
+                            <span style="font-size: 0.75rem; color: #64748b;">Real-time</span>
+                        </div>
                     </div>
-                    <div class="chart-wrap" style="height: 180px;"><canvas id="tdsChart"></canvas></div>
+                    <div class="chart-wrap" style="flex: 1; height: 180px;"><canvas id="tdsChart"></canvas></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- COMPARISON SECTION -->
+        <div class="comparison-section" id="comparisonSection" style="margin-top: 32px; background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0;">Live Session Activity Log</h3>
+                    <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0;">Telemetry streams logged dynamically in real time during this active monitoring session.</p>
+                </div>
+                <button class="btn btn-ghost" id="clearComparisonBtn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.1); padding: 6px 12px; font-size: 0.8rem;">
+                    Clear Log
+                </button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: 600;">
+                            <th style="padding: 12px 16px;">Reading No.</th>
+                            <th style="padding: 12px 16px;">Timestamp</th>
+                            <th style="padding: 12px 16px;">pH Level</th>
+                            <th style="padding: 12px 16px;">Turbidity</th>
+                            <th style="padding: 12px 16px;">Temperature</th>
+                            <th style="padding: 12px 16px;">TDS</th>
+                            <th style="padding: 12px 16px;">Overall Diagnosis</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparisonTableBody" style="color: #334155;">
+                        <!-- Filled dynamically -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
     </div><!-- /page-body -->
 </main>
-    <!-- STANDARDS MODAL -->
-    <div class="modal-overlay" id="standardsModal">
-        <div class="modal" style="max-width: 800px;">
+    <!-- FOUNTAIN SELECTION MODAL -->
+    <div class="modal-overlay" id="selectionModal">
+        <div class="modal" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>PNSDW Water Standards</h2>
-                <p>Philippine National Standards for Drinking Water (AO 2017-0010)</p>
+                <h2>Select Fountain</h2>
+                <p>Choose a fountain to start monitoring</p>
             </div>
             <div class="modal-body">
-                <table class="premium-table" style="font-size: 12px;">
-                    <thead>
-                        <tr>
-                            <th>Parameter</th>
-                            <th>Ideal</th>
-                            <th>Warning</th>
-                            <th>Critical</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>pH</strong></td>
-                            <td>7.0 - 8.0</td>
-                            <td>6.3 - 6.4 / 8.6 - 8.7</td>
-                            <td>&lt; 6.3 or &gt; 8.7</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Turbidity</strong></td>
-                            <td>0 - 1 NTU</td>
-                            <td>3 - 5 NTU</td>
-                            <td>&gt; 5 NTU</td>
-                        </tr>
-                        <tr>
-                            <td><strong>TDS</strong></td>
-                            <td>50 - 300 ppm</td>
-                            <td>400 - 500 ppm</td>
-                            <td>&gt; 500 ppm</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Temp</strong></td>
-                            <td>25 - 30°C</td>
-                            <td>30 - 32°C</td>
-                            <td>&gt; 32°C</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Quick Lookup by ID</label>
+                    <input type="text" id="fountainIdInput" placeholder="e.g. F001" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Or Select from List</label>
+                    <select id="fountainSelect" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 14px; background: white; color: #1e293b; outline: none;">
+                        <option value="" disabled selected>Select a fountain...</option>
+                        <!-- Options will be loaded dynamically -->
+                    </select>
+                </div>
+                <div id="selectedFountainInfo" style="margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none;">
+                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;" id="selName">Fountain Name</div>
+                    <div style="font-size: 12px; color: #64748b;" id="selLoc">Location</div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" id="closeModalBtn">Close</button>
+                <button class="btn btn-ghost" id="closeSelectionBtn">Cancel</button>
+                <button class="btn btn-primary" id="confirmSelectionBtn" disabled>Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Monitoring Report</h2>
+                <p>Summary for <span id="reportFountainName" style="font-weight: 700; color: #1e293b;">--</span></p>
+            </div>
+            <div class="modal-body">
+                <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;">
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Session Date</div>
+                            <div style="font-weight: 600; color: #1e293b;" id="reportDate">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Status</div>
+                            <div id="reportStatus" class="status-badge operational" style="font-size: 10px; padding: 2px 8px;">Operational</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Average pH</div>
+                            <div style="font-weight: 600; color: #14B8A6;" id="reportAvgPh">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Avg Turbidity</div>
+                            <div style="font-weight: 600; color: #38bdf8;" id="reportAvgTurb">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Avg Temperature</div>
+                            <div style="font-weight: 600; color: #ef4444;" id="reportAvgTemp">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Avg TDS</div>
+                            <div style="font-weight: 600; color: #f59e0b;" id="reportAvgTds">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="padding: 16px; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: center;">
+                    <p id="reportSummaryText" style="font-size: 13px; color: #64748b; margin: 0;">Report ready for export. This summary includes 12 data points collected during the session.</p>
+                </div>
+                <div style="margin-top: 14px; padding: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; font-weight: 700;">Current Reading</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px;">
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Snapshot Time</div>
+                            <div id="reportCurrentTimestamp" style="font-weight: 600; color: #1e293b;">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Overall Status</div>
+                            <div id="reportCurrentStatus" class="status-badge operational" style="font-size: 10px; padding: 2px 8px;">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">pH</div>
+                            <div id="reportCurrentPh" style="font-weight: 600; color: #14B8A6;">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Turbidity</div>
+                            <div id="reportCurrentTurb" style="font-weight: 600; color: #38bdf8;">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Temperature</div>
+                            <div id="reportCurrentTemp" style="font-weight: 600; color: #ef4444;">--</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">TDS</div>
+                            <div id="reportCurrentTds" style="font-weight: 600; color: #f59e0b;">--</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="reportActionSummary" style="margin-top: 14px; padding: 16px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: none;"></div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 8px;">
+                <button class="btn btn-ghost" id="closeReportBtn">Close</button>
+                <button class="btn btn-success" id="submitReportBtn" style="background: #14b8a6; color: white;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    <span>Submit Report</span>
+                </button>
+                <button class="btn btn-primary" id="downloadReportBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Download PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HELP GUIDE MODAL -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal guide-modal-custom">
+            <div class="modal-header" style="border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
+                <h2 style="font-family: 'Poppins'; font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <span style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 50%;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </span>
+                    Live Monitoring Guide
+                </h2>
+                <p style="margin: 4px 0 0; font-size: 0.825rem; color: #64748b;">Step-by-step instructions on how to operate the Water Quality Monitoring System (WQMS).</p>
+            </div>
+            
+            <div class="modal-body" style="padding: 10px 24px 20px;">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Step 1 -->
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #14b8a6; color: white; font-weight: 700; font-size: 0.85rem;">1</div>
+                        <div>
+                            <h4 style="margin: 0 0 4px; font-weight: 600; color: #1e293b; font-size: 0.95rem;">Select Drinking Fountain</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.4;">Click <strong>"Start Reading"</strong> in the top header and pick a fountain from the dropdown or quick-lookup by ID (e.g., <strong>F001</strong>).</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #14b8a6; color: white; font-weight: 700; font-size: 0.85rem;">2</div>
+                        <div>
+                            <h4 style="margin: 0 0 4px; font-weight: 600; color: #1e293b; font-size: 0.95rem;">Monitor Real-time Telemetry</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.4;">Watch real-time sensor streams (pH, Turbidity, Temperature, TDS) update on highly stylized, color-coded dashboard cards and line graphs.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #14b8a6; color: white; font-weight: 700; font-size: 0.85rem;">3</div>
+                        <div>
+                            <h4 style="margin: 0 0 4px; font-weight: 600; color: #1e293b; font-size: 0.95rem;">Compare Saved Readings</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.4;">Click <strong>"Save Snapshot"</strong> at any point to save a telemetry slice. These slices will appear side-by-side in the <strong>Session Readings Comparison</strong> table at the bottom of the screen.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #14b8a6; color: white; font-weight: 700; font-size: 0.85rem;">4</div>
+                        <div>
+                            <h4 style="margin: 0 0 4px; font-weight: 600; color: #1e293b; font-size: 0.95rem;">Export Monitoring Report</h4>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.4;">Click <strong>"Generate Report"</strong> to aggregate all captured data points during the active session into a printable PDF report for submission or archive.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="border-top: 1px solid #f1f5f9; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.825rem; color: #64748b; user-select: none;">
+                    <input type="checkbox" id="dontShowAgainCheck" style="width: 16px; height: 16px; accent-color: #14b8a6; cursor: pointer; border-radius: 4px; border: 1.5px solid #cbd5e1;">
+                    <span>Do not display again</span>
+                </label>
+                <button class="btn btn-primary" id="closeGuideBtn" style="padding: 10px 24px;">Got it, thanks!</button>
             </div>
         </div>
     </div>
 
     <script>
         // Modal Logic
-        const modal = document.getElementById('standardsModal');
-        const openBtn = document.getElementById('viewStandardsBtn');
-        const closeBtn = document.getElementById('closeModalBtn');
-
-        if (openBtn) {
-            openBtn.addEventListener('click', () => modal.classList.add('open'));
-        }
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => modal.classList.remove('open'));
-        }
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('open');
-            });
-        }
     </script>
 </body>
 </html>

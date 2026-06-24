@@ -4,14 +4,36 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Portals call handleLogin directly from onsubmit, but we keep this for consistency if needed
-    // Check if user is already logged in and on the login page
     const currentPath = window.location.pathname;
-    if (currentPath.endsWith('login.html') || currentPath.endsWith('admin-login.html')) {
-        const user = getCurrentUser();
-        if (user) {
-            redirectUser(user.role);
+    
+    // Extract the exact filename from the path (e.g. "login.html", "admin-login.html")
+    const pageName = currentPath.split('/').pop() || '';
+    
+    // Determine page type using EXACT filename match (not endsWith)
+    const isUserLoginPage = (pageName === 'login.html') || currentPath === '/';
+    const isAdminLoginPage = (pageName === 'admin-login.html');
+    
+    // If we're not on any login page, skip redirect logic entirely
+    if (!isUserLoginPage && !isAdminLoginPage) return;
+    
+    // Check specific sessions
+    const adminSession = localStorage.getItem('aqua_monitor_admin_session');
+    const userSession = localStorage.getItem('aqua_monitor_user_session');
+    
+    console.log('[auth.js] Page:', pageName, '| isUserLogin:', isUserLoginPage, '| isAdminLogin:', isAdminLoginPage, '| adminSession:', !!adminSession, '| userSession:', !!userSession);
+    
+    if (isUserLoginPage) {
+        // On the USER login page: ONLY redirect if a USER session exists
+        if (userSession) {
+            redirectUser('operator');
         }
+        // Do NOT redirect for adminSession — admin may want to log in as a user too
+    } else if (isAdminLoginPage) {
+        // On the ADMIN login page: ONLY redirect if an ADMIN session exists
+        if (adminSession) {
+            redirectUser('admin');
+        }
+        // Do NOT redirect for userSession — user may want to log in as admin too
     }
 });
 
@@ -34,25 +56,28 @@ function handleLogin(event, portalType) {
     // Show loading state
     setLoading(true, portalType);
     
-    // Mock user database
-    const users = [
-        { email: 'admin@olfu.edu.ph', password: 'password123', role: 'admin', name: 'Admin User' },
-        { email: 'john.doe@olfu.edu.ph', password: 'password123', role: 'operator', name: 'John Doe' },
-        { email: 'bob.wilson@olfu.edu.ph', password: 'password123', role: 'operator', name: 'Bob Wilson' }
-    ];
+    // Call backend API
+    API.auth.login({ email, password, portal_type: portalType })
+        .then(response => {
+            // API.request returns either the wrapped payload.data or the raw object.
+            // Support both shapes: { user: {...} } and {...} by falling back.
+            const user = (response && response.user) ? response.user : response;
 
-    // Simulating network delay
-    setTimeout(() => {
-        const user = users.find(u => u.email === email && u.password === password);
+            if (!user) {
+                showMessage('Unexpected server response. Please try again.', 'error');
+                setLoading(false, portalType);
+                return;
+            }
 
-        if (user) {
             // STRICT PORTAL CHECK
-            if (portalType === 'admin' && user.role !== 'admin') {
+            const role = (user.role_name || '').toLowerCase();
+            
+            if (portalType === 'admin' && role !== 'admin') {
                 showMessage('Access denied. This portal is for administrators only.', 'error');
                 setLoading(false, portalType);
                 return;
             }
-            if (portalType === 'user' && user.role === 'admin') {
+            if (portalType === 'user' && role === 'admin') {
                 showMessage('Administrators must use the admin portal to sign in.', 'error');
                 setLoading(false, portalType);
                 return;
@@ -61,25 +86,27 @@ function handleLogin(event, portalType) {
             // Success
             showMessage('Login successful! Redirecting...', 'success');
             
-            // Save session
+            // Save session separately based on portal role
             const sessionData = {
+                id: user.id,
                 email: user.email,
-                role: user.role,
+                role: user.role_name, // Save original string
                 name: user.name,
                 loginTime: new Date().toISOString()
             };
-            localStorage.setItem('aqua_monitor_session', JSON.stringify(sessionData));
+            const sessionKey = role === 'admin' ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';
+            localStorage.setItem(sessionKey, JSON.stringify(sessionData));
             
             // Redirect
             setTimeout(() => {
-                redirectUser(user.role);
+                redirectUser(role === 'admin' ? 'admin' : 'operator');
             }, 1000);
-        } else {
+        })
+        .catch(error => {
             // Failure
-            showMessage('Invalid email or password. Please try again.', 'error');
+            showMessage(error.message || 'Invalid email or password. Please try again.', 'error');
             setLoading(false, portalType);
-        }
-    }, 1000);
+        });
 }
 
 /**
@@ -124,10 +151,15 @@ function showMessage(text, type) {
  * Redirect user based on role
  */
 function redirectUser(role) {
+    if (!role) return;
+    
     const isInsideSubfolder = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
     const prefix = isInsideSubfolder ? '../../' : '';
     
-    if (role === 'admin') {
+    // Normalize role to lowercase for comparison
+    const normalizedRole = role.toLowerCase();
+    
+    if (normalizedRole === 'admin') {
         window.location.href = prefix + 'frontend/admin/admin-dashboard.html';
     } else {
         window.location.href = prefix + 'frontend/user/user-dashboard.html';
@@ -135,10 +167,10 @@ function redirectUser(role) {
 }
 
 /**
- * Get current logged in user
+ * Get current logged in user from decoupled sessions
  */
 function getCurrentUser() {
-    const session = localStorage.getItem('aqua_monitor_session');
+    const session = localStorage.getItem('aqua_monitor_admin_session') || localStorage.getItem('aqua_monitor_user_session');
     return session ? JSON.parse(session) : null;
 }
 
@@ -146,7 +178,8 @@ function getCurrentUser() {
  * Logout function
  */
 function logout() {
-    localStorage.removeItem('aqua_monitor_session');
+    localStorage.removeItem('aqua_monitor_admin_session');
+    localStorage.removeItem('aqua_monitor_user_session');
     const isInsideSubfolder = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
     const prefix = isInsideSubfolder ? '../../' : '';
     window.location.href = prefix + 'login.html';

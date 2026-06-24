@@ -1,7 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Import Database Session
+from models import SessionLocal, get_db
+from api.v1.common import api_success, api_error
 
 # Import Blueprints
 from api.v1.auth import auth_bp
@@ -10,9 +18,11 @@ from api.v1.users import users_bp
 from api.v1.fountains import fountains_bp
 from api.v1.alerts import alerts_bp
 from api.v1.settings import settings_bp
+from api.v1.reports import reports_bp
+from api.v1.admins import admins_bp
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'wqms_secret_key_2025' # Change this in production
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'wqms_secret_key_2025')
 
 # Enable CORS for frontend integration
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -21,28 +31,47 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
 app.register_blueprint(sensors_bp, url_prefix='/api/v1/sensors')
 app.register_blueprint(users_bp, url_prefix='/api/v1/users')
+app.register_blueprint(admins_bp, url_prefix='/api/v1/admins')
 app.register_blueprint(fountains_bp, url_prefix='/api/v1/fountains')
 app.register_blueprint(alerts_bp, url_prefix='/api/v1/alerts')
 app.register_blueprint(settings_bp, url_prefix='/api/v1/settings')
+app.register_blueprint(reports_bp, url_prefix='/api/v1/reports')
 
-# Initialize SocketIO with eventlet
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# Initialize SocketIO with threading (eventlet has issues on some Windows environments)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+app.socketio = socketio
 
 @app.route('/')
 def index():
-    return jsonify({"status": "WQMS API is running", "version": "1.0.0"})
+    return send_from_directory('..', 'login.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('..', path)
 
 # --- REST API V1 ROUTES ---
 
 @app.route('/api/v1/status', methods=['GET'])
 def get_status():
     """Returns the current status of the monitoring system"""
-    # Mock data - will be replaced with MySQL query later
-    return jsonify({
-        "system": "online",
-        "last_sync": "2025-05-07T20:45:00Z",
-        "active_sensors": 4
-    })
+    try:
+        db = SessionLocal()
+        from models import Fountain, SensorLog
+        
+        active_sensors = db.query(Fountain).filter_by(status='Online').count()
+        last_log = db.query(SensorLog).order_by(SensorLog.timestamp.desc()).first()
+        last_sync = last_log.timestamp.isoformat() if last_log else None
+        
+        db.close()
+        
+        return api_success({
+            "system": "online",
+            "last_sync": last_sync,
+            "active_sensors": active_sensors,
+            "timestamp": os.popen('date /t').read().strip()
+        }, 'System status retrieved successfully')
+    except Exception as e:
+        return api_error(str(e), 500)
 
 # --- WEBSOCKET EVENTS ---
 
@@ -71,5 +100,15 @@ def handle_monitoring_request(data):
     })
 
 if __name__ == '__main__':
-    # Run the application with SocketIO
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    # Run the application
+    print("Starting WQMS Backend Server...")
+    api_host = os.getenv('API_HOST', '0.0.0.0')
+    api_port = int(os.getenv('API_PORT', 5000))
+    print(f"API running on {api_host}:{api_port}")
+    print(f"Database: {os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME', 'wqms_db')}")
+    
+    # Run the application with native WebSockets support
+    # Debug/reloader disabled to avoid Werkzeug reloader child/FD issues when
+    # launching from this integrated terminal environment.
+    socketio.run(app, host=api_host, port=api_port, debug=False, allow_unsafe_werkzeug=True)
+

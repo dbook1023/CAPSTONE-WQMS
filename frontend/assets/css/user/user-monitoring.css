@@ -202,6 +202,24 @@ body.sidebar-collapsed .main-content {
     color: #dc2626;
 }
 
+.status-toggle-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+}
+
+.status-toggle-btn:hover {
+    transform: scale(1.05);
+}
+
+.status-toggle-btn:active {
+    transform: scale(0.95);
+}
+
 .fc-title {
     font-family: 'Poppins', sans-serif;
     font-size: 17px;
@@ -283,12 +301,7 @@ body.sidebar-collapsed .main-content {
 }
 
 .fc-updated {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 14px;
+    display: none; /* Hidden: only show current readings, not last-updated timestamps */
 }
 
 .fc-bottom {
@@ -502,5 +515,101 @@ body.sidebar-collapsed .main-content {
 
     .legend-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ── MODAL STYLES ────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-overlay.open .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.modal-header p {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ── FORM STYLES ─────────────────────────────── */
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+select:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+}
+
+/* ── MORE ACTIONS DROPDOWN (Responsive) ── */
+#moreActionsWrap {
+    display: none !important;
+    position: relative;
+}
+
+@media (max-width: 1024px) {
+    .header-btn-desktop {
+        display: none !important;
+    }
+    #moreActionsWrap {
+        display: inline-block !important;
     }
 }

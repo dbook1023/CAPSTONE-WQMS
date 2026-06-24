@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="../assets/css/admin/admin-sidebar.css">
     <link rel="stylesheet" href="../assets/css/admin/admin-alerts.css">
 
+    <script defer src="../assets/js/shared/api.js"></script>
+    <script defer src="../assets/js/shared/action-guidance.js"></script>
     <script defer src="../assets/js/admin/admin-alerts.js"></script>
     <script defer src="../assets/js/admin/admin-shared.js"></script>
 </head>
@@ -40,11 +42,11 @@
             </div>
         </div>
         <div class="header-actions">
-            <button class="btn btn-ghost">
+            <button class="btn btn-ghost" id="alertsFilterBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 <span>Filter</span>
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" id="alertsExportBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>Export</span>
             </button>
@@ -69,7 +71,7 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 </div>
                 <div class="stat-label">Active Alerts</div>
-                <div class="stat-value">4</div>
+                <div class="stat-value">--</div>
                 <div class="stat-sub">Requires attention</div>
             </div>
             <div class="stat-card red">
@@ -77,7 +79,7 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 </div>
                 <div class="stat-label">Critical Alerts</div>
-                <div class="stat-value">1</div>
+                <div class="stat-value">--</div>
                 <div class="stat-sub">Immediate action needed</div>
             </div>
             <div class="stat-card orange">
@@ -85,7 +87,7 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </div>
                 <div class="stat-label">Warnings</div>
-                <div class="stat-value">2</div>
+                <div class="stat-value">--</div>
                 <div class="stat-sub">Monitor closely</div>
             </div>
         </div>
@@ -96,150 +98,16 @@
             <button class="tab-btn" data-filter="active">Active</button>
             <button class="tab-btn" data-filter="critical">Critical</button>
             <button class="tab-btn" data-filter="warning">Warnings</button>
+            <button class="tab-btn" data-filter="safe">Safe</button>
             <button class="tab-btn" data-filter="resolved">Resolved</button>
         </div>
 
+        <div class="alerts-summary" id="alertsActionSummary"></div>
+
         <!-- ALERT CARDS -->
         <div class="alerts-list" id="alertsList">
-
-            <!-- 0. High TDS Level Detected — Warning, Active -->
-            <div class="alert-card warning" data-type="warning" data-status="active"
-                 data-search="high tds level detected jsb building total dissolved solids f002">
-                <div class="alert-icon-wrap warning">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </div>
-                <div class="alert-body">
-                    <div class="alert-title-row">
-                        <span class="alert-title">High TDS Level Detected</span>
-                        <span class="badge warning">Warning</span>
-                    </div>
-                    <div class="alert-desc">High Total Dissolved Solids detected in JSB Building fountain. Water purity may be affected.</div>
-                    <div class="alert-meta">
-                        <span><strong>Fountain:</strong> JSB Building <span class="meta-id">F002</span></span>
-                        <span><strong>Parameter:</strong> TDS 450 ppm</span>
-                        <span class="meta-time">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            1 minute ago
-                        </span>
-                    </div>
-                </div>
-                <button class="resolve-btn" onclick="resolveAlert(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Resolve
-                </button>
-            </div>
-
-            <!-- 1. Turbidity Level Rising — Warning, Active -->
-            <div class="alert-card warning" data-type="warning" data-status="active"
-                 data-search="turbidity level rising jsb building turbidity f002">
-                <div class="alert-icon-wrap warning">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </div>
-                <div class="alert-body">
-                    <div class="alert-title-row">
-                        <span class="alert-title">Turbidity Level Rising</span>
-                        <span class="badge warning">Warning</span>
-                    </div>
-                    <div class="alert-desc">Turbidity level in JSB Building fountain approaching threshold.</div>
-                    <div class="alert-meta">
-                        <span><strong>Fountain:</strong> JSB Building <span class="meta-id">F002</span></span>
-                        <span><strong>Parameter:</strong> Turbidity 4.2 NTU</span>
-                        <span class="meta-time">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            3 minutes ago
-                        </span>
-                    </div>
-                </div>
-                <button class="resolve-btn" onclick="resolveAlert(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Resolve
-                </button>
-            </div>
-
-            <!-- 2. Fountain Offline — Critical, Active -->
-            <div class="alert-card critical" data-type="critical" data-status="active"
-                 data-search="fountain offline sch court f004">
-                <div class="alert-icon-wrap critical">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                </div>
-                <div class="alert-body">
-                    <div class="alert-title-row">
-                        <span class="alert-title">Fountain Offline</span>
-                        <span class="badge critical">Critical</span>
-                    </div>
-                    <div class="alert-desc">SCH Court fountain has been offline for over 2 hours. No data is being transmitted.</div>
-                    <div class="alert-meta">
-                        <span><strong>Fountain:</strong> SCH Court <span class="meta-id">F004</span></span>
-                        <span class="meta-time">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            2 hours ago
-                        </span>
-                    </div>
-                </div>
-                <button class="resolve-btn" onclick="resolveAlert(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Resolve
-                </button>
-            </div>
-
-            <!-- 3. Maintenance Scheduled — Info, Active -->
-            <div class="alert-card info" data-type="info" data-status="active"
-                 data-search="maintenance scheduled spcb building f001">
-                <div class="alert-icon-wrap info">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                </div>
-                <div class="alert-body">
-                    <div class="alert-title-row">
-                        <span class="alert-title">Maintenance Scheduled</span>
-                        <span class="badge info">Info</span>
-                    </div>
-                    <div class="alert-desc">Regular maintenance scheduled for SPCB Building fountain</div>
-                    <div class="alert-meta">
-                        <span><strong>Fountain:</strong> SPCB Building <span class="meta-id">F001</span></span>
-                        <span class="meta-time">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            5 hours ago
-                        </span>
-                    </div>
-                </div>
-                <button class="resolve-btn" onclick="resolveAlert(this)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Resolve
-                </button>
-            </div>
-
-            <!-- 4. pH Level Fluctuation — Warning, Resolved -->
-            <div class="alert-card warning" data-type="warning" data-status="resolved"
-                 data-search="ph level fluctuation canteen area f003">
-                <div class="alert-icon-wrap warning">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </div>
-                <div class="alert-body">
-                    <div class="alert-title-row">
-                        <span class="alert-title">pH Level Fluctuation</span>
-                        <span class="badge warning">Warning</span>
-                        <span class="badge resolved">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            Resolved
-                        </span>
-                    </div>
-                    <div class="alert-desc">pH level showing minor fluctuations in Canteen Area</div>
-                    <div class="alert-meta">
-                        <span><strong>Fountain:</strong> Canteen Area <span class="meta-id">F003</span></span>
-                        <span><strong>Parameter:</strong> pH 7.2</span>
-                        <span class="meta-time">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            1 day ago
-                        </span>
-                    </div>
-                </div>
-                <button class="resolve-btn resolved-state" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    Resolved
-                </button>
-            </div>
-
-        </div><!-- /alerts-list -->
+            <!-- Injected by JS -->
+        </div>
     </div><!-- /page-body -->
 </main>
 </body>

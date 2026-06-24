@@ -18,6 +18,7 @@
 
     <!-- Scripts -->
     <script defer src="../assets/js/shared/utils.js"></script>
+    <script defer src="../assets/js/shared/api.js"></script>
     <script defer src="../assets/js/admin/admin-settings.js"></script>
     <script defer src="../assets/js/admin/admin-shared.js"></script>
 </head>
@@ -438,29 +439,73 @@
                 </div>
 
                 <div class="settings-card">
-                    <h3>Sensor Calibration</h3>
-                    <div class="field-grid">
-                        <div class="field-group">
-                            <div class="field-label">pH Sensor Offset</div>
-                            <input class="field-input" type="number" step="0.01" value="-0.12">
-                            <div class="field-hint">Value added to raw pH reading</div>
-                        </div>
-                        <div class="field-group">
-                            <div class="field-label">Turbidity K-Value</div>
-                            <input class="field-input" type="number" step="0.1" value="1.0">
-                            <div class="field-hint">Scaling factor for turbidity sensor</div>
-                        </div>
-                        <div class="field-group">
-                            <div class="field-label">TDS Correction Factor</div>
-                            <input class="field-input" type="number" step="0.01" value="0.5">
-                            <div class="field-hint">Temperature compensation factor</div>
-                        </div>
-                        <div class="field-group">
-                            <div class="field-label">Temperature Offset (°C)</div>
-                            <input class="field-input" type="number" step="0.1" value="0.0">
-                            <div class="field-hint">Calibration adjustment for temperature</div>
+                    <h3>Sensor Calibration & Coefficients</h3>
+                    <p class="card-desc" style="font-size: 13px; color: #64748b; margin-bottom: 24px; margin-top: -16px;">
+                        Technicians can configure calibration formulas and constants per physical sensor unit.
+                    </p>
+                    
+                    <div style="margin-bottom: 24px;">
+                        <label class="field-label" style="display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px;">Select Physical Device to Calibrate</label>
+                        <select class="field-input" id="calibrationDeviceSelect" onchange="loadDeviceCalibration()" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-family: 'Inter'; background: white;">
+                            <option value="" disabled selected>Select a physical device...</option>
+                            <!-- Dynamically populated options -->
+                        </select>
+                        <div class="field-hint" style="margin-top: 6px; color: #94a3b8; font-size: 11px;">
+                            Select by MAC Address / Assigned Location. Formula constants are calculated and applied safely on the backend server.
                         </div>
                     </div>
+                    
+                    <!-- CALIBRATION VALUES FORM PANEL -->
+                    <div id="calibrationFieldsContainer" style="display: none; border-top: 1px dashed #e2e8f0; padding-top: 20px; margin-top: 20px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 18px; display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                            Calibration Parameters
+                        </h4>
+                        
+                        <div class="field-grid" style="margin-bottom: 16px;">
+                            <div class="field-group">
+                                <div class="field-label">pH Slope</div>
+                                <input class="field-input" type="number" step="any" id="phSlopeInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Linear slope factor (Default: -5.7)</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">pH Offset</div>
+                                <input class="field-input" type="number" step="any" id="phOffsetInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Linear baseline intercept (Default: 21.34)</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">TDS Constant (k-value)</div>
+                                <input class="field-input" type="number" step="any" id="tdsKInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Conductivity multiplier factor (Default: 0.2)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="field-grid">
+                            <div class="field-group">
+                                <div class="field-label">Turbidity Constant A</div>
+                                <input class="field-input" type="number" step="any" id="turbAInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Quadratic constant (Default: -1120.4)</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">Turbidity Constant B</div>
+                                <input class="field-input" type="number" step="any" id="turbBInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Linear constant (Default: 5742.3)</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">Turbidity Constant C</div>
+                                <input class="field-input" type="number" step="any" id="turbCInput" style="padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;">
+                                <div class="field-hint">Constant intercept (Default: -4352.9)</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 24px;">
+                            <button class="btn btn-primary" type="button" onclick="saveDeviceCalibration()" id="saveCalBtn" style="gap: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                <span>Save Calibration Constants</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                     <div class="hardware-actions" style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
                         <button class="btn btn-primary" onclick="generateConfig()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>

@@ -76,6 +76,12 @@
                 <h3>Frequently Asked Questions</h3>
                 <div class="faq-list">
                     <details class="faq-item">
+                        <summary>What happens if a physical sensor device is moved to a different fountain?</summary>
+                        <div class="faq-content">
+                            <p>If an engineer or administrator physically moves a sensor box to a new fountain, they simply update its assignment in the system. The platform will automatically route all new real-time readings to the new fountain, ensuring data is logged accurately and historical logs are kept perfectly clean.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
                         <summary>How often is the water quality data updated?</summary>
                         <div class="faq-content">
                             <p>Data is transmitted in real-time from our ESP32-based sensor nodes every 5 minutes. The dashboard updates automatically to reflect the latest readings.</p>
@@ -93,6 +99,12 @@
                         <summary>How can I export the monitoring reports?</summary>
                         <div class="faq-content">
                             <p>Navigate to the "Reports" page. You can filter by date range and use the "Premium Download" button to save reports as PDF or CSV files.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I calibrate the sensors remotely?</summary>
+                        <div class="faq-content">
+                            <p>Remote calibration is restricted to system administrators and technicians. If you believe a sensor needs calibration, please open a support ticket using the "Contact Support" card above or notify your site administrator. Administrators can apply calibration constants from the Admin → Settings → Sensor Calibration panel; after they save the changes the device will apply them on its next heartbeat.</p>
                         </div>
                     </details>
                 </div>

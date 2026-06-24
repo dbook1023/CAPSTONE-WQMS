@@ -117,6 +117,7 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
     box-shadow: 0 4px 10px rgba(20, 184, 166, 0.3);
 }
 
@@ -428,6 +429,24 @@ canvas {
     }
 }
 
+/* ── TABLET & SMALL DESKTOP RESPONSIVENESS ── */
+@media (max-width: 880px) {
+    .header-titles p,
+    .header-sub {
+        display: none;
+    }
+    
+    .header-titles h1,
+    .header-title {
+        font-size: 16px;
+    }
+
+    .btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+}
+
 /* ── MOBILE RESPONSIVENESS ── */
 @media (max-width: 767px) {
     html, body {
@@ -506,23 +525,22 @@ canvas {
     }
 
     /* Icon-only buttons on mobile */
-    .btn {
-        padding: 8px 12px;
-        width: auto;
-        height: auto;
-        min-width: 0;
+    .header-actions .btn span {
+        display: none;
+    }
+
+    .header-actions .btn {
+        padding: 0;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
         justify-content: center;
-        gap: 6px;
+        gap: 0;
     }
 
-    .btn span {
-        display: inline;
-        font-size: 12px;
-    }
-
-    .btn svg {
-        width: 14px;
-        height: 14px;
+    .header-actions .btn svg {
+        width: 16px;
+        height: 16px;
         margin: 0;
     }
 
@@ -533,8 +551,8 @@ canvas {
     }
 }
 
-/* ── ULTRA-NARROW SCREENS (<400px) ── */
-@media (max-width: 400px) {
+/* ── ULTRA-NARROW SCREENS (<460px) ── */
+@media (max-width: 460px) {
     .top-header {
         gap: 8px;
         padding: 0 8px;
@@ -545,18 +563,9 @@ canvas {
         font-size: 13px;
     }
 
-    /* Icon-only buttons on very small screens */
-    .header-actions .btn span {
-        display: none;
-    }
-
-    .header-actions .btn {
-        padding: 8px;
-        gap: 0;
-    }
-
     .header-actions {
-        gap: 4px;
+        gap: 6px;
+        flex-wrap: nowrap;
     }
 }
 
@@ -853,6 +862,8 @@ canvas {
 .dl-btn-label .circle {
     height: 32px;
     width: 32px;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     background-color: var(--accent-teal);
     display: flex;
@@ -909,6 +920,9 @@ canvas {
 
 .dl-btn-label:has(.input:checked) {
     width: 40px;
+    display: grid;
+    place-items: center;
+    padding: 0;
     animation: dl_installed 0.4s ease 3.5s forwards;
 }
 
@@ -917,19 +931,16 @@ canvas {
 }
 
 .dl-btn-label .input:checked + .circle {
-    animation:
-        dl_pulse 1s forwards,
+    animation: 
+        dl_pulse 1s forwards, 
         dl_circleSuccess 0.4s ease 3.5s forwards;
     rotate: 180deg;
 }
 
-.dl-btn-label .input:checked + .circle::before {
-    animation: dl_installing 3s ease-in-out forwards;
-}
-
-.dl-btn-label .input:checked + .circle .icon.arrow {
-    opacity: 0;
-    visibility: hidden;
+.dl-btn-label .input:checked ~ .circle .icon.arrow {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: none;
 }
 
 .dl-btn-label .input:checked ~ .circle .square {
@@ -995,6 +1006,9 @@ canvas {
     100% {
         width: 130px;
         border-color: #22c55e;
+        display: flex;
+        justify-content: flex-start;
+        padding: 4px;
     }
 }
 
@@ -1026,7 +1040,10 @@ canvas {
     100% {
         opacity: 1;
         visibility: visible;
-        right: 18px;
+        right: 0;
+        left: 32px;
+        width: calc(100% - 32px);
+        text-align: center;
     }
 }
 
@@ -1034,30 +1051,30 @@ canvas {
 @media (max-width: 640px) {
     .dl-btn-label {
         width: 40px !important;
+        padding: 0 !important;
+        display: grid !important;
+        place-items: center !important;
     }
+
     .dl-btn-label .title {
         display: none !important;
     }
+
     .dl-btn-label:has(.input:checked) {
         width: 40px !important;
     }
+
     @keyframes dl_installed {
         100% {
             width: 40px;
             border-color: #22c55e;
         }
     }
+
     @keyframes dl_showInstalledMessage {
         100% {
             opacity: 0;
             visibility: hidden;
-        }
-    }
-    @keyframes dl_circleSuccess {
-        100% {
-            background-color: #22c55e;
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            transform: translateX(0); /* Center on mobile */
         }
     }
 }
@@ -1129,6 +1146,87 @@ canvas {
             background: var(--accent-cyan);
             transform: translateY(-1.5rem) scale(1.3);
         }
+    }
+}
+
+/* ── TABLE / LIST FOOTER & PAGINATION ── */
+.table-footer {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-top: 1px solid #e8edf2;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.table-info {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.table-info span {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pg-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.pg-btn:hover:not(.disabled) {
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+    background: #f0fdfa;
+}
+
+.pg-btn.active {
+    background: var(--accent-teal);
+    color: white;
+    border-color: var(--accent-teal);
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.2);
+}
+
+.pg-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pg-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 640px) {
+    .table-footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+        padding: 20px 16px;
+    }
+
+    .pagination {
+        width: 100%;
+        justify-content: center;
     }
 }
 

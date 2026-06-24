@@ -67,6 +67,21 @@
     grid-template-columns: 2fr 1fr;
     gap: 3rem;
     align-items: center;
+    margin-bottom: 2.5rem;
+}
+
+.uni-action {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.uni-action .btn svg {
+    transition: transform 0.3s ease;
+}
+
+.uni-action .btn:hover svg {
+    transform: translate(3px, -3px);
 }
 
 .uni-stats {
@@ -78,6 +93,8 @@
     display: flex;
     flex-direction: column;
     text-align: center;
+    min-width: 140px;
+    flex: 1;
 }
 
 .stat-num {
@@ -97,5 +114,35 @@
 @media (max-width: 768px) {
     .about-grid, .uni-grid {
         grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .university-section {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .uni-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+
+    .uni-action .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-num {
+        font-size: 2rem;
+    }
+
+    .university-section {
+        padding: 1.25rem;
+    }
+
+    .uni-stats {
+        gap: 1.5rem;
     }
 }

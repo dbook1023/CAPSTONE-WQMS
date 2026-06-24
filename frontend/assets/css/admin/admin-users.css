@@ -52,7 +52,7 @@
 }
 
 .role-card {
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
     padding: 28px 26px 24px;
     color: white;
     position: relative;
@@ -123,7 +123,7 @@
 /* Table */
 .table-wrap {
     background: white;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
     border: 1px solid #e8edf2;
     overflow-x: auto;
     overflow-y: hidden;
@@ -356,7 +356,7 @@ td {
 /* Activity Log Section */
 .activity-log-section {
     background: white;
-    border-radius: 16px;
+    border-radius: 16px 16px 0 0;
     border: 1px solid #e8edf2;
     padding: 24px;
     margin-top: 24px;

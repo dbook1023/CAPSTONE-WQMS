@@ -107,6 +107,12 @@
                 <h3>Admin Task FAQs</h3>
                 <div class="faq-list">
                     <details class="faq-item">
+                        <summary>How do I move or swap a physical sensor device to a different fountain?</summary>
+                        <div class="faq-content">
+                            <p>To transfer a physical ESP32 device, simply go to the <strong>Hardware Registry</strong> page, click <strong>Register Device</strong> (or edit the device), type in the existing Serial number (MAC address), select the new fountain, and click save. The system automatically unbinds it from the old fountain and assigns it to the new one. All future water readings from this device will instantly route to the new fountain, while historical logs remain safely archived.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
                         <summary>How do I calibrate the sensors remotely?</summary>
                         <div class="faq-content">
                             <p>Remote calibration is handled via the "Fountain Status" admin panel. Select the specific node and input the calibration offset values. The ESP32 will update its local logic on the next heartbeat.</p>

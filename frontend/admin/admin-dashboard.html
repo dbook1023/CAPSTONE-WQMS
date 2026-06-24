@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../assets/css/admin/admin-dashboard.css">
     <link rel="stylesheet" href="../assets/css/admin/admin-sidebar.css">
     
+    <script defer src="../assets/js/shared/api.js"></script>
     <script defer src="../assets/js/admin/admin-dashboard.js"></script>
     <script defer src="../assets/js/admin/admin-shared.js"></script>
 </head>
@@ -80,10 +81,10 @@
                     </div>
                 </div>
                 <div class="metric-label">pH Level</div>
-                <div class="metric-value">7.2<span class="metric-unit">pH</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-ph">--<span class="metric-unit">pH</span></div>
+                <div class="metric-trend" id="trend-ph">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                    +0.1 from last hour
+                    --
                 </div>
                 <div class="metric-card-bottom">
                     <span class="auto-refresh-label">Auto-refresh</span>
@@ -105,10 +106,10 @@
                     </div>
                 </div>
                 <div class="metric-label">Turbidity</div>
-                <div class="metric-value">2.3<span class="metric-unit">NTU</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-turbidity">--<span class="metric-unit">NTU</span></div>
+                <div class="metric-trend" id="trend-turbidity">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                    Stable
+                    --
                 </div>
                 <div class="metric-card-bottom">
                     <span class="auto-refresh-label">Auto-refresh</span>
@@ -130,10 +131,10 @@
                     </div>
                 </div>
                 <div class="metric-label">Temperature</div>
-                <div class="metric-value">24<span class="metric-unit">°C</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-temp">--<span class="metric-unit">°C</span></div>
+                <div class="metric-trend" id="trend-temp">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-                    -0.5°C from peak
+                    --
                 </div>
                 <div class="metric-card-bottom">
                     <span class="auto-refresh-label">Auto-refresh</span>
@@ -155,10 +156,10 @@
                     </div>
                 </div>
                 <div class="metric-label">Total Dissolved Solids</div>
-                <div class="metric-value">125<span class="metric-unit">ppm</span></div>
-                <div class="metric-trend">
+                <div class="metric-value" id="val-tds">--<span class="metric-unit">ppm</span></div>
+                <div class="metric-trend" id="trend-tds">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    Optimal purity
+                    --
                 </div>
                 <div class="metric-card-bottom">
                     <span class="auto-refresh-label">Auto-refresh</span>
@@ -232,7 +233,7 @@
         <div class="trend-section">
             <div class="section-title-wrap">
                 <h2>Trend Analysis & System Health</h2>
-                <span class="trend-period">Last 7 Days Analysis</span>
+                <span class="trend-period" id="trendPeriod">Current System Analysis</span>
             </div>
             
             <div class="trend-insights-grid">
@@ -242,8 +243,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Stability Score</h4>
-                        <div class="insight-value">98.4%</div>
-                        <p>Overall parameter consistency</p>
+                        <div class="insight-value" id="stabilityValue">--</div>
+                        <p id="stabilityDesc">System performance score</p>
                     </div>
                 </div>
 
@@ -253,8 +254,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>pH Variance</h4>
-                        <div class="insight-value">±0.2</div>
-                        <p>Minimal fluctuation detected</p>
+                        <div class="insight-value" id="phVarValue">--</div>
+                        <p id="phVarDesc">pH deviation analysis</p>
                     </div>
                 </div>
 
@@ -264,8 +265,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Anomaly Detection</h4>
-                        <div class="insight-value">0 Found</div>
-                        <p>No critical deviations</p>
+                        <div class="insight-value" id="anomalyValue">--</div>
+                        <p id="anomalyDesc">Critical deviations</p>
                     </div>
                 </div>
 
@@ -275,8 +276,8 @@
                     </div>
                     <div class="insight-info">
                         <h4>Peak Temp</h4>
-                        <div class="insight-value">25.4°C</div>
-                        <p>Recorded at 14:30 PM today</p>
+                        <div class="insight-value" id="peakValue">--</div>
+                        <p id="peakDesc">Highest recorded temperature</p>
                     </div>
                 </div>
             </div>
@@ -291,19 +292,19 @@
             <div class="standards-grid">
                 <div class="standard-card">
                     <h4>pH Level</h4>
-                    <p>Safe Range: 6.5 - 8.5 pH<br>Current: Within safe limits</p>
+                    <p>Safe Range: 6.5 - 8.5 pH<br>Current: <span id="status-ph">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>Turbidity</h4>
-                    <p>Safe Range: &lt; 5 NTU<br>Current: Excellent clarity</p>
+                    <p>Safe Range: &lt; 5 NTU<br>Current: <span id="status-turbidity">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>Temperature</h4>
-                    <p>Safe Range: 15°C - 30°C<br>Current: Optimal</p>
+                    <p>Safe Range: 15°C - 30°C<br>Current: <span id="status-temp">--</span></p>
                 </div>
                 <div class="standard-card">
                     <h4>TDS (Total Dissolved Solids)</h4>
-                    <p>Safe Range: &lt; 500 ppm<br>Current: Excellent purity</p>
+                    <p>Safe Range: &lt; 500 ppm<br>Current: <span id="status-tds">--</span></p>
                 </div>
             </div>
         </div>
@@ -315,22 +316,22 @@
         <div class="footer-stat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             <div class="footer-stat-label">System Health</div>
-            <div class="footer-stat-sub">All systems operational</div>
+            <div class="footer-stat-sub" id="footer-health">--</div>
         </div>
         <div class="footer-stat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <div class="footer-stat-label">Active Alerts</div>
-            <div class="footer-stat-sub">1 warning detected</div>
+            <div class="footer-stat-sub" id="footer-alerts">--</div>
         </div>
         <div class="footer-stat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <div class="footer-stat-label">Compliance</div>
-            <div class="footer-stat-sub">100% compliant</div>
+            <div class="footer-stat-sub" id="footer-compliance">--</div>
         </div>
         <div class="footer-stat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             <div class="footer-stat-label">Performance</div>
-            <div class="footer-stat-sub">Optimal</div>
+            <div class="footer-stat-sub" id="footer-performance">--</div>
         </div>
     </div>
 

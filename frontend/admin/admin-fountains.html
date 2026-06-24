@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../assets/css/admin/admin-sidebar.css">
     <link rel="stylesheet" href="../assets/css/admin/admin-fountains.css">
 
+    <script defer src="../assets/js/shared/api.js"></script>
     <script defer src="../assets/js/admin/admin-fountains.js"></script>
     <script defer src="../assets/js/admin/admin-shared.js"></script>
 </head>
@@ -40,13 +41,17 @@
             </div>
         </div>
         <div class="header-actions">
+            <button class="btn btn-ghost" id="viewStandardsBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>View Standards</span>
+            </button>
             <button class="btn btn-ghost" id="refreshBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                <span>Refresh All</span>
+                <span>Refresh</span>
             </button>
-            <button class="btn btn-primary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Export Report</span>
+            <button class="btn btn-primary" id="addFountainBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>New Fountain</span>
             </button>
         </div>
     </div>
@@ -73,8 +78,8 @@
                     <div class="stat-badge">Active</div>
                 </div>
                 <div class="stat-label">Online Fountains</div>
-                <div class="stat-value">2</div>
-                <div class="stat-sub">All systems operational</div>
+                <div class="stat-value" id="stat-online">--</div>
+                <div class="stat-sub">Online systems</div>
             </div>
 
             <!-- WARNING INDICATOR -->
@@ -86,7 +91,7 @@
                     <div class="stat-badge">Attention</div>
                 </div>
                 <div class="stat-label">Warning Status</div>
-                <div class="stat-value">1</div>
+                <div class="stat-value" id="stat-warning">--</div>
                 <div class="stat-sub">Requires monitoring</div>
             </div>
 
@@ -99,207 +104,17 @@
                     <div class="stat-badge">Critical</div>
                 </div>
                 <div class="stat-label">Offline Fountains</div>
-                <div class="stat-value">1</div>
-                <div class="stat-sub">Immediate action needed</div>
+                <div class="stat-value" id="stat-offline">--</div>
+                <div class="stat-sub">Maintenance needed</div>
             </div>
         </div>
 
-        <!-- FOUNTAIN CARDS -->
+        <!-- FOUNTAIN CARDS (DYNAMICALLY LOADED) -->
         <div class="fountains-grid" id="fountainsGrid">
-
-            <!-- F001 – SPCB Building -->
-            <div class="fountain-card" data-name="SPCB Building" data-location="Near Main Entrance" data-id="F001">
-                <div class="fc-top">
-                    <span class="fc-id">F001</span>
-                    <span class="fc-badge online">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        Online
-                    </span>
-                </div>
-                <div class="fc-title">SPCB Building</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Near Main Entrance
-                </div>
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">7.2</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">2.3 NTU</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">24°C</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value teal">125 ppm</div>
-                    </div>
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 2 minutes ago
-                </div>
-                <div class="fc-bottom">
-                    <div class="fc-monitoring">
-                        Monitoring:
-                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
-                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
-                        </div>
-                        <span class="monitoring-status enabled">Enabled</span>
-                    </div>
-                    <button class="configure-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Configure
-                    </button>
-                </div>
+            <!-- Content will be injected by JS -->
+            <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;">
+                <p>Loading fountains...</p>
             </div>
-
-            <!-- F002 – JSB Building (WARNING) -->
-            <div class="fountain-card" data-name="JSB Building" data-location="2nd Floor Lab Area" data-id="F002">
-                <div class="fc-top">
-                    <span class="fc-id">F002</span>
-                    <span class="fc-badge warning">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        Warning
-                    </span>
-                </div>
-                <div class="fc-title">JSB Building</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    1st Floor Area
-                </div>
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">6.8</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">4.2 NTU</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">26°C</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value warning">450 ppm</div>
-                    </div>
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 3 minutes ago
-                </div>
-                <div class="fc-bottom">
-                    <div class="fc-monitoring">
-                        Monitoring:
-                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
-                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
-                        </div>
-                        <span class="monitoring-status enabled">Enabled</span>
-                    </div>
-                    <button class="configure-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Configure
-                    </button>
-                </div>
-            </div>
-
-            <!-- F003 – Canteen Area -->
-            <div class="fountain-card" data-name="Canteen Area" data-location="Main Dining Area" data-id="F003">
-                <div class="fc-top">
-                    <span class="fc-id">F003</span>
-                    <span class="fc-badge online">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        Online
-                    </span>
-                </div>
-                <div class="fc-title">Canteen Area</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Near Food Canteen
-                </div>
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">7.2</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">2.0 NTU</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">23°C</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value teal">110 ppm</div>
-                    </div>
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 2 minutes ago
-                </div>
-                <div class="fc-bottom">
-                    <div class="fc-monitoring">
-                        Monitoring:
-                        <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
-                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
-                        </div>
-                        <span class="monitoring-status enabled">Enabled</span>
-                    </div>
-                    <button class="configure-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Configure
-                    </button>
-                </div>
-            </div>
-
-            <!-- F004 – SCH Court (OFFLINE) -->
-            <div class="fountain-card" data-name="SCH Court" data-location="Gymnasium Entrance" data-id="F007">
-                <div class="fc-top">
-                    <span class="fc-id">F004</span>
-                    <span class="fc-badge offline">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                        Offline
-                    </span>
-                </div>
-                <div class="fc-title">SCH Court</div>
-                <div class="fc-location">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Near SCH Court
-                </div>
-                <div class="fc-offline-banner">
-                    This fountain is currently offline. No data available.
-                </div>
-                <hr class="fc-divider">
-                <div class="fc-updated">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Last updated: 2 hours ago
-                </div>
-                <div class="fc-bottom">
-                    <div class="fc-monitoring">
-                        Monitoring:
-                        <div class="toggle-wrap disabled">
-                            <div class="toggle-track"><div class="toggle-thumb"></div></div>
-                        </div>
-                        <span class="monitoring-status disabled">Disabled</span>
-                    </div>
-                    <button class="configure-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        Configure
-                    </button>
-                </div>
-            </div>
-
         </div><!-- /fountains-grid -->
 
         <!-- STATUS LEGEND -->
@@ -338,5 +153,44 @@
 
     </div><!-- /page-body -->
 </main>
+
+<!-- ADD/EDIT FOUNTAIN MODAL -->
+<div class="modal-overlay" id="fountainModal">
+    <div class="modal" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add New Fountain</h2>
+            <p id="modalSub">Enter fountain details below</p>
+        </div>
+        <form id="fountainForm">
+            <input type="hidden" id="internalId">
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 6px;">Fountain ID</label>
+                    <input type="text" id="fountainId" required placeholder="e.g. F001" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 6px;">Fountain Name</label>
+                    <input type="text" id="fountainName" required placeholder="e.g. SPCB Building" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 6px;">Location Description</label>
+                    <input type="text" id="fountainLocation" required placeholder="e.g. Near Main Entrance" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 6px;">Initial Status</label>
+                    <select id="fountainStatus" style="width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; background: white;">
+                        <option value="Online">Online</option>
+                        <option value="Warning">Warning</option>
+                        <option value="Offline">Offline</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="closeFountainModal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="saveFountainBtn">Save Fountain</button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

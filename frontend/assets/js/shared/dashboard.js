@@ -2,22 +2,48 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Update last updated time
     updateLastUpdated();
-    setInterval(updateLastUpdated, 60000); // Update every minute
     
-    // Initialize charts
-    initializeCharts();
-
-    // Start Real-time simulation
-    startSimulation();
+    // Initial data fetch
+    fetchDashboardData();
+    
+    // Refresh every 30 seconds
+    setInterval(fetchDashboardData, 30000);
 });
 
-// Global state for simulation
+// Global state
 let currentData = {
-    ph: 7.2,
-    turbidity: 2.3,
-    temp: 24.5,
-    tds: 125
+    ph: 0,
+    turbidity: 0,
+    temp: 0,
+    tds: 0
 };
+
+async function fetchDashboardData() {
+    try {
+        const latest = await API.sensors.getLatest();
+        if (latest && latest.length > 0) {
+            // For now, take the first fountain's data or aggregate
+            const data = latest[0];
+            currentData = {
+                ph: data.ph,
+                turbidity: data.turbidity,
+                temp: data.temperature,
+                tds: data.tds
+            };
+            
+            updateUIDisplay();
+            updateLastUpdated();
+            
+            // Fetch history for charts for this specific fountain
+            const history = await API.sensors.getHistory(data.fountain_id, 10);
+            if (history && history.length > 0) {
+                renderCharts(history);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+    }
+}
 
 function updateLastUpdated() {
     const now = new Date();
@@ -36,53 +62,41 @@ function updateLastUpdated() {
     }
 }
 
-function startSimulation() {
-    setInterval(() => {
-        // Fluctuating values within safe ranges
-        currentData.ph = +(currentData.ph + (Math.random() - 0.5) * 0.1).toFixed(1);
-        currentData.turbidity = +(currentData.turbidity + (Math.random() - 0.5) * 0.2).toFixed(1);
-        currentData.temp = +(currentData.temp + (Math.random() - 0.5) * 0.2).toFixed(1);
-        currentData.tds = Math.floor(currentData.tds + (Math.random() - 0.5) * 5);
-
-        // Clamping values to sensible ranges
-        if (currentData.ph < 6.5) currentData.ph = 6.6;
-        if (currentData.ph > 8.5) currentData.ph = 8.4;
-        if (currentData.turbidity < 0.5) currentData.turbidity = 1.0;
-        if (currentData.turbidity > 4.5) currentData.turbidity = 4.0;
-        if (currentData.temp < 20) currentData.temp = 22;
-        if (currentData.temp > 30) currentData.temp = 28;
-        if (currentData.tds < 50) currentData.tds = 100;
-        if (currentData.tds > 400) currentData.tds = 350;
-
-        // Update UI
-        updateUIDisplay();
-        
-        // Refresh charts with updated "last" data point
-        initializeCharts();
-    }, 5000); // Update every 5 seconds
-}
-
 function updateUIDisplay() {
     const phEl = document.getElementById('val-ph');
     const turbEl = document.getElementById('val-ntu');
     const tempEl = document.getElementById('val-temp');
     const tdsEl = document.getElementById('val-tds');
+    function formatSensorDisplay(key, number, suffix) {
+        if (number === null || number === undefined) return '--';
+        const n = parseFloat(number);
+        if (Number.isNaN(n)) return '--';
+        if (key === 'tds' || /ppm/i.test(suffix || '')) return Math.round(n) + (suffix || '');
+        if (key === 'temp' || /°C/.test(suffix || '')) return n.toFixed(2) + (suffix || '');
+        if (key === 'turbidity' || /ntu/i.test(suffix || '')) return n.toFixed(2) + (suffix || '');
+        if (key === 'ph') return n.toFixed(2) + (suffix || '');
+        return n.toString() + (suffix || '');
+    }
 
-    if (phEl) phEl.textContent = currentData.ph;
-    if (turbEl) turbEl.textContent = currentData.turbidity;
-    if (tempEl) tempEl.textContent = currentData.temp;
-    if (tdsEl) tdsEl.textContent = currentData.tds;
+    if (phEl) phEl.textContent = formatSensorDisplay('ph', currentData.ph, '');
+    if (turbEl) turbEl.textContent = formatSensorDisplay('turbidity', currentData.turbidity, ' NTU');
+    if (tempEl) tempEl.textContent = formatSensorDisplay('temp', currentData.temp, '°C');
+    if (tdsEl) tdsEl.textContent = formatSensorDisplay('tds', currentData.tds, ' ppm');
 }
 
-function initializeCharts() {
-    // Labels for the last 6 data points
-    const labels = ['12:00', '14:00', '16:00', '18:00', '20:00', 'Now'];
+function renderCharts(history) {
+    // Reverse to show oldest to newest (left to right)
+    const logs = [...history].reverse();
     
-    // Mock historical data + current simulated data
-    const phData = [7.1, 7.2, 7.3, 7.2, 7.1, currentData.ph];
-    const turbData = [2.1, 2.3, 2.5, 2.4, 2.2, currentData.turbidity];
-    const tempData = [23.5, 23.2, 24.1, 25.3, 24.8, currentData.temp];
-    const tdsData = [120, 125, 115, 130, 122, currentData.tds];
+    const labels = logs.map(log => {
+        const date = new Date(log.timestamp);
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    });
+    
+    const phData = logs.map(log => log.ph);
+    const turbData = logs.map(log => log.turbidity);
+    const tempData = logs.map(log => log.temperature);
+    const tdsData = logs.map(log => log.tds);
 
     // pH Chart
     const phCanvas = document.getElementById('phChart');
