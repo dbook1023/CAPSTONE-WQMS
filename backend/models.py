@@ -84,7 +84,10 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False, index=True)
     phone = Column(String(20))
+    avatar = Column(Text)
     status = Column(String(20), default='Active', index=True)
+    branch = Column(String(100), default='General')
+    branch_code = Column(String(50), default='GEN')
     last_login = Column(DateTime)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -122,7 +125,10 @@ class User(Base):
             'role_id': self.role_id,
             'role_name': self.role.role_name if self.role else None,
             'phone': self.phone,
+            'avatar': self.avatar,
             'status': self.status,
+            'branch': self.branch,
+            'branch_code': self.branch_code,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
@@ -140,7 +146,11 @@ class Admin(Base):
     name = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
     phone = Column(String(20))
+    avatar = Column(Text)
+    job_title = Column(String(100), default='System Administrator')
     status = Column(String(20), default='Active', index=True)
+    branch = Column(String(100), default='General')
+    branch_code = Column(String(50), default='GEN')
     last_login = Column(DateTime)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -166,8 +176,12 @@ class Admin(Base):
             'email': self.email,
             'name': self.name,
             'role_name': 'Admin',  # Expose 'Admin' role name for simple frontend routing compatibility
+            'job_title': self.job_title,
             'phone': self.phone,
+            'avatar': self.avatar,
             'status': self.status,
+            'branch': self.branch,
+            'branch_code': self.branch_code,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
@@ -569,12 +583,40 @@ class AuditLog(Base):
         return f"<AuditLog user_id={self.user_id} admin_id={self.admin_id} action={self.action}>"
     
     def to_dict(self):
+        # Generate human-readable details
+        details = f"{self.action.replace('_', ' ').title()} on {self.entity_type} #{self.entity_id}"
+        
+        # Specific overrides for better readability
+        if self.action == 'DOWNLOAD_REPORT':
+            fountain_str = ""
+            if self.new_values and 'fountain_id' in self.new_values:
+                fountain_str = f" for Fountain #{self.new_values['fountain_id']}"
+            details = f"Downloaded compliance report #{self.entity_id}{fountain_str}"
+        elif self.action == 'LOGIN':
+            details = "Logged into the system"
+        elif self.action == 'LOGOUT':
+            details = "Logged out of the system"
+            
+        # Determine who performed the action
+        executor_name = "System"
+        executor_role = "System"
+        if self.user:
+            executor_name = self.user.name
+            executor_role = "User"
+        elif self.admin:
+            executor_name = self.admin.name
+            executor_role = "Admin"
+
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'admin_id': self.admin_id,
+            'executor_name': executor_name,
+            'executor_role': executor_role,
             'action': self.action,
             'entity_type': self.entity_type,
             'entity_id': self.entity_id,
+            'details': details,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'ip_address': self.ip_address,
             'status': self.status

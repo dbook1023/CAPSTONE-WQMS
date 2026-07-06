@@ -165,7 +165,17 @@ function initAuthFeatures() {
 
     if (userNameEl) userNameEl.textContent = user.name;
     if (userEmailEl) userEmailEl.textContent = user.email;
-    if (userAvatarEl) userAvatarEl.textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (userAvatarEl) {
+        if (user.avatar) {
+            userAvatarEl.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
+            userAvatarEl.style.padding = '0';
+            userAvatarEl.style.background = 'transparent';
+        } else {
+            userAvatarEl.textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            userAvatarEl.style.padding = '';
+            userAvatarEl.style.background = '';
+        }
+    }
 
     const logoutBtn = document.querySelector('.logout-item');
     if (logoutBtn) {
@@ -377,7 +387,7 @@ function showNotification(message, type = 'info') {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.className = 'toast-container';
-        toastContainer.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;';
+        toastContainer.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;';
         document.body.appendChild(toastContainer);
     }
 
@@ -395,7 +405,8 @@ function showNotification(message, type = 'info') {
         display: flex;
         align-items: center;
         gap: 10px;
-        transform: translateX(100%);
+        transform: translateY(-20px);
+        opacity: 0;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     `;
     
@@ -406,11 +417,14 @@ function showNotification(message, type = 'info') {
     toastContainer.appendChild(toast);
     
     // Trigger entrance
-    setTimeout(() => toast.style.transform = 'translateX(0)', 10);
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 10);
     
     // Remove after 3s
     setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
+        toast.style.transform = 'translateY(-20px)';
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
     }, 3000);

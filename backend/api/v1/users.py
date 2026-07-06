@@ -46,7 +46,9 @@ def store():
             name=name,
             email=email,
             role_id=role_id,
-            status='Active'
+            status='Active',
+            branch=data.get('branch', 'General'),
+            branch_code=data.get('branch_code', 'GEN')
         )
         user.set_password(password)
         
@@ -100,6 +102,18 @@ def update(id):
             user.status = data['status']
         if 'phone' in data:
             user.phone = data['phone']
+        if 'branch' in data:
+            user.branch = data['branch']
+        if 'branch_code' in data:
+            user.branch_code = data['branch_code']
+        if 'avatar' in data:
+            user.avatar = data['avatar'] if data['avatar'] else None
+            
+        if 'current_password' in data and 'new_password' in data:
+            if not user.check_password(data['current_password']):
+                db.close()
+                return api_error('Incorrect current password', 400)
+            user.set_password(data['new_password'])
         
         db.commit()
         db.refresh(user)

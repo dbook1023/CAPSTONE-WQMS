@@ -92,6 +92,7 @@ function handleLogin(event, portalType) {
                 email: user.email,
                 role: user.role_name, // Save original string
                 name: user.name,
+                avatar: user.avatar,  // Ensure avatar is persisted in session upon login
                 loginTime: new Date().toISOString()
             };
             const sessionKey = role === 'admin' ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';

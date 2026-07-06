@@ -31,8 +31,22 @@
 
     <style>
         /* ── CHART CARDS RESPONSIVE ── */
-                margin-top: 20px !important;
+        @media (max-width: 640px) {
+            .chart-card {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                padding: 16px !important;
+                margin-top: 16px !important;
                 border-radius: 16px !important;
+            }
+            .chart-card-header {
+                flex: unset !important;
+                width: 100% !important;
+            }
+            .chart-wrap {
+                width: 100% !important;
+                height: 200px !important;
             }
             .comparison-section table {
                 font-size: 0.75rem !important;

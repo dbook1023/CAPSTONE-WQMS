@@ -259,6 +259,9 @@ def log_report_download(report_id):
     except SQLAlchemyError as e:
         db.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
+    except Exception as e:
+        db.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
     finally:
         db.close()
 
@@ -287,3 +290,148 @@ def archive_report(report_id):
     except SQLAlchemyError as e:
         db.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
+    except Exception as e:
+        db.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        db.close()
+
+@reports_bp.route('/summary', methods=['GET'])
+def get_summary_report():
+    """Generates a summary of sensor logs over a given range with trend analysis"""
+    range_type = request.args.get('range', 'daily').lower()
+    fountain_id = request.args.get('fountain_id') # optional
+    
+    db = next(get_db())
+    try:
+        now = datetime.utcnow()
+        if range_type == 'daily':
+            period_days = 1
+        elif range_type == 'weekly':
+            period_days = 7
+        elif range_type == 'monthly':
+            period_days = 30
+        else:
+            return jsonify({'status': 'error', 'message': 'Invalid range type. Must be daily, weekly, or monthly'}), 400
+
+        current_start = now - timedelta(days=period_days)
+        prev_start = current_start - timedelta(days=period_days)
+        prev_end = current_start
+            
+        from models import SensorLog, Fountain
+        from sqlalchemy import func
+
+        def run_agg_query(date_from, date_to):
+            q = db.query(
+                SensorLog.fountain_id,
+                Fountain.name.label('fountain_name'),
+                Fountain.location.label('fountain_location'),
+                func.avg(SensorLog.ph).label('ph_avg'),
+                func.avg(SensorLog.turbidity).label('turbidity_avg'),
+                func.avg(SensorLog.temperature).label('temperature_avg'),
+                func.avg(SensorLog.tds).label('tds_avg'),
+                func.min(SensorLog.ph).label('ph_min'),
+                func.max(SensorLog.ph).label('ph_max'),
+                func.min(SensorLog.turbidity).label('turbidity_min'),
+                func.max(SensorLog.turbidity).label('turbidity_max'),
+                func.min(SensorLog.temperature).label('temperature_min'),
+                func.max(SensorLog.temperature).label('temperature_max'),
+                func.min(SensorLog.tds).label('tds_min'),
+                func.max(SensorLog.tds).label('tds_max'),
+                func.count(SensorLog.id).label('readings_count')
+            ).join(Fountain, SensorLog.fountain_id == Fountain.id)\
+             .filter(SensorLog.timestamp >= date_from, SensorLog.timestamp < date_to)
+            if fountain_id:
+                q = q.filter(SensorLog.fountain_id == int(fountain_id))
+            return q.group_by(SensorLog.fountain_id, Fountain.name, Fountain.location).all()
+
+        current_results = run_agg_query(current_start, now)
+        prev_results = run_agg_query(prev_start, prev_end)
+
+        prev_map = {}
+        for pr in prev_results:
+            prev_map[pr.fountain_id] = pr
+
+        def safe_float(v):
+            return float(v) if v is not None else None
+
+        def trend_delta(current_val, prev_val):
+            if current_val is None or prev_val is None:
+                return None
+            return round(current_val - prev_val, 4)
+
+        def trend_direction(delta):
+            if delta is None:
+                return 'stable'
+            if delta > 0.01:
+                return 'up'
+            if delta < -0.01:
+                return 'down'
+            return 'stable'
+        
+        summary_data = []
+        for r in current_results:
+            ph_avg = safe_float(r.ph_avg)
+            turbidity_avg = safe_float(r.turbidity_avg)
+            temperature_avg = safe_float(r.temperature_avg)
+            tds_avg = safe_float(r.tds_avg)
+            
+            temp_data = {
+                'ph_avg': ph_avg,
+                'turbidity_avg': turbidity_avg,
+                'temperature_avg': temperature_avg,
+                'tds_avg': tds_avg
+            }
+            overall_status = derive_overall_report_status(temp_data)
+
+            prev = prev_map.get(r.fountain_id)
+            prev_ph = safe_float(prev.ph_avg) if prev else None
+            prev_turb = safe_float(prev.turbidity_avg) if prev else None
+            prev_temp = safe_float(prev.temperature_avg) if prev else None
+            prev_tds = safe_float(prev.tds_avg) if prev else None
+
+            ph_delta = trend_delta(ph_avg, prev_ph)
+            turb_delta = trend_delta(turbidity_avg, prev_turb)
+            temp_delta = trend_delta(temperature_avg, prev_temp)
+            tds_delta = trend_delta(tds_avg, prev_tds)
+            
+            summary_data.append({
+                'fountain_id': r.fountain_id,
+                'fountain_name': r.fountain_name,
+                'location': r.fountain_location,
+                'ph_avg': ph_avg,
+                'turbidity_avg': turbidity_avg,
+                'temperature_avg': temperature_avg,
+                'tds_avg': tds_avg,
+                'ph_min': safe_float(r.ph_min),
+                'ph_max': safe_float(r.ph_max),
+                'turbidity_min': safe_float(r.turbidity_min),
+                'turbidity_max': safe_float(r.turbidity_max),
+                'temperature_min': safe_float(r.temperature_min),
+                'temperature_max': safe_float(r.temperature_max),
+                'tds_min': safe_float(r.tds_min),
+                'tds_max': safe_float(r.tds_max),
+                'readings_count': r.readings_count,
+                'overall_status': overall_status,
+                'trend': {
+                    'ph': { 'delta': ph_delta, 'direction': trend_direction(ph_delta), 'prev_avg': prev_ph },
+                    'turbidity': { 'delta': turb_delta, 'direction': trend_direction(turb_delta), 'prev_avg': prev_turb },
+                    'temperature': { 'delta': temp_delta, 'direction': trend_direction(temp_delta), 'prev_avg': prev_temp },
+                    'tds': { 'delta': tds_delta, 'direction': trend_direction(tds_delta), 'prev_avg': prev_tds },
+                    'has_previous_data': prev is not None
+                }
+            })
+            
+        return jsonify({
+            'status': 'success',
+            'range': range_type,
+            'start_date': current_start.isoformat() + 'Z',
+            'end_date': now.isoformat() + 'Z',
+            'prev_start_date': prev_start.isoformat() + 'Z',
+            'prev_end_date': prev_end.isoformat() + 'Z',
+            'data': summary_data
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        db.close()

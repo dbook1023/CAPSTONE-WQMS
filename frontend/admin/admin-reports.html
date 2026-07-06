@@ -45,11 +45,11 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                 <span>View Standards</span>
             </button>
-            <button class="btn btn-ghost">
+            <button class="btn btn-ghost" id="toggleFilterBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 <span>Filter</span>
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" id="generateReportTopBtn" onclick="openGenerateReportModal('daily')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span>Generate Report</span>
             </button>
@@ -88,19 +88,50 @@
                 <div class="rt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                 <div class="rt-title">Daily Report</div>
                 <div class="rt-desc">Generate today's operations summary</div>
-                <button class="rt-btn">Generate</button>
+                <button class="rt-btn" onclick="openGenerateReportModal('daily')">Generate</button>
             </div>
             <div class="report-type-card purple">
                 <div class="rt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                 <div class="rt-title">Weekly Report</div>
                 <div class="rt-desc">Generate this week's analysis</div>
-                <button class="rt-btn">Generate</button>
+                <button class="rt-btn" onclick="openGenerateReportModal('weekly')">Generate</button>
             </div>
             <div class="report-type-card green">
                 <div class="rt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                 <div class="rt-title">Monthly Report</div>
                 <div class="rt-desc">Generate this month's summary</div>
-                <button class="rt-btn">Generate</button>
+                <button class="rt-btn" onclick="openGenerateReportModal('monthly')">Generate</button>
+            </div>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div id="filterBar" style="display: none; background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 8px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: flex-end;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; font-family: 'Poppins', sans-serif;">Search Fountain / Creator</label>
+                    <input type="text" id="filterSearchInput" placeholder="Search name or ID..." style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; background: #f8fafc; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; font-family: 'Poppins', sans-serif;">Compliance Status</label>
+                    <select id="filterStatusSelect" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; background: white; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                        <option value="all">All Statuses</option>
+                        <option value="PASS">PASS</option>
+                        <option value="WARNING">WARNING</option>
+                        <option value="FAIL">FAIL</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; font-family: 'Poppins', sans-serif;">Start Date</label>
+                    <input type="date" id="filterStartDate" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; background: #f8fafc; outline: none;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; font-family: 'Poppins', sans-serif;">End Date</label>
+                    <input type="date" id="filterEndDate" style="padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; background: #f8fafc; outline: none;">
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn btn-ghost" id="btnClearFilters" style="padding: 10px 16px; font-size: 13px;">Clear</button>
+                    <button class="btn btn-primary" id="btnApplyFilters" style="padding: 10px 20px; font-size: 13px;">Apply</button>
+                </div>
             </div>
         </div>
 
@@ -163,7 +194,7 @@
 
 <!-- VIEW REPORT MODAL -->
 <div id="viewReportModal" class="modal-overlay">
-    <div class="modal" style="max-width: 760px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal" style="max-width: 900px; padding: 24px; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: none; padding: 0;">
             <h2 style="font-size: 18px; margin: 0;">Report Details</h2>
             <button onclick="closeModal('viewReportModal')" style="background: none; border: none; cursor: pointer; color: #64748b;">
@@ -172,6 +203,53 @@
         </div>
         <div id="viewReportContent" style="display: flex; justify-content: center; transform-origin: top center; padding: 10px 0;">
             <!-- Rendered by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- GENERATE REPORT MODAL -->
+<div id="generateReportModal" class="modal-overlay">
+    <div class="modal" style="max-width: 500px; padding: 24px; border-radius: 16px; background: white; border: 1px solid #cbd5e1; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: none; padding: 0;">
+            <h2 style="font-size: 18px; margin: 0; font-family: 'Poppins', sans-serif; color: #0f172a; font-weight: 700;">Generate System Summary Report</h2>
+            <button onclick="closeModal('generateReportModal')" style="background: none; border: none; cursor: pointer; color: #64748b;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;">Report Timeframe</label>
+                <select id="reportRangeSelect" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; background: white; outline: none;">
+                    <option value="daily">Daily Report (Last 24 Hours)</option>
+                    <option value="weekly">Weekly Report (Last 7 Days)</option>
+                    <option value="monthly">Monthly Report (Last 30 Days)</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;">Select Fountain</label>
+                <select id="reportFountainSelect" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; background: white; outline: none;">
+                    <option value="all">All Campus Fountains</option>
+                </select>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Poppins', sans-serif; text-transform: uppercase; letter-spacing: 0.05em;">Export Format</label>
+                <div style="display: flex; gap: 24px; margin-top: 4px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; color: #1e293b;">
+                        <input type="radio" name="reportFormat" value="pdf" checked style="width: 16px; height: 16px; accent-color: #3b82f6;">
+                        PDF Document (.pdf)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; color: #1e293b;">
+                        <input type="radio" name="reportFormat" value="excel" style="width: 16px; height: 16px; accent-color: #3b82f6;">
+                        Excel Spreadsheet (.csv)
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+            <button class="btn btn-ghost" onclick="closeModal('generateReportModal')" style="padding: 10px 20px;">Cancel</button>
+            <button class="btn btn-primary" id="btnSubmitGenerateReport" style="padding: 10px 24px;">Generate & Download</button>
         </div>
     </div>
 </div>

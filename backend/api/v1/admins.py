@@ -37,7 +37,14 @@ def store():
             db.close()
             return api_error('Email already exists', 400)
 
-        admin = Admin(name=name, email=email, status=data.get('status', 'Active'))
+        admin = Admin(
+            name=name,
+            email=email,
+            status=data.get('status', 'Active'),
+            branch=data.get('branch', 'General'),
+            branch_code=data.get('branch_code', 'GEN'),
+            job_title=data.get('job_title', 'System Administrator')
+        )
         admin.set_password(password)
 
         db.add(admin)
@@ -80,6 +87,22 @@ def update(id):
             admin.email = data['email']
         if 'status' in data:
             admin.status = data['status']
+        if 'branch' in data:
+            admin.branch = data['branch']
+        if 'branch_code' in data:
+            admin.branch_code = data['branch_code']
+        if 'phone' in data:
+            admin.phone = data['phone']
+        if 'avatar' in data:
+            admin.avatar = data['avatar'] if data['avatar'] else None
+        if 'job_title' in data:
+            admin.job_title = data['job_title']
+            
+        if 'current_password' in data and 'new_password' in data:
+            if not admin.check_password(data['current_password']):
+                db.close()
+                return api_error('Incorrect current password', 400)
+            admin.set_password(data['new_password'])
 
         db.commit()
         db.refresh(admin)

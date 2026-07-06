@@ -83,14 +83,6 @@
                     </svg>
                     Security
                 </button>
-                <button class="stab" data-tab="notifications" onclick="switchTab(this,'notifications')">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                    Notifications
-                </button>
             </div>
 
             <div class="settings-content">
@@ -100,7 +92,7 @@
                         <h3>Personal Information</h3>
 
                         <div class="profile-upload-section">
-                            <div class="profile-preview-container">
+                            <div class="profile-preview-container" onclick="document.getElementById('profileUpload').click()">
                                 <img src="../assets/images/default-avatar.jpg" alt="Profile Preview" id="profilePreview"
                                     class="profile-preview-img">
                                 <div class="upload-overlay">
@@ -135,19 +127,65 @@
                                 <div class="field-hint">Your display name on the portal</div>
                             </div>
                             <div class="field-group">
-                                <div class="field-label">Email Address</div>
+                                <div class="field-label">
+                                    Email Address
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
                                 <input class="field-input" type="email" value="john.doe@olfu.edu.ph" disabled>
-                                <div class="field-hint">Used for alerts and login</div>
+                                <div class="field-hint">Primary contact email (cannot be modified)</div>
                             </div>
                             <div class="field-group">
-                                <div class="field-label">Staff ID</div>
-                                <input class="field-input" type="text" value="2024-0001" disabled>
-                                <div class="field-hint">Unique identifier</div>
+                                <div class="field-label">
+                                    User ID
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="PCO0001" disabled>
+                                <div class="field-hint">Unique system-assigned identifier</div>
                             </div>
                             <div class="field-group">
                                 <div class="field-label">Phone Number</div>
                                 <input class="field-input" type="tel" value="+63 912 345 6789">
                                 <div class="field-hint">For SMS notifications</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">
+                                    System Role
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="" readonly>
+                                <div class="field-hint">Assigned role (managed by Administrator)</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">
+                                    Engineering Branch
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="" readonly>
+                                <div class="field-hint">Assigned engineering division</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">
+                                    Branch Code
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="" readonly>
+                                <div class="field-hint">Division abbreviation code</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">
+                                    Status
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="Active" readonly>
+                                <div class="field-hint">Current account security state</div>
+                            </div>
+                            <div class="field-group">
+                                <div class="field-label">
+                                    Account Created
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" style="vertical-align: middle; margin-left: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <input class="field-input" type="text" value="" readonly>
+                                <div class="field-hint">Date when this profile was created</div>
                             </div>
                         </div>
                     </div>
@@ -160,15 +198,51 @@
                         <div class="field-grid">
                             <div class="field-group">
                                 <div class="field-label">Current Password</div>
-                                <input class="field-input" type="password" placeholder="••••••••">
+                                <div class="password-input-container">
+                                    <input class="field-input" type="password" placeholder="••••••••">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility(this)" aria-label="Toggle password visibility">
+                                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-off-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="field-group">
                                 <div class="field-label">New Password</div>
-                                <input class="field-input" type="password" placeholder="Min 8 characters">
+                                <div class="password-input-container">
+                                    <input class="field-input" type="password" placeholder="Min 8 characters">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility(this)" aria-label="Toggle password visibility">
+                                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-off-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="field-group">
                                 <div class="field-label">Confirm New Password</div>
-                                <input class="field-input" type="password" placeholder="Re-type password">
+                                <div class="password-input-container">
+                                    <input class="field-input" type="password" placeholder="Re-type password">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility(this)" aria-label="Toggle password visibility">
+                                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-off-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -178,46 +252,6 @@
                             <div class="toggle-info">
                                 <h4>Enable 2FA</h4>
                                 <p>Secure your account with a mobile authenticator app</p>
-                            </div>
-                            <div class="toggle-wrap" onclick="this.classList.toggle('on')">
-                                <div class="toggle-track">
-                                    <div class="toggle-thumb"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NOTIFICATIONS TAB -->
-                <div class="tab-panel" id="panel-notifications">
-                    <div class="settings-card">
-                        <h3>Alert Preferences</h3>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <h4>Email Alerts</h4>
-                                <p>Get notified about critical water quality issues</p>
-                            </div>
-                            <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
-                                <div class="toggle-track">
-                                    <div class="toggle-thumb"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <h4>SMS Alerts</h4>
-                                <p>Receive immediate text messages for warnings</p>
-                            </div>
-                            <div class="toggle-wrap" onclick="this.classList.toggle('on')">
-                                <div class="toggle-track">
-                                    <div class="toggle-thumb"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <h4>Weekly Report</h4>
-                                <p>Receive a summary of water quality in your campus</p>
                             </div>
                             <div class="toggle-wrap" onclick="this.classList.toggle('on')">
                                 <div class="toggle-track">

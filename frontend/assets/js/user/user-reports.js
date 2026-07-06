@@ -4,6 +4,9 @@
  */
 
 let globalReports = [];
+let globalMappedReports = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 function formatPhilippineDateTime(value, options = {}) {
     const date = parseBackendDate(value);
@@ -67,9 +70,11 @@ async function fetchUserReports() {
             status: r.overall_status,
             raw: r
         }));
+        
+        globalMappedReports = reports;
 
         renderReportStats(reports, settings);
-        renderReportsList(reports);
+        renderReportsList(reports, 1);
     } catch (error) {
         console.error('Failed to fetch reports:', error);
         showNotification('Could not load water quality reports list from server.', 'error');
@@ -119,16 +124,32 @@ function renderReportStats(data, settings = {}) {
     if (nextAuditVal) nextAuditVal.textContent = nextAudit;
 }
 
-function renderReportsList(data) {
+window.goToUserReportPage = function(page) {
+    if (page >= 1) {
+        renderReportsList(globalMappedReports, page);
+    }
+};
+
+function renderReportsList(data, page = 1) {
     const list = document.querySelector('.reports-list');
     if (!list) return;
+    
+    currentPage = page;
 
     if (data.length === 0) {
         list.innerHTML = `<div style="padding: 40px; text-align: center; color: #64748b;">No active facility fountains registered yet.</div>`;
+        updateTableInfo(0, 0, 0);
+        renderPagination(0, 1);
         return;
     }
+    
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+    const paginatedData = data.slice(startIndex, endIndex);
 
-    list.innerHTML = data.map(r => `
+    updateTableInfo(startIndex + 1, endIndex, data.length);
+
+    list.innerHTML = paginatedData.map(r => `
         <div class="report-item" style="border: 1.5px solid #e2e8f0; border-radius: 16px; transition: transform 0.2s ease, border-color 0.2s ease; margin-bottom: 12px; background: white;">
             <div class="report-info">
                 <div class="report-icon" style="background: rgba(20, 184, 166, 0.1); color: #14b8a6;">
@@ -159,6 +180,41 @@ function renderReportsList(data) {
             </div>
         </div>
     `).join('');
+    
+    renderPagination(data.length, page);
+}
+
+function updateTableInfo(start, end, total) {
+    const info = document.querySelector('.table-info');
+    if (info) {
+        if (total === 0) {
+            info.innerHTML = `Showing <span>0</span> to <span>0</span> of <span>0</span> reports`;
+        } else {
+            info.innerHTML = `Showing <span>${start}</span> to <span>${end}</span> of <span>${total}</span> reports`;
+        }
+    }
+}
+
+function renderPagination(totalItems, page) {
+    const paginationContainer = document.querySelector('.pagination');
+    if (!paginationContainer) return;
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    let html = '';
+
+    html += `<button class="pg-btn ${page === 1 ? 'disabled' : ''}" onclick="window.goToUserReportPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"></polyline></svg>
+             </button>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="pg-btn ${i === page ? 'active' : ''}" onclick="window.goToUserReportPage(${i})">${i}</button>`;
+    }
+
+    html += `<button class="pg-btn ${page === totalPages ? 'disabled' : ''}" onclick="window.goToUserReportPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"></polyline></svg>
+             </button>`;
+
+    paginationContainer.innerHTML = html;
 }
 
 function getReportStatusColor(status) {
@@ -189,23 +245,37 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         const hasTds = avgTdsRaw !== null && avgTdsRaw !== undefined && !Number.isNaN(Number(avgTdsRaw));
         const avgTdsText = hasTds ? Number(avgTdsRaw).toFixed(0) : 'N/A';
 
-        // PNSDW status classification with warning ranges
-        const isPhSafe = avgPhRaw >= 6.5 && avgPhRaw <= 8.5;
-        const isTurbSafe = avgTurbRaw <= 5.0;
-        const isTurbIdeal = avgTurbRaw <= 1.0;
-        const isTempSafe = avgTempRaw <= 32.0;
-        const isTempIdeal = avgTempRaw >= 25.0 && avgTempRaw <= 30.0;
-        const isTdsSafe = hasTds && avgTdsRaw <= 500.0;
-        const isTdsIdeal = hasTds && avgTdsRaw <= 300.0;
+        // Match the dashboard color bands: ideal = teal, warning = amber, critical = red
+        const phStatus = avgPhRaw >= 6.5 && avgPhRaw <= 8.5 ? 'IDEAL' : ((avgPhRaw >= 6.35 && avgPhRaw < 6.5) || (avgPhRaw > 8.5 && avgPhRaw <= 9.0) ? 'WARNING' : 'CRITICAL');
+        const turbStatus = avgTurbRaw >= 0.0 && avgTurbRaw <= 5.0 ? 'IDEAL' : (avgTurbRaw > 5.0 && avgTurbRaw <= 5.5 ? 'WARNING' : 'CRITICAL');
+        const tempStatus = avgTempRaw >= 15.0 && avgTempRaw <= 30.0 ? 'IDEAL' : (((avgTempRaw >= 13.5 && avgTempRaw < 15.0) || (avgTempRaw > 30.0 && avgTempRaw <= 33.0)) ? 'WARNING' : 'CRITICAL');
+        const tdsStatus = hasTds ? (avgTdsRaw >= 0.0 && avgTdsRaw <= 500.0 ? 'IDEAL' : (avgTdsRaw > 500.0 && avgTdsRaw <= 550.0 ? 'WARNING' : 'CRITICAL')) : 'MISSING';
 
-        // Color helper: green=safe, orange=warning, red=fail
-        const phColor = isPhSafe ? '#14b8a6' : '#dc2626';
-        const turbColor = !isTurbSafe ? '#dc2626' : (!isTurbIdeal ? '#d97706' : '#14b8a6');
-        const tempColor = !isTempSafe ? '#dc2626' : (!isTempIdeal ? '#d97706' : '#14b8a6');
-        const tdsColor = !hasTds ? '#64748b' : (!isTdsSafe ? '#dc2626' : (!isTdsIdeal ? '#d97706' : '#14b8a6'));
+        const isPhSafe = phStatus !== 'CRITICAL';
+        const isTurbSafe = turbStatus !== 'CRITICAL';
+        const isTempSafe = tempStatus !== 'CRITICAL';
+        const isTdsSafe = tdsStatus !== 'CRITICAL' && tdsStatus !== 'MISSING';
+        const isTurbIdeal = turbStatus === 'IDEAL';
+        const isTempIdeal = tempStatus === 'IDEAL';
+        const isTdsIdeal = tdsStatus === 'IDEAL';
 
-        const overallCompliance = (isPhSafe && isTurbSafe && isTempSafe && isTdsSafe) ? 'COMPLIANT (PASS)' : 'NON-COMPLIANT (FAIL)';
-        const overallColor = (isPhSafe && isTurbSafe && isTempSafe && isTdsSafe) ? '#14b8a6' : '#dc2626';
+        // Color helper
+        const phColor = phStatus === 'CRITICAL' ? '#dc2626' : (phStatus === 'WARNING' ? '#d97706' : '#14b8a6');
+        const turbColor = turbStatus === 'CRITICAL' ? '#dc2626' : (turbStatus === 'WARNING' ? '#d97706' : '#14b8a6');
+        const tempColor = tempStatus === 'CRITICAL' ? '#dc2626' : (tempStatus === 'WARNING' ? '#d97706' : '#14b8a6');
+        const tdsColor = !hasTds ? '#64748b' : (tdsStatus === 'CRITICAL' ? '#dc2626' : (tdsStatus === 'WARNING' ? '#d97706' : '#14b8a6'));
+
+        const hasCritical = phStatus === 'CRITICAL' || turbStatus === 'CRITICAL' || tempStatus === 'CRITICAL' || tdsStatus === 'CRITICAL';
+        const hasWarning = phStatus === 'WARNING' || turbStatus === 'WARNING' || tempStatus === 'WARNING' || tdsStatus === 'WARNING';
+        const overallCompliance = hasCritical ? 'NON-COMPLIANT (CRITICAL)' : (hasWarning ? 'COMPLIANT WITH WARNINGS' : 'COMPLIANT (PASS)');
+        const overallColor = hasCritical ? '#dc2626' : (hasWarning ? '#d97706' : '#14b8a6');
+
+        const actionPlan = window.WQMSActionGuidance?.buildReportActionPlan?.({
+            ph: avgPhRaw,
+            turbidity: avgTurbRaw,
+            temperature: avgTempRaw,
+            tds: avgTdsRaw
+        });
 
         // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
@@ -325,6 +395,40 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                 }
+                .action-plan {
+                    margin-bottom: 20px;
+                    border: 1.5px solid #cbd5e1;
+                    border-radius: 10px;
+                    background: #f8fafc;
+                    padding: 14px;
+                }
+                .action-plan-title {
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin-bottom: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .action-plan-headline {
+                    font-size: 12px;
+                    font-weight: 700;
+                    margin-bottom: 10px;
+                }
+                .action-plan-list {
+                    display: grid;
+                    gap: 8px;
+                }
+                .action-plan-item {
+                    background: white;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    font-size: 11px;
+                    line-height: 1.45;
+                    color: #334155;
+                }
                 .cert-table {
                     width: 100%;
                     border-collapse: collapse;
@@ -420,6 +524,16 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     Overall Safety Class: ${overallCompliance}
                 </div>
 
+                ${actionPlan ? `
+                    <div class="action-plan">
+                        <div class="action-plan-title">Recommended Action Plan</div>
+                        <div class="action-plan-headline" style="color: ${actionPlan.severity === 'critical' ? '#dc2626' : actionPlan.severity === 'warning' ? '#d97706' : '#14b8a6'};">${actionPlan.headline}</div>
+                        <div class="action-plan-list">
+                            ${actionPlan.actions.map(action => `<div class="action-plan-item">${action}</div>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <div class="section-title">Telemetry Parameter Analytics</div>
                 <table class="cert-table">
                     <thead>
@@ -435,25 +549,25 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                             <td style="font-weight: 600;">pH Level</td>
                             <td style="font-weight: 700; color: ${phColor};">${avgPh}</td>
                             <td>6.5 - 8.5 pH</td>
-                            <td><span class="status-badge ${isPhSafe ? 'status-pass' : 'status-fail'}">${isPhSafe ? 'PASS' : 'FAIL'}</span></td>
+                            <td><span class="status-badge ${phStatus === 'CRITICAL' ? 'status-fail' : (phStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${phStatus === 'CRITICAL' ? 'FAIL' : (phStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 600;">Turbidity</td>
                             <td style="font-weight: 700; color: ${turbColor};">${avgTurb} NTU</td>
-                            <td>&le; 5.0 NTU (Ideal &le; 1.0)</td>
-                            <td><span class="status-badge ${!isTurbSafe ? 'status-fail' : (!isTurbIdeal ? 'status-warn' : 'status-pass')}">${!isTurbSafe ? 'FAIL' : (!isTurbIdeal ? 'WARNING' : 'PASS')}</span></td>
+                            <td>0.0 - 5.0 NTU</td>
+                            <td><span class="status-badge ${turbStatus === 'CRITICAL' ? 'status-fail' : (turbStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${turbStatus === 'CRITICAL' ? 'FAIL' : (turbStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 600;">Temperature</td>
                             <td style="font-weight: 700; color: ${tempColor};">${avgTemp}&deg;C</td>
-                            <td>&le; 32.0&deg;C (Ideal 25.0 - 30.0)</td>
-                            <td><span class="status-badge ${!isTempSafe ? 'status-fail' : (!isTempIdeal ? 'status-warn' : 'status-pass')}">${!isTempSafe ? 'FAIL' : (!isTempIdeal ? 'WARNING' : 'PASS')}</span></td>
+                            <td>15.0 - 30.0&deg;C</td>
+                            <td><span class="status-badge ${tempStatus === 'CRITICAL' ? 'status-fail' : (tempStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${tempStatus === 'CRITICAL' ? 'FAIL' : (tempStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
                         </tr>
                         <tr>
                             <td style="font-weight: 600;">TDS</td>
                             <td style="font-weight: 700; color: ${tdsColor};">${avgTdsText}${hasTds ? ' ppm' : ''}</td>
-                            <td>&le; 500.0 ppm (Ideal &le; 300.0)</td>
-                            <td><span class="status-badge ${!hasTds ? 'status-fail' : (!isTdsSafe ? 'status-fail' : (!isTdsIdeal ? 'status-warn' : 'status-pass'))}">${!hasTds ? 'N/A' : (!isTdsSafe ? 'FAIL' : (!isTdsIdeal ? 'WARNING' : 'PASS'))}</span></td>
+                            <td>0.0 - 500.0 ppm</td>
+                            <td><span class="status-badge ${!hasTds ? 'status-fail' : (tdsStatus === 'CRITICAL' ? 'status-fail' : (tdsStatus === 'WARNING' ? 'status-warn' : 'status-pass'))}">${!hasTds ? 'N/A' : (tdsStatus === 'CRITICAL' ? 'FAIL' : (tdsStatus === 'WARNING' ? 'WARNING' : 'PASS'))}</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -478,7 +592,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
         const width = container.offsetWidth || 850;
-        const height = container.offsetHeight || 1100;
+        const height = (container.offsetHeight || 1100) + 12;
 
         const opt = {
             margin:       0,
@@ -540,7 +654,7 @@ function showNotification(message, type = 'info') {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.style.position = 'fixed';
-        container.style.bottom = '24px';
+        container.style.top = '24px';
         container.style.right = '24px';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
@@ -560,7 +674,7 @@ function showNotification(message, type = 'info') {
     toast.style.fontWeight = '500';
     toast.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     toast.style.opacity = '0';
-    toast.style.transform = 'translateY(20px)';
+    toast.style.transform = 'translateY(-20px)';
     toast.textContent = message;
 
     container.appendChild(toast);

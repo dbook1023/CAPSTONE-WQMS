@@ -139,6 +139,7 @@ const API = {
     users: {
         getAll: () => API.request('/users/'),
         getOne: (id) => API.request(`/users/${id}`),
+        getMe: () => API.request('/users/me'),
         create: (data) => API.request('/users/', {
             method: 'POST',
             body: JSON.stringify(data)

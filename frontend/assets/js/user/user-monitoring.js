@@ -797,32 +797,6 @@ function setupEventListeners() {
                     </div>
                 </div>
 
-                ${currentReading ? `
-                    <div class="section-title">Current Reading</div>
-                    <table class="cert-table" style="margin-bottom: 20px;">
-                        <thead>
-                            <tr>
-                                <th>Captured At</th>
-                                <th>pH</th>
-                                <th>Turbidity</th>
-                                <th>Temperature</th>
-                                <th>TDS</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${currentReading.timestamp}</td>
-                                <td>${formatReadingValue(currentReading.ph, 2)} pH</td>
-                                <td>${formatReadingValue(currentReading.turbidity, 1)} NTU</td>
-                                <td>${formatReadingValue(currentReading.temperature, 1)}°C</td>
-                                <td>${formatReadingValue(currentReading.tds, 0)} ppm</td>
-                                <td><span class="status-badge ${currentReading.overall_status === 'FAIL' ? 'status-fail' : currentReading.overall_status === 'WARNING' ? 'status-warn' : 'status-pass'}">${currentReading.overall_status === 'FAIL' ? 'FAIL' : currentReading.overall_status === 'WARNING' ? 'WARNING' : 'PASS'}</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                ` : ''}
-
                 <div class="compliance-banner">
                     Overall Safety Class: ${overallCompliance}
                 </div>
@@ -895,7 +869,7 @@ function setupEventListeners() {
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
         const width = container.offsetWidth || 850;
-        const height = container.offsetHeight || 1100;
+        const height = (container.offsetHeight || 1100) + 12;
 
         const opt = {
             margin:       0,
@@ -1968,7 +1942,7 @@ function showNotification(message, type = 'info') {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.style.position = 'fixed';
-        container.style.bottom = '24px';
+        container.style.top = '24px';
         container.style.right = '24px';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
@@ -1988,7 +1962,7 @@ function showNotification(message, type = 'info') {
     toast.style.fontWeight = '500';
     toast.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     toast.style.opacity = '0';
-    toast.style.transform = 'translateY(20px)';
+    toast.style.transform = 'translateY(-20px)';
     toast.textContent = message;
 
     container.appendChild(toast);

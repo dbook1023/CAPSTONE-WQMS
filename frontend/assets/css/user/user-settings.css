@@ -186,21 +186,22 @@
 /* Save toast */
 .toast {
     position: fixed;
-    bottom: 28px;
+    top: 28px;
     right: 28px;
-    background: #0f172a;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 13.5px;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 9px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    transform: translateY(80px);
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transform: translateY(-80px);
     opacity: 0;
-    transition: all .3s ease;
+    transition: all .35s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 9999;
 }
 
@@ -240,7 +241,7 @@
 
     .toast {
         right: 12px;
-        bottom: 12px;
+        top: 12px;
         font-size: 11px;
     }
 }
@@ -347,4 +348,49 @@
     .upload-actions {
         justify-content: center;
     }
+}
+
+/* Password Toggle Styles */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-container .field-input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+    color: #0f172a;
+}
+
+/* Read-only and Disabled input styles */
+.field-input:read-only,
+.field-input:disabled {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
+.field-input:read-only:focus,
+.field-input:disabled:focus {
+    border-color: #e2e8f0 !important;
+    box-shadow: none !important;
 }

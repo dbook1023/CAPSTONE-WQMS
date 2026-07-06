@@ -175,7 +175,17 @@ function initAuthFeatures() {
 
     if (userNameEl) userNameEl.textContent = user.name;
     if (userEmailEl) userEmailEl.textContent = user.email;
-    if (userAvatarEl) userAvatarEl.textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (userAvatarEl) {
+        if (user.avatar) {
+            userAvatarEl.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
+            userAvatarEl.style.padding = '0';
+            userAvatarEl.style.background = 'transparent';
+        } else {
+            userAvatarEl.textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            userAvatarEl.style.padding = '';
+            userAvatarEl.style.background = '';
+        }
+    }
 
     const logoutBtn = document.querySelector('.logout-item');
     if (logoutBtn) {

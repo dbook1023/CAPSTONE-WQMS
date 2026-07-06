@@ -74,11 +74,11 @@
             </div>
             <div class="role-card orange">
                 <div class="role-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
                 </div>
-                <div class="role-label">Engineering Branches</div>
+                <div class="role-label">Inactive Accounts</div>
                 <div class="role-count">--</div>
-                <div class="role-sub">Active engineering units</div>
+                <div class="role-sub">Users suspended or disabled</div>
             </div>
         </div>
 
@@ -139,21 +139,46 @@
         </div>
         <div class="modal-body">
             <input type="hidden" id="editUserId">
-            <div class="form-row">
-                <div class="form-group"><label>First Name</label><input type="text" id="firstName" placeholder="e.g. John"></div>
-                <div class="form-group"><label>Last Name</label><input type="text" id="lastName" placeholder="e.g. Doe"></div>
+            <!-- Account Type: first field so the admin knows which form to fill -->
+            <div class="form-group" id="accountTypeGroup" style="margin-bottom: 16px;">
+                <label>Account Type <span style="color: #ef4444;">*</span></label>
+                <select id="accountTypeSelect" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
+                    <option value="user" selected>User (System Operator)</option>
+                    <option value="admin">Administrator</option>
+                </select>
             </div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="email" placeholder="user@olfu.edu.ph"></div>
-            <div class="form-row">
-                <div class="form-group"><label>Engineering Branch</label><input type="text" id="branch" placeholder="e.g. Electrical Engineering"></div>
-                <div class="form-group"><label>Branch Code</label><input type="text" id="branchCode" placeholder="e.g. EE-01"></div>
+            <div class="form-group" id="modalIdGroup" style="margin-bottom: 16px;">
+                <label id="modalIdLabel" style="font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 6px; display: block;">User ID</label>
+                <input type="text" id="modalUserId" readonly placeholder="Auto-generated" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; color: #64748b; cursor: not-allowed; outline: none; box-sizing: border-box;">
             </div>
-            <div class="form-group">
-                <label>Role</label>
-                <select id="roleSelect">
+            <div class="form-row">
+                <div class="form-group"><label>First Name <span style="color: #ef4444;">*</span></label><input type="text" id="firstName" placeholder="e.g. John"></div>
+                <div class="form-group"><label>Last Name <span style="color: #ef4444;">*</span></label><input type="text" id="lastName" placeholder="e.g. Doe"></div>
+            </div>
+            <div class="form-group"><label>Email Address <span style="color: #ef4444;">*</span></label><input type="email" id="email" placeholder="user@olfu.edu.ph"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Engineering Branch</label>
+                    <select id="branch" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
+                        <option value="General" data-code="GEN">General</option>
+                        <option value="Polution Control" data-code="PCO">Polution Control</option>
+                        <option value="Maintenance" data-code="MNT">Maintenance</option>
+                        <option value="__custom__">+ Add Custom Branch...</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Branch Code</label><input type="text" id="branchCode" placeholder="e.g. EE-01" readonly></div>
+            </div>
+            <div class="form-group" id="jobTitleGroup" style="display: none; margin-bottom: 16px;">
+                <label>Job Title</label>
+                <input type="text" id="jobTitle" placeholder="e.g. System Administrator" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;">
+            </div>
+            <div class="form-group" id="roleGroup" style="margin-bottom: 16px;">
+                <label>System Role <span style="color: #ef4444;">*</span></label>
+                <select id="roleSelect" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
                     <option value="" disabled selected>Select a role...</option>
-                    <option value="1">Admin</option>
                     <option value="2">Operator</option>
+                    <option value="3">Technician</option>
+                    <option value="4">Viewer</option>
                 </select>
             </div>
         </div>

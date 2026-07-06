@@ -5,49 +5,216 @@ function switchTab(btn, tabId) {
     document.getElementById('panel-' + tabId).classList.add('active');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    fetchProfile();
-});
+function togglePasswordVisibility(btn) {
+    const container = btn.closest('.password-input-container');
+    if (!container) return;
+    const input = container.querySelector('input');
+    const eyeIcon = btn.querySelector('.eye-icon');
+    const eyeOffIcon = btn.querySelector('.eye-off-icon');
+    
+    if (input && eyeIcon && eyeOffIcon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.style.display = 'none';
+            eyeOffIcon.style.display = 'block';
+        } else {
+            input.type = 'password';
+            eyeIcon.style.display = 'block';
+            eyeOffIcon.style.display = 'none';
+        }
+    }
+}
+
+function showToast(message, type = 'success') {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+    }
+    
+    const isSuccess = type === 'success';
+    const strokeColor = isSuccess ? '#22c55e' : '#ef4444';
+    const svgIcon = isSuccess 
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>`
+        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>`;
+        
+    toast.innerHTML = `
+        ${svgIcon}
+        <span>${message}</span>
+    `;
+    
+    toast.style.borderLeft = `4px solid ${strokeColor}`;
+    
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+let tempAvatarData = null;
 
 async function fetchProfile() {
     try {
-        const user = await API.users.getMe();
+        const sessionStr = localStorage.getItem('aqua_monitor_admin_session');
+        if (!sessionStr) return;
+        const session = JSON.parse(sessionStr);
+        const adminId = session.id;
+
+        const profilePreview = document.getElementById('profilePreview');
+
+        const user = await API.admins.getOne(adminId);
         if (user) {
-            // Update profile fields
-            const nameInput = document.querySelector('input[value="Admin User"]');
-            const emailInput = document.querySelector('input[value="admin@olfu.edu.ph"]');
-            const jobTitleInput = document.querySelector('input[value="System Administrator"]');
-            
-            if (nameInput) nameInput.value = user.name;
-            if (emailInput) emailInput.value = user.email;
-            // Job title is mock-ish since it's not in DB yet, but we'll set it based on role
-            if (jobTitleInput) jobTitleInput.value = user.role_name || 'System Administrator';
-            
-            // Update Employee ID if possible
-            const empIdInput = document.querySelector('input[value="OLFU-ADM-2025"]');
-            if (empIdInput) empIdInput.value = `OLFU-USR-${user.id}`;
+            const fields = {};
+            document.querySelectorAll('.field-group').forEach(group => {
+                const label = group.querySelector('.field-label');
+                const input = group.querySelector('.field-input');
+                if (label && input) {
+                    fields[label.textContent.trim().toLowerCase()] = input;
+                }
+            });
+
+            if (fields['full name']) fields['full name'].value = user.name || '';
+            if (fields['email address']) fields['email address'].value = user.email || '';
+            if (fields['job title']) fields['job title'].value = user.job_title || 'System Administrator';
+            if (fields['phone number']) fields['phone number'].value = user.phone || '';
+            if (fields['admin id']) fields['admin id'].value = `ADM${String(user.id).padStart(4, '0')}`;
+            if (fields['engineering branch']) fields['engineering branch'].value = user.branch || 'General';
+            if (fields['branch code']) fields['branch code'].value = user.branch_code || 'GEN';
+            if (fields['status']) fields['status'].value = user.status || 'Active';
+            if (fields['account created']) fields['account created'].value = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+            // Avatar sync: server is source of truth
+            if (user.avatar) {
+                if (profilePreview) profilePreview.src = user.avatar;
+                session.avatar = user.avatar;
+                localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
+            } else if (session.avatar) {
+                // Server missing avatar but localStorage has one — push it up
+                if (profilePreview) profilePreview.src = session.avatar;
+                try {
+                    await API.admins.update(adminId, { avatar: session.avatar });
+                } catch (e) {
+                    console.warn('Failed to sync avatar to server:', e);
+                }
+            } else {
+                if (profilePreview) profilePreview.src = '../assets/images/default-avatar.jpg';
+            }
         }
     } catch (error) {
         console.error('Failed to fetch profile:', error);
     }
 }
 
-function saveChanges() {
-    // Sanitize all inputs in the current view
-    const inputs = document.querySelectorAll('.field-input');
-    inputs.forEach(input => {
-        if (input.type !== 'password') {
-            input.value = Sanitizer.cleanInput(input.value);
+async function saveChanges() {
+    const fields = {};
+    document.querySelectorAll('.field-group').forEach(group => {
+        const label = group.querySelector('.field-label');
+        const input = group.querySelector('.field-input');
+        if (label && input) {
+            fields[label.textContent.trim().toLowerCase()] = input;
         }
     });
 
-    const toast = document.getElementById('toast');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2800);
+    const activeTab = document.querySelector('.stab.active');
+    const tabName = activeTab ? activeTab.getAttribute('data-tab') : 'profile';
+
+    const sessionStr = localStorage.getItem('aqua_monitor_admin_session');
+    if (!sessionStr) return;
+    const session = JSON.parse(sessionStr);
+    const adminId = session.id;
+
+    try {
+        if (tabName === 'profile') {
+            const nameInput = fields['full name'];
+            const emailInput = fields['email address'];
+            const jobTitleInput = fields['job title'];
+            const phoneInput = fields['phone number'];
+            if (!nameInput || !emailInput) return;
+
+            const name = Sanitizer.cleanInput(nameInput.value);
+            const email = Sanitizer.cleanInput(emailInput.value);
+            const job_title = jobTitleInput ? Sanitizer.cleanInput(jobTitleInput.value) : 'System Administrator';
+            const phone = phoneInput ? Sanitizer.cleanInput(phoneInput.value) : '';
+
+            if (!name || !email) {
+                showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'Name and Email are required.' });
+                return;
+            }
+
+            const updatePayload = { name, email, job_title, phone };
+
+            // Include avatar in the server update
+            if (tempAvatarData === 'REMOVE') {
+                updatePayload.avatar = null;
+            } else if (tempAvatarData) {
+                updatePayload.avatar = tempAvatarData;
+            }
+
+            const updated = await API.admins.update(adminId, updatePayload);
+            
+            session.name = updated.name;
+            session.email = updated.email;
+            session.job_title = updated.job_title;
+            
+            if (tempAvatarData === 'REMOVE') {
+                delete session.avatar;
+            } else if (tempAvatarData) {
+                session.avatar = tempAvatarData;
+            }
+            
+            localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
+            tempAvatarData = null;
+
+            if (typeof initAuthFeatures === 'function') {
+                initAuthFeatures();
+            }
+
+            showToast('Settings saved successfully', 'success');
+
+        } else if (tabName === 'security') {
+            const currentPassInput = fields['current password'];
+            const newPassInput = fields['new password'];
+            const confirmPassInput = fields['confirm new password'];
+
+            if (!currentPassInput || !newPassInput || !confirmPassInput) return;
+
+            const currentPassword = currentPassInput.value;
+            const newPassword = newPassInput.value;
+            const confirmPassword = confirmPassInput.value;
+
+            if (currentPassword || newPassword || confirmPassword) {
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'All password fields are required to change password.' });
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'New Password and Confirm Password do not match.' });
+                    return;
+                }
+
+                if (newPassword.length < 8) {
+                    showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'New Password must be at least 8 characters long.' });
+                    return;
+                }
+
+                await API.admins.update(adminId, { current_password: currentPassword, new_password: newPassword });
+
+                currentPassInput.value = '';
+                newPassInput.value = '';
+                confirmPassInput.value = '';
+
+                showToast('Password changed successfully', 'success');
+            }
+        }
+    } catch (error) {
+        showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+    }
 }
 
-// ── PROFILE IMAGE UPLOAD ──
-document.addEventListener('DOMContentLoaded', function() {
+function initProfileUpload() {
     const profileUpload = document.getElementById('profileUpload');
     const profilePreview = document.getElementById('profilePreview');
 
@@ -58,28 +225,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     profilePreview.src = event.target.result;
-                    // In a real app, you would upload the file here via fetch/POST
+                    tempAvatarData = event.target.result; 
                 };
                 reader.readAsDataURL(file);
             }
         });
     }
-});
+}
 
 function removeProfilePhoto() {
     const profilePreview = document.getElementById('profilePreview');
     if (profilePreview) {
-        profilePreview.src = '../assets/images/default-avatar.png';
-        document.getElementById('profileUpload').value = '';
+        profilePreview.src = '../assets/images/default-avatar.jpg';
+        const fileInput = document.getElementById('profileUpload');
+        if (fileInput) fileInput.value = '';
+        tempAvatarData = 'REMOVE'; 
     }
 }
 
-// ── HARDWARE CONFIGURATION ──
-let registeredDevices = [];
-
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchProfile();
+        initProfileUpload();
+        fetchHardwareNodes();
+    });
+} else {
+    fetchProfile();
+    initProfileUpload();
     fetchHardwareNodes();
-});
+}
 
 async function fetchHardwareNodes() {
     try {
