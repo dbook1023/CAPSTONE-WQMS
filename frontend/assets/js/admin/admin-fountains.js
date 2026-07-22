@@ -5,15 +5,7 @@
 
 // State
 let fountains = [];
-
-// DOM Elements
-const fountainsGrid = document.getElementById('fountainsGrid');
-const searchInput = document.getElementById('searchInput');
-const fountainModal = document.getElementById('fountainModal');
-const fountainForm = document.getElementById('fountainForm');
-const addFountainBtn = document.getElementById('addFountainBtn');
-const closeFountainModal = document.getElementById('closeFountainModal');
-const refreshBtn = document.getElementById('refreshBtn');
+let sensorsMap = {};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,34 +14,67 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
+    const searchInput = document.getElementById('searchInput');
+    const addFountainBtn = document.getElementById('addFountainBtn');
+    const closeFountainModal = document.getElementById('closeFountainModal');
+    const fountainModal = document.getElementById('fountainModal');
+    const fountainForm = document.getElementById('fountainForm');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const viewStandardsBtn = document.getElementById('viewStandardsBtn');
+
     if (searchInput) searchInput.addEventListener('input', filterFountains);
     if (addFountainBtn) addFountainBtn.addEventListener('click', () => openModal());
     if (closeFountainModal) closeFountainModal.addEventListener('click', closeModal);
-    if (fountainModal) fountainModal.addEventListener('click', (e) => {
-        if (e.target === fountainModal) closeModal();
-    });
+    if (fountainModal) {
+        fountainModal.addEventListener('click', (e) => {
+            if (e.target === fountainModal) closeModal();
+        });
+    }
     if (fountainForm) fountainForm.addEventListener('submit', handleFormSubmit);
     if (refreshBtn) refreshBtn.addEventListener('click', fetchFountains);
+    if (viewStandardsBtn) {
+        viewStandardsBtn.addEventListener('click', () => {
+            window.location.href = 'admin-settings.html';
+        });
+    }
 }
 
 /**
- * Fetch fountains from the backend API
+ * Fetch fountains and latest sensor readings from the backend API
  */
 async function fetchFountains() {
+    const fountainsGrid = document.getElementById('fountainsGrid');
     try {
         if (fountainsGrid) {
-            fountainsGrid.innerHTML = `<div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;"><p>Loading fountains...</p></div>`;
+            fountainsGrid.innerHTML = `
+                <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;">
+                    <p>Loading fountains...</p>
+                </div>
+            `;
         }
 
-        const data = await API.fountains.getAll();
-        fountains = data;
+        const [data, latestSensors] = await Promise.all([
+            API.fountains.getAll(),
+            API.sensors.getLatest().catch(() => [])
+        ]);
+
+        fountains = Array.isArray(data) ? data : [];
+
+        sensorsMap = {};
+        if (Array.isArray(latestSensors)) {
+            latestSensors.forEach(s => {
+                if (s && s.fountain_id) {
+                    sensorsMap[s.fountain_id] = s;
+                }
+            });
+        }
+
         renderFountains(fountains);
         updateStats(fountains);
         showNotification('Fountains loaded from server', 'success');
     } catch (error) {
         console.error('Failed to fetch fountains:', error);
         showNotification('Failed to load fountains from server', 'error');
-        // Show error state
         if (fountainsGrid) {
             fountainsGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #ef4444;">
@@ -65,9 +90,12 @@ async function fetchFountains() {
  * Render fountain cards
  */
 function renderFountains(data) {
+    const fountainsGrid = document.getElementById('fountainsGrid');
     if (!fountainsGrid) return;
     
-    if (data.length === 0) {
+    const list = Array.isArray(data) ? data : [];
+
+    if (list.length === 0) {
         fountainsGrid.innerHTML = `
             <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;">
                 <p>No fountains found. Add one to get started!</p>
@@ -76,24 +104,38 @@ function renderFountains(data) {
         return;
     }
 
-    fountainsGrid.innerHTML = data.map(f => {
-        const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
+    const esc = (s) => (s !== undefined && s !== null) 
+        ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') 
+        : '';
+
+    fountainsGrid.innerHTML = list.map(f => {
+        const displayId = f.displayId || f.display_id || `F${String(f.id).padStart(3, '0')}`;
+        const name = f.name || 'Unnamed Fountain';
+        const location = f.location || 'Unknown Location';
+        const status = f.status || 'Online';
+        const sensor = sensorsMap[f.id] || {};
+
+        const phVal = (sensor.ph !== undefined && sensor.ph !== null) ? parseFloat(sensor.ph).toFixed(1) : '--';
+        const turbidityVal = (sensor.turbidity !== undefined && sensor.turbidity !== null) ? `${parseFloat(sensor.turbidity).toFixed(1)} NTU` : '-- NTU';
+        const tempVal = (sensor.temperature !== undefined && sensor.temperature !== null) ? `${parseFloat(sensor.temperature).toFixed(1)}°C` : '--°C';
+        const tdsVal = (sensor.tds !== undefined && sensor.tds !== null) ? `${Math.round(sensor.tds)} ppm` : '-- ppm';
+
         return `
-        <div class="fountain-card" data-name="${esc(f.name)}" data-location="${esc(f.location)}" data-id="${esc(f.displayId)}">
+        <div class="fountain-card" data-name="${esc(name)}" data-location="${esc(location)}" data-id="${esc(displayId)}">
             <div class="fc-top">
-                <span class="fc-id">${esc(f.displayId)}</span>
-                <span class="fc-badge ${(f.status || '').toLowerCase()}">
-                    ${getStatusIcon(f.status)}
-                    ${esc(f.status)}
+                <span class="fc-id">${esc(displayId)}</span>
+                <span class="fc-badge ${status.toLowerCase()}">
+                    ${getStatusIcon(status)}
+                    ${esc(status)}
                 </span>
             </div>
-            <div class="fc-title">${esc(f.name)}</div>
+            <div class="fc-title">${esc(name)}</div>
             <div class="fc-location">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                ${esc(f.location)}
+                ${esc(location)}
             </div>
             
-            ${f.status === 'Offline' ? `
+            ${status === 'Offline' ? `
                 <div class="fc-offline-banner">
                     This fountain is currently offline. No data available.
                 </div>
@@ -101,19 +143,19 @@ function renderFountains(data) {
                 <div class="fc-metrics">
                     <div class="fc-metric">
                         <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">--</div>
+                        <div class="fc-metric-value">${esc(phVal)}</div>
                     </div>
                     <div class="fc-metric">
                         <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">-- NTU</div>
+                        <div class="fc-metric-value teal">${esc(turbidityVal)}</div>
                     </div>
                     <div class="fc-metric">
                         <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">--°C</div>
+                        <div class="fc-metric-value teal">${esc(tempVal)}</div>
                     </div>
                     <div class="fc-metric">
                         <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value teal">-- ppm</div>
+                        <div class="fc-metric-value teal">${esc(tdsVal)}</div>
                     </div>
                 </div>
             `}
@@ -126,11 +168,11 @@ function renderFountains(data) {
             <div class="fc-bottom">
                 <div class="fc-monitoring">
                     Monitoring:
-                    <div class="toggle-wrap ${f.status === 'Offline' ? 'disabled' : 'on'}" onclick="toggleMonitoring(this, ${f.id})">
+                    <div class="toggle-wrap ${status === 'Offline' ? 'disabled' : 'on'}" onclick="toggleMonitoring(this, ${f.id})">
                         <div class="toggle-track"><div class="toggle-thumb"></div></div>
                     </div>
-                    <span class="monitoring-status ${f.status === 'Offline' ? 'disabled' : 'enabled'}">
-                        ${f.status === 'Offline' ? 'Disabled' : 'Enabled'}
+                    <span class="monitoring-status ${status === 'Offline' ? 'disabled' : 'enabled'}">
+                        ${status === 'Offline' ? 'Disabled' : 'Enabled'}
                     </span>
                 </div>
                 <button class="configure-btn" onclick="openModal(${f.id})">
@@ -146,10 +188,9 @@ function renderFountains(data) {
                 </div>
             </div>
         </div>
-    `).join('');
-
+        `;
+    }).join('');
 }
-
 
 function getStatusIcon(status) {
     if (status === 'Online') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
@@ -158,27 +199,31 @@ function getStatusIcon(status) {
 }
 
 function updateStats(data) {
-    const online = data.filter(f => f.status === 'Online').length;
-    const warning = data.filter(f => f.status === 'Warning' || f.status === 'Maintenance').length;
-    const offline = data.filter(f => f.status === 'Offline' || f.status === 'Inactive').length;
+    const list = Array.isArray(data) ? data : [];
+    const online = list.filter(f => f.status === 'Online').length;
+    const warning = list.filter(f => f.status === 'Warning' || f.status === 'Maintenance').length;
+    const offline = list.filter(f => f.status === 'Offline' || f.status === 'Inactive').length;
 
-    const stats = document.querySelectorAll('.stat-value');
-    if (stats.length >= 3) {
-        stats[0].textContent = online;
-        stats[1].textContent = warning;
-        stats[2].textContent = offline;
-    }
+    const statOnline = document.getElementById('stat-online');
+    const statWarning = document.getElementById('stat-warning');
+    const statOffline = document.getElementById('stat-offline');
+
+    if (statOnline) statOnline.textContent = online;
+    if (statWarning) statWarning.textContent = warning;
+    if (statOffline) statOffline.textContent = offline;
 }
 
 /**
  * Filter fountains based on search input
  */
 function filterFountains() {
-    const q = searchInput.value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    const q = searchInput.value.toLowerCase().trim();
     const filtered = fountains.filter(f => 
-        f.name.toLowerCase().includes(q) || 
-        f.location.toLowerCase().includes(q) || 
-        (f.displayId && f.displayId.toLowerCase().includes(q))
+        (f.name && f.name.toLowerCase().includes(q)) || 
+        (f.location && f.location.toLowerCase().includes(q)) || 
+        ((f.displayId || f.display_id) && (f.displayId || f.display_id).toLowerCase().includes(q))
     );
     renderFountains(filtered);
 }
@@ -187,27 +232,32 @@ function filterFountains() {
  * Modal Management
  */
 function openModal(id = null) {
-    if (id) {
-        const f = fountains.find(item => item.id === id);
+    const modal = document.getElementById('fountainModal');
+    const form = document.getElementById('fountainForm');
+    if (!modal || !form) return;
+
+    if (id !== null && id !== undefined) {
+        const f = fountains.find(item => item.id == id);
         if (!f) return;
         document.getElementById('modalTitle').textContent = 'Edit Fountain';
         document.getElementById('internalId').value = f.id;
-        document.getElementById('fountainId').value = f.displayId;
-        document.getElementById('fountainName').value = f.name;
-        document.getElementById('fountainLocation').value = f.location;
-        document.getElementById('fountainStatus').value = f.status;
+        document.getElementById('fountainId').value = f.displayId || f.display_id || '';
+        document.getElementById('fountainName').value = f.name || '';
+        document.getElementById('fountainLocation').value = f.location || '';
+        document.getElementById('fountainStatus').value = f.status || 'Online';
         document.getElementById('saveFountainBtn').textContent = 'Update Fountain';
     } else {
         document.getElementById('modalTitle').textContent = 'Add New Fountain';
-        fountainForm.reset();
+        form.reset();
         document.getElementById('internalId').value = '';
         document.getElementById('saveFountainBtn').textContent = 'Save Fountain';
     }
-    fountainModal.classList.add('open');
+    modal.classList.add('open');
 }
 
 function closeModal() {
-    fountainModal.classList.remove('open');
+    const modal = document.getElementById('fountainModal');
+    if (modal) modal.classList.remove('open');
 }
 
 /**
@@ -217,9 +267,9 @@ async function handleFormSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('internalId').value;
     const payload = {
-        displayId: document.getElementById('fountainId').value,
-        name: document.getElementById('fountainName').value,
-        location: document.getElementById('fountainLocation').value,
+        displayId: document.getElementById('fountainId').value.trim(),
+        name: document.getElementById('fountainName').value.trim(),
+        location: document.getElementById('fountainLocation').value.trim(),
         status: document.getElementById('fountainStatus').value
     };
 
@@ -256,15 +306,19 @@ async function deleteFountain(id) {
 }
 
 /**
- * Toggle Monitoring
+ * Toggle Monitoring / Status
  */
-function toggleMonitoring(el, id) {
+async function toggleMonitoring(el, id) {
     if (el.classList.contains('disabled')) return;
-    el.classList.toggle('on');
-    const label = el.closest('.fc-monitoring').querySelector('.monitoring-status');
     const isOn = el.classList.contains('on');
-    label.textContent = isOn ? 'Enabled' : 'Disabled';
-    label.className = 'monitoring-status ' + (isOn ? 'enabled' : 'disabled');
+    const newStatus = isOn ? 'Offline' : 'Online';
+    try {
+        await API.fountains.patchStatus(id, newStatus);
+        showNotification(`Fountain status updated to ${newStatus}`, 'info');
+        await fetchFountains();
+    } catch (err) {
+        showNotification(`Failed to update status: ${err.message}`, 'error');
+    }
 }
 
 /**
@@ -273,6 +327,7 @@ function toggleMonitoring(el, id) {
 function toggleDropdown(event, btn) {
     event.stopPropagation();
     const dropdown = btn.nextElementSibling;
+    if (!dropdown) return;
     const isOpen = dropdown.classList.contains('show');
     document.querySelectorAll('.dropdown-content.show').forEach(d => d.classList.remove('show'));
     if (!isOpen) dropdown.classList.add('show');
@@ -294,3 +349,11 @@ function showNotification(message, type = 'info') {
         console.log(`[${type}] ${message}`);
     }
 }
+
+// Expose functions to global window object for inline event handlers
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.deleteFountain = deleteFountain;
+window.toggleMonitoring = toggleMonitoring;
+window.toggleDropdown = toggleDropdown;
+window.fetchFountains = fetchFountains;

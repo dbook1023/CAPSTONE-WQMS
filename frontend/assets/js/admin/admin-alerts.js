@@ -7,19 +7,6 @@
 let alerts = [];
 let currentFilter = 'all';
 
-// DOM Elements
-const alertsList = document.getElementById('alertsList');
-const searchInput = document.getElementById('searchInput');
-const filterTabs = document.querySelectorAll('.tab-btn');
-const alertsSummary = document.getElementById('alertsActionSummary');
-const alertsFilterBtn = document.getElementById('alertsFilterBtn');
-const alertsExportBtn = document.getElementById('alertsExportBtn');
-const statValues = {
-    active: document.querySelector('.stat-card.teal .stat-value'),
-    critical: document.querySelector('.stat-card.red .stat-value'),
-    warning: document.querySelector('.stat-card.orange .stat-value')
-};
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     fetchAlerts();
@@ -30,16 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchAlerts() {
     try {
         const data = await API.alerts.getAll();
-        alerts = data;
+        alerts = Array.isArray(data) ? data : [];
         renderAlerts();
         updateStats();
     } catch (error) {
         console.error('Failed to fetch alerts:', error);
-        showNotification('Failed to load alerts from server', 'error');
+        _notify('Failed to load alerts from server', 'error');
     }
 }
 
 function setupEventListeners() {
+    const searchInput = document.getElementById('searchInput');
+    const alertsFilterBtn = document.getElementById('alertsFilterBtn');
+    const alertsExportBtn = document.getElementById('alertsExportBtn');
+    const filterTabs = document.querySelectorAll('.tab-btn');
+
     if (searchInput) {
         searchInput.addEventListener('input', renderAlerts);
     }
@@ -47,10 +39,11 @@ function setupEventListeners() {
     if (alertsFilterBtn) {
         alertsFilterBtn.addEventListener('click', () => {
             currentFilter = 'all';
-            filterTabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
             const defaultTab = document.querySelector('.tab-btn[data-filter="all"]');
             if (defaultTab) defaultTab.classList.add('active');
-            if (searchInput) searchInput.value = '';
+            const si = document.getElementById('searchInput');
+            if (si) si.value = '';
             renderAlerts();
         });
     }
@@ -61,7 +54,7 @@ function setupEventListeners() {
 
     filterTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            filterTabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentFilter = tab.dataset.filter;
             renderAlerts();
@@ -70,6 +63,7 @@ function setupEventListeners() {
 }
 
 function renderAlerts() {
+    const alertsList = document.getElementById('alertsList');
     if (!alertsList) return;
 
     const filtered = getVisibleAlerts();
@@ -81,9 +75,12 @@ function renderAlerts() {
     }
 
     alertsList.innerHTML = filtered.map(a => {
-        const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
+        const esc = (s) => (s !== undefined && s !== null)
+            ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            : '';
+
         return `
-        <div class="alert-card ${getAlertCssClass(a)}" data-status="${(a.status || '').toLowerCase()}">
+        <div class="alert-card ${getAlertCssClass(a)}" data-status="${esc(a.status)}">
             <div class="alert-icon-wrap ${getAlertCssClass(a)}">
                 ${getAlertIcon(getAlertCategory(a))}
             </div>
@@ -109,7 +106,7 @@ function renderAlerts() {
                     <span><strong>Value:</strong> ${esc(a.value)}</span>
                     <span class="meta-time">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        ${new Date(a.timestamp).toLocaleString()}
+                        ${a.timestamp ? new Date(a.timestamp).toLocaleString() : '--'}
                     </span>
                 </div>
             </div>
@@ -120,10 +117,11 @@ function renderAlerts() {
                 ${a.status === 'Resolved' ? 'Resolved' : 'Resolve'}
             </button>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function getVisibleAlerts() {
+    const searchInput = document.getElementById('searchInput');
     const q = (searchInput?.value || '').trim().toLowerCase();
 
     return alerts.filter(a => {
@@ -161,8 +159,7 @@ function getAlertCategory(alert) {
 }
 
 function getAlertCssClass(alert) {
-    const category = getAlertCategory(alert);
-    return category;
+    return getAlertCategory(alert);
 }
 
 function getAlertLabel(alert) {
@@ -173,6 +170,7 @@ function getAlertLabel(alert) {
 }
 
 function updateActionSummary(visibleAlerts) {
+    const alertsSummary = document.getElementById('alertsActionSummary');
     if (!alertsSummary) return;
 
     if (!visibleAlerts.length) {
@@ -303,7 +301,7 @@ function getOverallSeverityIcon(severity) {
 function exportVisibleAlertsCsv() {
     const rows = getVisibleAlerts();
     if (!rows.length) {
-        showNotification('No alerts available to export for the current filter.', 'warning');
+        _notify('No alerts available to export for the current filter.', 'warning');
         return;
     }
 
@@ -334,34 +332,46 @@ function exportVisibleAlertsCsv() {
 }
 
 function getAlertIcon(severity) {
-    const s = severity?.toLowerCase();
+    const s = (severity || '').toLowerCase();
     if (s === 'critical') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
     if (s === 'warning') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
 }
 
 function updateStats() {
-    if (statValues.active) statValues.active.textContent = alerts.filter(a => (a.status || '').toLowerCase() === 'active').length;
-    if (statValues.critical) statValues.critical.textContent = alerts.filter(a => getAlertCategory(a) === 'critical' && (a.status || '').toLowerCase() === 'active').length;
-    if (statValues.warning) statValues.warning.textContent = alerts.filter(a => getAlertCategory(a) === 'warning' && (a.status || '').toLowerCase() === 'active').length;
+    const statActive = document.querySelector('.stat-card.teal .stat-value');
+    const statCritical = document.querySelector('.stat-card.red .stat-value');
+    const statWarning = document.querySelector('.stat-card.orange .stat-value');
+
+    if (statActive) statActive.textContent = alerts.filter(a => (a.status || '').toLowerCase() === 'active').length;
+    if (statCritical) statCritical.textContent = alerts.filter(a => getAlertCategory(a) === 'critical' && (a.status || '').toLowerCase() === 'active').length;
+    if (statWarning) statWarning.textContent = alerts.filter(a => getAlertCategory(a) === 'warning' && (a.status || '').toLowerCase() === 'active').length;
 }
 
 async function handleResolve(id) {
     try {
         await API.alerts.resolve(id, 'Resolved via Admin Dashboard');
-        showNotification('Alert marked as resolved', 'success');
-        fetchAlerts();
+        _notify('Alert marked as resolved', 'success');
+        await fetchAlerts();
     } catch (error) {
-        showNotification(`Failed to resolve: ${error.message}`, 'error');
+        _notify(`Failed to resolve: ${error.message}`, 'error');
     }
 }
 
-function showNotification(message, type = 'info') {
-    if (typeof window.showNotification === 'function') {
+/**
+ * Internal notification helper — avoids infinite recursion with window.showNotification
+ */
+function _notify(message, type = 'info') {
+    // admin-shared.js sets window.showNotification after it loads
+    if (window._adminSharedNotify) {
+        window._adminSharedNotify(message, type);
+    } else if (typeof window.showNotification === 'function' && window.showNotification !== _notify) {
         window.showNotification(message, type);
     } else {
         console.log(`[${type}] ${message}`);
     }
 }
 
+// Expose functions to global window for inline onclick handlers
 window.handleResolve = handleResolve;
+window.fetchAlerts = fetchAlerts;

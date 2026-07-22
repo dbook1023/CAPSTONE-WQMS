@@ -29,13 +29,13 @@ async function fetchData() {
             API.sensors.getAll(),
             API.fountains.getAll()
         ]);
-        
+
         sensors = sensorData;
         fountains = fountainData;
-        
+
         renderSensors(sensors);
         populateFountainSelect(fountains);
-        
+
         document.getElementById('count').textContent = sensors.length;
     } catch (error) {
         console.error('Failed to fetch hardware data:', error);
@@ -50,8 +50,8 @@ function setupEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase();
-            const filtered = sensors.filter(s => 
-                s.serial_number.toLowerCase().includes(q) || 
+            const filtered = sensors.filter(s =>
+                s.serial_number.toLowerCase().includes(q) ||
                 (s.fountain_name && s.fountain_name.toLowerCase().includes(q))
             );
             renderSensors(filtered);
@@ -86,10 +86,10 @@ function renderSensors(data) {
                         </div>
                         <div>
                             <span style="font-weight: 600; font-family: 'Inter';">${s.serial_number}</span>
-                            ${s.firmware_version ? 
-                              `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; margin-top: 4px;">v${s.firmware_version}</span>` : 
-                              `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; margin-top: 4px;">Unknown</span>`
-                            }
+                            ${s.firmware_version ?
+                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; margin-top: 4px;">v${s.firmware_version}</span>` :
+                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; margin-top: 4px;">Unknown</span>`
+            }
                         </div>
                     </div>
                 </td>
@@ -144,7 +144,7 @@ function closeModal() {
 
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const payload = {
         serial_number: document.getElementById('serialInput').value,
         fountain_id: parseInt(document.getElementById('fountainSelect').value)
@@ -152,7 +152,7 @@ async function handleFormSubmit(e) {
 
     try {
         const response = await API.sensors.register(payload);
-        
+
         showNotification(response.message, 'success');
         closeModal();
         fetchData(); // Refresh table
@@ -165,7 +165,7 @@ window.editSensor = (id) => openModal(id);
 
 window.deleteSensor = async (id) => {
     if (!confirm('Are you sure you want to remove this device registration?')) return;
-    
+
     try {
         const response = await API.sensors.delete(id);
         showNotification(response.message, 'success');
