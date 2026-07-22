@@ -76,19 +76,21 @@ function renderFountains(data) {
         return;
     }
 
-    fountainsGrid.innerHTML = data.map(f => `
-        <div class="fountain-card" data-name="${f.name}" data-location="${f.location}" data-id="${f.displayId}">
+    fountainsGrid.innerHTML = data.map(f => {
+        const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
+        return `
+        <div class="fountain-card" data-name="${esc(f.name)}" data-location="${esc(f.location)}" data-id="${esc(f.displayId)}">
             <div class="fc-top">
-                <span class="fc-id">${f.displayId}</span>
-                <span class="fc-badge ${f.status.toLowerCase()}">
+                <span class="fc-id">${esc(f.displayId)}</span>
+                <span class="fc-badge ${(f.status || '').toLowerCase()}">
                     ${getStatusIcon(f.status)}
-                    ${f.status}
+                    ${esc(f.status)}
                 </span>
             </div>
-            <div class="fc-title">${f.name}</div>
+            <div class="fc-title">${esc(f.name)}</div>
             <div class="fc-location">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                ${f.location}
+                ${esc(f.location)}
             </div>
             
             ${f.status === 'Offline' ? `

@@ -3,39 +3,74 @@
  * Handles login, session management, and role-based redirection
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+/**
+ * Check if user or admin is logged in, and redirect them away from login pages.
+ * Handles normal page loads, direct navigation, and browser Back/Forward (bfcache).
+ */
+function checkSessionAndRedirect() {
     const currentPath = window.location.pathname;
     
     // Extract the exact filename from the path (e.g. "login.html", "admin-login.html")
-    const pageName = currentPath.split('/').pop() || '';
+    const pageName = (currentPath.split('/').pop() || '').toLowerCase();
     
-    // Determine page type using EXACT filename match (not endsWith)
-    const isUserLoginPage = (pageName === 'login.html') || currentPath === '/';
+    // Determine page type using filename match or root path
+    const isUserLoginPage = (pageName === 'login.html') || (currentPath === '/') || (pageName === '');
     const isAdminLoginPage = (pageName === 'admin-login.html');
     
     // If we're not on any login page, skip redirect logic entirely
     if (!isUserLoginPage && !isAdminLoginPage) return;
     
-    // Check specific sessions
-    const adminSession = localStorage.getItem('aqua_monitor_admin_session');
-    const userSession = localStorage.getItem('aqua_monitor_user_session');
+    // Check specific sessions from localStorage
+    const adminSessionRaw = localStorage.getItem('aqua_monitor_admin_session');
+    const userSessionRaw = localStorage.getItem('aqua_monitor_user_session');
     
-    console.log('[auth.js] Page:', pageName, '| isUserLogin:', isUserLoginPage, '| isAdminLogin:', isAdminLoginPage, '| adminSession:', !!adminSession, '| userSession:', !!userSession);
+    let validAdmin = false;
+    let validUser = false;
     
-    if (isUserLoginPage) {
-        // On the USER login page: ONLY redirect if a USER session exists
-        if (userSession) {
-            redirectUser('operator');
+    if (adminSessionRaw) {
+        try {
+            const parsed = JSON.parse(adminSessionRaw);
+            if (parsed && parsed.id && parsed.role && parsed.role.toLowerCase() === 'admin') {
+                validAdmin = true;
+            } else {
+                localStorage.removeItem('aqua_monitor_admin_session');
+            }
+        } catch (e) {
+            localStorage.removeItem('aqua_monitor_admin_session');
         }
-        // Do NOT redirect for adminSession — admin may want to log in as a user too
-    } else if (isAdminLoginPage) {
-        // On the ADMIN login page: ONLY redirect if an ADMIN session exists
-        if (adminSession) {
-            redirectUser('admin');
-        }
-        // Do NOT redirect for userSession — user may want to log in as admin too
     }
-});
+    
+    if (userSessionRaw) {
+        try {
+            const parsed = JSON.parse(userSessionRaw);
+            if (parsed && parsed.id) {
+                validUser = true;
+            } else {
+                localStorage.removeItem('aqua_monitor_user_session');
+            }
+        } catch (e) {
+            localStorage.removeItem('aqua_monitor_user_session');
+        }
+    }
+    
+    console.log('[auth.js] checkSessionAndRedirect | pageName:', pageName, '| validAdmin:', validAdmin, '| validUser:', validUser);
+    
+    // If any active session exists, prevent accessing login pages and redirect to dashboard
+    if (validAdmin) {
+        redirectUser('admin');
+    } else if (validUser) {
+        redirectUser('operator');
+    }
+}
+
+// Execute check immediately on script execution
+checkSessionAndRedirect();
+
+// Execute check on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', checkSessionAndRedirect);
+
+// Execute check on pageshow (handles browser Back/Forward button bfcache restoration)
+window.addEventListener('pageshow', checkSessionAndRedirect);
 
 /**
  * Handle the login logic
@@ -149,7 +184,7 @@ function showMessage(text, type) {
 }
 
 /**
- * Redirect user based on role
+ * Redirect user based on role using location.replace to prevent back-button looping
  */
 function redirectUser(role) {
     if (!role) return;
@@ -159,12 +194,17 @@ function redirectUser(role) {
     
     // Normalize role to lowercase for comparison
     const normalizedRole = role.toLowerCase();
-    
-    if (normalizedRole === 'admin') {
-        window.location.href = prefix + 'frontend/admin/admin-dashboard.html';
-    } else {
-        window.location.href = prefix + 'frontend/user/user-dashboard.html';
+    const targetUrl = (normalizedRole === 'admin') 
+        ? prefix + 'frontend/admin/admin-dashboard.html'
+        : prefix + 'frontend/user/user-dashboard.html';
+        
+    // Prevent redundant redirects if already on target URL
+    const targetFilename = targetUrl.split('/').pop();
+    if (window.location.pathname.endsWith(targetFilename)) {
+        return;
     }
+    
+    window.location.replace(targetUrl);
 }
 
 /**

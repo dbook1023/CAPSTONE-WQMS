@@ -80,7 +80,9 @@ function renderAlerts() {
         return;
     }
 
-    alertsList.innerHTML = filtered.map(a => `
+    alertsList.innerHTML = filtered.map(a => {
+        const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
+        return `
         <div class="alert-card ${getAlertCssClass(a)}" data-status="${(a.status || '').toLowerCase()}">
             <div class="alert-icon-wrap ${getAlertCssClass(a)}">
                 ${getAlertIcon(getAlertCategory(a))}
@@ -88,7 +90,7 @@ function renderAlerts() {
             <div class="alert-body">
                 <div class="alert-title-row">
                     <span class="alert-id-badge">#${a.id}</span>
-                    <span class="alert-title">${a.parameter} Alert</span>
+                    <span class="alert-title">${esc(a.parameter)} Alert</span>
                     <span class="badge ${getAlertCssClass(a)}">${getAlertLabel(a)}</span>
                     ${a.status === 'Resolved' ? `
                         <span class="badge resolved">
@@ -97,14 +99,14 @@ function renderAlerts() {
                         </span>
                     ` : ''}
                 </div>
-                <div class="alert-desc">${a.message}</div>
+                <div class="alert-desc">${esc(a.message)}</div>
                 <div class="alert-action">
                     <strong>Recommended action</strong>
                     ${getAlertRecommendation(a)}
                 </div>
                 <div class="alert-meta">
-                    <span><strong>Fountain:</strong> ${a.fountain_name || 'System'}</span>
-                    <span><strong>Value:</strong> ${a.value}</span>
+                    <span><strong>Fountain:</strong> ${esc(a.fountain_name || 'System')}</span>
+                    <span><strong>Value:</strong> ${esc(a.value)}</span>
                     <span class="meta-time">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         ${new Date(a.timestamp).toLocaleString()}
@@ -160,7 +162,7 @@ function getAlertCategory(alert) {
 
 function getAlertCssClass(alert) {
     const category = getAlertCategory(alert);
-    return category === 'safe' ? 'info' : category;
+    return category;
 }
 
 function getAlertLabel(alert) {
@@ -174,48 +176,128 @@ function updateActionSummary(visibleAlerts) {
     if (!alertsSummary) return;
 
     if (!visibleAlerts.length) {
+        alertsSummary.className = 'action-summary-panel empty-state';
         alertsSummary.innerHTML = `
-            <h3>No matching alerts</h3>
-            <p>Adjust the search or filter tabs to inspect a different alert set.</p>
+            <div class="summary-empty-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>No matching alerts found for the current search or filter criteria.</span>
+            </div>
         `;
         return;
     }
 
-    const criticalCount = visibleAlerts.filter(a => getAlertCategory(a) === 'critical').length;
-    const warningCount = visibleAlerts.filter(a => getAlertCategory(a) === 'warning').length;
-    const safeCount = visibleAlerts.filter(a => getAlertCategory(a) === 'safe').length;
+    // Filter active critical & warning alerts for direct action guidance
+    const criticalAlerts = visibleAlerts.filter(a => getAlertCategory(a) === 'critical' && (a.status || '').toLowerCase() !== 'resolved');
+    const warningAlerts = visibleAlerts.filter(a => getAlertCategory(a) === 'warning' && (a.status || '').toLowerCase() !== 'resolved');
+    const activeActionItems = [...criticalAlerts, ...warningAlerts];
 
-    const summary = criticalCount > 0
-        ? 'Critical alerts need immediate attention before the fountain returns to service.'
-        : warningCount > 0
-            ? 'Warnings are active. Inspect the affected fountain and retest after corrective action.'
-            : 'The current set is informational or safe. Continue routine monitoring and documentation.';
+    let overallSeverity = 'safe';
+    let statusPillText = 'System Optimal';
+    let statusSummaryText = 'All monitored parameters are within safe PNSDW guidelines. Continue routine monitoring.';
+    let protocolText = 'Maintain standard schedule and log periodic inspection checks.';
 
-    const topActions = [];
-    if (criticalCount > 0) {
-        topActions.push('Stop use, notify maintenance, and verify the readings manually.');
-    } else if (warningCount > 0) {
-        topActions.push('Flush the line, inspect the affected component, and retest soon.');
-    } else {
-        topActions.push('Archive the alerts and continue standard checks.');
+    if (criticalAlerts.length > 0) {
+        overallSeverity = 'critical';
+        statusPillText = 'Action Required';
+        statusSummaryText = 'Critical water quality parameters exceeded. Immediate maintenance intervention required.';
+        protocolText = 'Stop fountain use immediately, notify technical staff, and verify sensor readings manually.';
+    } else if (warningAlerts.length > 0) {
+        overallSeverity = 'warning';
+        statusPillText = 'Attention Needed';
+        statusSummaryText = 'Water quality warning parameters detected. Preventive maintenance recommended.';
+        protocolText = 'Flush water lines, inspect physical filtration units, and re-calibrate sensors.';
     }
 
-    const highlightAction = visibleAlerts.slice(0, 3).map(alert => {
+    alertsSummary.className = `action-summary-panel severity-${overallSeverity}`;
+
+    // Generate priority action items (top 3 active critical/warning alerts)
+    const priorityItemsHTML = activeActionItems.slice(0, 3).map(alert => {
+        const cat = getAlertCategory(alert);
         const guidance = window.WQMSActionGuidance?.buildAlertRecommendation?.(alert);
-        return `<div class="alerts-summary-item"><strong>#${alert.id} · ${alert.parameter}</strong>${guidance ? guidance.headline : 'Review the alert details and follow the maintenance procedure.'}</div>`;
+        const headline = guidance ? guidance.headline : (alert.message || 'Review sensor reading.');
+        const fountain = alert.fountain_name || 'Campus Fountain';
+
+        return `
+            <div class="action-item-card ${cat}">
+                <div class="action-item-left">
+                    <div class="action-item-badge-wrap">
+                        <span class="action-id">#${alert.id}</span>
+                        <span class="action-param-tag">${alert.parameter || 'Sensor'}</span>
+                        <span class="action-severity-pill ${cat}">${cat === 'critical' ? 'Critical' : 'Warning'}</span>
+                    </div>
+                    <div class="action-location">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        <strong>${fountain}</strong> &bull; Reading: <span>${alert.value}</span>
+                    </div>
+                    <div class="action-headline">${headline}</div>
+                </div>
+                <div class="action-item-right">
+                    <button class="action-resolve-btn" onclick="handleResolve(${alert.id})">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span>Resolve</span>
+                    </button>
+                </div>
+            </div>
+        `;
     }).join('');
 
     alertsSummary.innerHTML = `
-        <h3>Action Summary</h3>
-        <p>${summary}</p>
-        <div class="alerts-summary-list">
-            <div class="alerts-summary-item"><strong>Critical</strong>${criticalCount} alert${criticalCount === 1 ? '' : 's'}</div>
-            <div class="alerts-summary-item"><strong>Warning</strong>${warningCount} alert${warningCount === 1 ? '' : 's'}</div>
-            <div class="alerts-summary-item"><strong>Safe / Info</strong>${safeCount} alert${safeCount === 1 ? '' : 's'}</div>
-            <div class="alerts-summary-item"><strong>Next step</strong>${topActions[0]}</div>
+        <div class="action-summary-container">
+            <!-- TOP HERO BAR -->
+            <div class="action-hero-bar">
+                <div class="action-hero-info">
+                    <div class="action-title-row">
+                        <h3 class="action-main-title">Action Summary</h3>
+                        <span class="action-status-pill ${overallSeverity}">
+                            <span class="pulse-indicator"></span>
+                            ${statusPillText}
+                        </span>
+                    </div>
+                    <p class="action-main-desc">${statusSummaryText}</p>
+                </div>
+
+                <div class="action-protocol-card ${overallSeverity}">
+                    <div class="protocol-header">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span>Required Maintenance Protocol</span>
+                    </div>
+                    <div class="protocol-body">${protocolText}</div>
+                </div>
+            </div>
+
+            <!-- PRIORITY ACTIONS STREAM -->
+            ${activeActionItems.length > 0 ? `
+                <div class="action-stream-section">
+                    <div class="action-stream-header">
+                        <span class="stream-title">Priority Incident Guidance</span>
+                        <span class="stream-subtitle">${activeActionItems.length} active alert${activeActionItems.length === 1 ? '' : 's'} requiring intervention</span>
+                    </div>
+                    <div class="action-items-list">
+                        ${priorityItemsHTML}
+                    </div>
+                </div>
+            ` : `
+                <div class="action-stream-empty">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>No active critical or warning incidents. All monitored fountains operating within normal parameters.</span>
+                </div>
+            `}
         </div>
-        ${highlightAction ? `<div class="alerts-summary-list">${highlightAction}</div>` : ''}
     `;
+}
+
+function getOverallSeverityIcon(severity) {
+    if (severity === 'critical') {
+        return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    }
+    if (severity === 'warning') {
+        return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    }
+    return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
 }
 
 function exportVisibleAlertsCsv() {
@@ -255,7 +337,7 @@ function getAlertIcon(severity) {
     const s = severity?.toLowerCase();
     if (s === 'critical') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
     if (s === 'warning') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
 }
 
 function updateStats() {

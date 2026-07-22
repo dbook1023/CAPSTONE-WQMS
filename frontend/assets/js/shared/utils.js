@@ -10,7 +10,8 @@ const Sanitizer = {
      * @returns {string}
      */
     escapeHTML: function(str) {
-        if (typeof str !== 'string') return str;
+        if (str === null || str === undefined) return '';
+        if (typeof str !== 'string') str = String(str);
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;

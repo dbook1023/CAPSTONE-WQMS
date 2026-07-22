@@ -56,6 +56,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     initAuthFeatures();
 });
 
+// Re-verify authentication on browser Back/Forward (bfcache) navigation
+window.addEventListener('pageshow', initAuthFeatures);
+
 async function loadSidebarComponent() {
     const existingSidebar = document.getElementById('sidebar');
     if (existingSidebar) return;

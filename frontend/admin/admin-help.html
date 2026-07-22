@@ -79,26 +79,26 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
                     <h3>User Management</h3>
-                    <p>Learn how to add new employees, manage roles, and reset user credentials.</p>
-                    <a href="#" class="help-link">Manage Users →</a>
+                    <p>Add employees, assign engineering branches, and manage system roles (Admin, Operator, Technician, Viewer).</p>
+                    <a href="admin-users.html" class="help-link">Manage Users →</a>
                 </div>
 
                 <div class="help-card glass-card">
                     <div class="help-card-icon teal">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="15" x2="23" y2="15"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="15" x2="4" y2="15"></line></svg>
                     </div>
-                    <h3>System Logs</h3>
-                    <p>Understanding activity logs and monitoring hardware heartbeats from ESP32 nodes.</p>
-                    <a href="#" class="help-link">View Documentation →</a>
+                    <h3>Hardware Registry</h3>
+                    <p>Register ESP32 sensor nodes, manage MAC address bindings, and perform plug-and-play device swaps.</p>
+                    <a href="admin-sensors.html" class="help-link">Hardware Registry →</a>
                 </div>
 
                 <div class="help-card glass-card">
                     <div class="help-card-icon orange">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     </div>
-                    <h3>Alert Configuration</h3>
-                    <p>Set threshold levels for pH, TDS, and Turbidity to trigger system-wide alerts.</p>
-                    <a href="#" class="help-link">Config Guide →</a>
+                    <h3>Alert Management</h3>
+                    <p>Monitor active alerts, filter by severity (Critical, Warning, Safe), resolve incidents, and export CSV logs.</p>
+                    <a href="admin-alerts.html" class="help-link">Manage Alerts →</a>
                 </div>
             </div>
 
@@ -109,25 +109,37 @@
                     <details class="faq-item">
                         <summary>How do I move or swap a physical sensor device to a different fountain?</summary>
                         <div class="faq-content">
-                            <p>To transfer a physical ESP32 device, simply go to the <strong>Hardware Registry</strong> page, click <strong>Register Device</strong> (or edit the device), type in the existing Serial number (MAC address), select the new fountain, and click save. The system automatically unbinds it from the old fountain and assigns it to the new one. All future water readings from this device will instantly route to the new fountain, while historical logs remain safely archived.</p>
+                            <p>Go to the <a href="admin-sensors.html"><strong>Hardware Registry</strong></a> page and click <strong>Register Device</strong>. Enter the existing MAC address (Serial number) of the ESP32 unit and select the new destination fountain. The system will automatically unbind the device from its previous fountain and reassign it. All future water quality readings from that device will route to the new fountain, while historical data remains preserved.</p>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>How do I calibrate the sensors remotely?</summary>
+                        <summary>How do I add a new user or administrator account?</summary>
                         <div class="faq-content">
-                            <p>Remote calibration is handled via the "Fountain Status" admin panel. Select the specific node and input the calibration offset values. The ESP32 will update its local logic on the next heartbeat.</p>
+                            <p>Navigate to the <a href="admin-users.html"><strong>User Management</strong></a> page and click <strong>Add User</strong>. Choose the account type — <strong>User (System Operator)</strong> or <strong>Administrator</strong>. Fill in the first name, last name, and email address. For user accounts, select an Engineering Branch (General, Pollution Control, Maintenance, or create a custom one) and assign a System Role: <em>Operator</em> (monitoring &amp; alerts), <em>Technician</em> (hardware troubleshooting), or <em>Viewer</em> (read-only). New accounts are created with a default password of <code>Password123!</code>.</p>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>Can I restrict user access to certain reports?</summary>
+                        <summary>How do I add a new fountain or edit an existing one?</summary>
                         <div class="faq-content">
-                            <p>Yes. Access control is managed in the "User Management" section. You can toggle "Report Access" for individual employees based on their department requirements.</p>
+                            <p>Open the <a href="admin-fountains.html"><strong>Fountain Status Monitor</strong></a> page and click <strong>New Fountain</strong>. Enter a unique Fountain ID (e.g. F001), a name, a location description, and an initial status (Online, Warning, or Offline). To edit, click the <strong>Configure</strong> gear icon or the ⋮ menu on any fountain card and choose <strong>Edit</strong>. You can also toggle monitoring on/off per fountain or delete a fountain from the dropdown menu.</p>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>What happens if a sensor node goes offline?</summary>
+                        <summary>How do I resolve an alert or export alert logs?</summary>
                         <div class="faq-content">
-                            <p>If the system detects no heartbeat for more than 15 minutes, an automatic "System Offline" alert is triggered and sent to all administrators via the dashboard.</p>
+                            <p>Go to <a href="admin-alerts.html"><strong>Alert Management</strong></a>. Each alert card shows the affected fountain, the parameter reading (pH, TDS, Turbidity, or Temperature), and a recommended maintenance action. Click the <strong>Resolve</strong> button on any alert to mark it as resolved. Use the filter tabs (All, Active, Critical, Warnings, Safe, Resolved) to narrow the list, and click the <strong>Export</strong> button to download the currently visible alerts as a CSV file.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I generate and download a water quality report?</summary>
+                        <div class="faq-content">
+                            <p>Navigate to <a href="admin-reports.html"><strong>Reports &amp; Analytics</strong></a> and click <strong>Generate Report</strong> (or use the Daily / Weekly / Monthly quick cards). In the modal, select the report timeframe, choose a specific fountain or all campus fountains, and pick an export format — <strong>PDF Document</strong> or <strong>Excel Spreadsheet (CSV)</strong>. Click <strong>Generate &amp; Download</strong>. You can also view, archive, or restore past reports from the Recent Reports list.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I change my admin profile or password?</summary>
+                        <div class="faq-content">
+                            <p>Go to <a href="admin-settings.html"><strong>System Settings</strong></a>. Under the <strong>Profile</strong> tab you can update your full name, email, job title, phone number, and profile picture. Under the <strong>Security</strong> tab you can change your password (enter current password, then a new one), and toggle security policies including Two-Factor Authentication, Session Timeout, and Login Attempt Limiting.</p>
                         </div>
                     </details>
                 </div>

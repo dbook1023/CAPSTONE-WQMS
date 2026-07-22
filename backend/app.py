@@ -42,6 +42,15 @@ app.register_blueprint(reports_bp, url_prefix='/api/v1/reports')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 app.socketio = socketio
 
+@app.after_request
+def apply_security_headers(response):
+    """Attach security HTTP response headers to protect against XSS, MIME-sniffing & Clickjacking"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
+
 @app.route('/')
 def index():
     return send_from_directory('..', 'login.html')

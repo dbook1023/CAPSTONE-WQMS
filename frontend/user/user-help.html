@@ -45,29 +45,29 @@
             <div class="help-grid">
                 <div class="help-card glass-card">
                     <div class="help-card-icon blue">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                     </div>
-                    <h3>User Manual</h3>
-                    <p>Complete guide on how to navigate the WQMS platform and interpret data.</p>
-                    <a href="#" class="help-link">Read Manual →</a>
+                    <h3>Live Water Monitoring</h3>
+                    <p>Track real-time pH, TDS, Turbidity, and Temperature readings for all campus drinking fountains.</p>
+                    <a href="user-monitoring.html" class="help-link">View Live Data →</a>
                 </div>
 
                 <div class="help-card glass-card">
                     <div class="help-card-icon teal">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     </div>
-                    <h3>Sensor Maintenance</h3>
-                    <p>Troubleshooting steps for common sensor issues and calibration needs.</p>
-                    <a href="#" class="help-link">View Guide →</a>
+                    <h3>Fountain Locations & Status</h3>
+                    <p>Check operational state, location details, and maintenance status of campus water stations.</p>
+                    <a href="user-fountain-status.html" class="help-link">Check Status →</a>
                 </div>
 
                 <div class="help-card glass-card">
                     <div class="help-card-icon orange">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                     </div>
-                    <h3>Contact Support</h3>
-                    <p>Get in touch with our technical team for immediate assistance.</p>
-                    <a href="#" class="help-link">Submit Ticket →</a>
+                    <h3>Reports & Compliance</h3>
+                    <p>Access water quality summary logs and review compliance records against Philippine standards.</p>
+                    <a href="user-reports.html" class="help-link">View Reports →</a>
                 </div>
             </div>
 
@@ -76,35 +76,50 @@
                 <h3>Frequently Asked Questions</h3>
                 <div class="faq-list">
                     <details class="faq-item">
-                        <summary>What happens if a physical sensor device is moved to a different fountain?</summary>
+                        <summary>How often is the water quality data updated in the portal?</summary>
                         <div class="faq-content">
-                            <p>If an engineer or administrator physically moves a sensor box to a new fountain, they simply update its assignment in the system. The platform will automatically route all new real-time readings to the new fountain, ensuring data is logged accurately and historical logs are kept perfectly clean.</p>
+                            <p>Water quality telemetry is transmitted from our ESP32 sensor nodes every 5 minutes. The <a href="user-monitoring.html"><strong>Live Monitoring</strong></a> page automatically updates in real-time to display the latest pH, TDS, Turbidity, and Temperature metrics.</p>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>How often is the water quality data updated?</summary>
+                        <summary>What are the acceptable safety thresholds for drinking water?</summary>
                         <div class="faq-content">
-                            <p>Data is transmitted in real-time from our ESP32-based sensor nodes every 5 minutes. The dashboard updates automatically to reflect the latest readings.</p>
+                            <p>According to the Philippine National Standards for Drinking Water (PNSDW) enforced by our system:</p>
+                            <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.6;">
+                                <li><strong>pH Level:</strong> 6.5 to 8.5 pH (Acidity / Alkalinity)</li>
+                                <li><strong>Turbidity:</strong> ≤ 5.0 NTU (Water clarity)</li>
+                                <li><strong>Total Dissolved Solids (TDS):</strong> ≤ 500 ppm (Dissolved minerals)</li>
+                                <li><strong>Temperature:</strong> 15°C to 30°C</li>
+                            </ul>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>What do the different alert levels mean?</summary>
+                        <summary>What do the different fountain status indicators mean?</summary>
                         <div class="faq-content">
-                            <p><strong>Ideal:</strong> Parameters are within the safe OLFU standard range.<br>
-                               <strong>Warning:</strong> One or more parameters are approaching the limit.<br>
-                               <strong>Critical:</strong> Immediate action is required as parameters are unsafe.</p>
+                            <p>On the <a href="user-fountain-status.html"><strong>Fountain Status</strong></a> page:</p>
+                            <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.6;">
+                                <li><strong>Online / Active:</strong> All parameters are within safe drinking water standards.</li>
+                                <li><strong>Warning:</strong> One or more parameters are approaching threshold limits; close monitoring is active.</li>
+                                <li><strong>Offline / Maintenance:</strong> The fountain unit is disconnected or undergoing physical maintenance.</li>
+                            </ul>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>How can I export the monitoring reports?</summary>
+                        <summary>How can I view or export water quality reports?</summary>
                         <div class="faq-content">
-                            <p>Navigate to the "Reports" page. You can filter by date range and use the "Premium Download" button to save reports as PDF or CSV files.</p>
+                            <p>Navigate to the <a href="user-reports.html"><strong>Reports</strong></a> section. You can view overall system compliance rates, filter reports by date range or fountain location, and inspect historical water quality summaries.</p>
                         </div>
                     </details>
                     <details class="faq-item">
-                        <summary>How do I calibrate the sensors remotely?</summary>
+                        <summary>How do I update my profile or change my account password?</summary>
                         <div class="faq-content">
-                            <p>Remote calibration is restricted to system administrators and technicians. If you believe a sensor needs calibration, please open a support ticket using the "Contact Support" card above or notify your site administrator. Administrators can apply calibration constants from the Admin → Settings → Sensor Calibration panel; after they save the changes the device will apply them on its next heartbeat.</p>
+                            <p>Go to <a href="user-settings.html"><strong>Account Settings</strong></a>. You can update your profile name, email, phone number, and Engineering Branch information, as well as change your account password under the Security section.</p>
+                        </div>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What should I do if a drinking fountain shows a Warning or Offline status?</summary>
+                        <div class="faq-content">
+                            <p>If a drinking fountain is flagged with a Warning or Offline status, automated alerts are dispatched to technical staff. If you notice physical water clarity issues, refrain from using the fountain and notify your campus site administrator or facilities office immediately.</p>
                         </div>
                     </details>
                 </div>

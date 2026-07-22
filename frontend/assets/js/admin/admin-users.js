@@ -162,33 +162,33 @@ function renderUsers(data, page = 1) {
     updateTableInfo(startIndex + 1, endIndex, data.length);
 
     usersTableBody.innerHTML = paginatedData.map(u => {
+        const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
         const origin = u.is_admin_record ? 'admin' : 'user';
         const displayId = u.is_admin_record ? `ADM${String(u.id).padStart(4, '0')}` : `PCO${String(u.id).padStart(4, '0')}`;
         const initials = getInitials(u.name);
         const bgGradient = getAvatarColor(u.name || u.email || '');
         const avatarHtml = u.avatar 
-            ? `<img src="${u.avatar}" alt="${initials}" class="user-av-img" style="width:40px;height:40px;min-width:40px;border-radius:50%;object-fit:cover;">`
-            : `<div class="user-av" style="background: ${bgGradient};">${initials}</div>`;
+            ? `<img src="${esc(u.avatar)}" alt="${esc(initials)}" class="user-av-img" style="width:40px;height:40px;min-width:40px;border-radius:50%;object-fit:cover;">`
+            : `<div class="user-av" style="background: ${bgGradient};">${esc(initials)}</div>`;
         return `
-        <tr data-search="${(u.name || '').toLowerCase()} ${(u.email||'').toLowerCase()} ${origin}${String(u.id).padStart(3, '0')}" data-origin="${origin}" data-id="${u.id}">
+        <tr data-search="${esc((u.name || '').toLowerCase())} ${esc((u.email||'').toLowerCase())} ${origin}${String(u.id).padStart(3, '0')}" data-origin="${origin}" data-id="${u.id}">
             <td>
                 <div class="user-cell">
                     ${avatarHtml}
                     <div>
-                        <div class="user-display-name">${u.name || ''}</div>
+                        <div class="user-display-name">${esc(u.name)}</div>
                         <div class="user-id">${displayId}</div>
                     </div>
                 </div>
             </td>
-            <td><div class="email-cell">${u.email || ''}</div></td>
-            <td>${u.branch || 'General'}</td>
-            <td><span class="role-badge ${(u.role_name||'operator').toLowerCase()}">${u.role_name || 'Operator'}</span></td>
-            <td><span class="status-badge ${(u.status||'').toLowerCase()}">${u.status || ''}</span></td>
+            <td><div class="email-cell">${esc(u.email)}</div></td>
+            <td>${esc(u.branch || 'General')}</td>
+            <td><span class="role-badge ${esc((u.role_name||'operator').toLowerCase())}">${esc(u.role_name || 'Operator')}</span></td>
+            <td><span class="status-badge ${esc((u.status||'').toLowerCase())}">${esc(u.status || '')}</span></td>
             <td>${u.last_login ? new Date(u.last_login).toLocaleDateString() : 'Never'}</td>
             <td>
                 <button class="actions-btn" data-user-id="${u.id}" data-origin="${origin}" id="user-actions-${origin}-${u.id}">⋮</button>
             </td>
-        </tr>
         </tr>
     `}).join('');
     
