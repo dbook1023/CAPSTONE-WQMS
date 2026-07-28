@@ -22,24 +22,46 @@ def index():
 def store():
     """2. STORE: Create a new fountain"""
     try:
-        data = request.get_json()
-        name = data.get('name')
-        location = data.get('location')
-        display_id = data.get('displayId') or data.get('display_id')
+        data = request.get_json() or {}
+        name = data.get('name', '').strip()
+        location = data.get('location', '').strip()
+        display_id = (data.get('displayId') or data.get('display_id') or '').strip()
         department_id = data.get('department_id', 1)
         model = data.get('model')
         status = data.get('status', 'Online')
         
         if not name or not location:
-            return jsonify({"error": "Name and location are required"}), 400
+            return jsonify({"error": "Fountain name and location are required."}), 400
             
         db = get_db()
+
+        # Check for duplicate Fountain Name
+        dup_name = db.query(Fountain).filter(Fountain.name == name).first()
+        if dup_name:
+            db.close()
+            return jsonify({"error": f"Fountain name '{name}' is already in use. Please enter a unique name."}), 400
         
-        # Auto-generate display_id if not provided
-        if not display_id:
-            last = db.query(Fountain).order_by(Fountain.id.desc()).first()
-            next_num = (last.id + 1) if last else 1
-            display_id = f'F{str(next_num).zfill(3)}'
+        # Check for duplicate display_id if provided
+        if display_id:
+            dup_id = db.query(Fountain).filter(Fountain.display_id == display_id).first()
+            if dup_id:
+                db.close()
+                return jsonify({"error": f"Fountain ID '{display_id}' is already in use. Please enter a unique ID."}), 400
+        else:
+            # Auto-generate next Fxxx ID
+            all_fountains = db.query(Fountain).all()
+            max_num = 0
+            for f in all_fountains:
+                fid = f.display_id or ''
+                if fid.startswith('F'):
+                    try:
+                        num = int(fid[1:])
+                        if num > max_num: max_num = num
+                    except ValueError:
+                        pass
+                if f.id > max_num:
+                    max_num = f.id
+            display_id = f'F{str(max_num + 1).zfill(3)}'
         
         fountain = Fountain(
             display_id=display_id,
@@ -79,7 +101,7 @@ def show(id):
 def update(id):
     """4. UPDATE: Update a fountain"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         db = get_db()
         fountain = db.query(Fountain).filter(Fountain.id == id).first()
         
@@ -87,13 +109,27 @@ def update(id):
             db.close()
             return jsonify({"error": "Fountain not found"}), 404
             
-        if 'name' in data: fountain.name = data['name']
-        if 'location' in data: fountain.location = data['location']
+        new_name = data.get('name')
+        if new_name and new_name != fountain.name:
+            dup_name = db.query(Fountain).filter(Fountain.name == new_name, Fountain.id != id).first()
+            if dup_name:
+                db.close()
+                return jsonify({"error": f"Fountain name '{new_name}' is already in use."}), 400
+
+        new_display_id = data.get('displayId') or data.get('display_id')
+        if new_display_id and new_display_id != fountain.display_id:
+            dup_id = db.query(Fountain).filter(Fountain.display_id == new_display_id, Fountain.id != id).first()
+            if dup_id:
+                db.close()
+                return jsonify({"error": f"Fountain ID '{new_display_id}' is already in use."}), 400
+
+        if 'name' in data: fountain.name = data['name'].strip()
+        if 'location' in data: fountain.location = data['location'].strip()
         if 'status' in data: fountain.status = data['status']
         if 'department_id' in data: fountain.department_id = data['department_id']
         if 'model' in data: fountain.model = data['model']
-        if 'displayId' in data: fountain.display_id = data['displayId']
-        if 'display_id' in data: fountain.display_id = data['display_id']
+        if 'displayId' in data: fountain.display_id = data['displayId'].strip()
+        if 'display_id' in data: fountain.display_id = data['display_id'].strip()
         
         db.commit()
         db.refresh(fountain)

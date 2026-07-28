@@ -93,15 +93,17 @@
             <div class="reports-header">
                 <h3>Monthly Audit Reports</h3>
                 <div class="filter-bar">
-                    <input type="text" placeholder="Search reports..." class="search-input">
-                    <select class="btn btn-ghost" style="padding: 0.6rem 1rem; font-size: 0.875rem;">
-                        <option>Sort by Date</option>
-                        <option>Sort by Size</option>
+                    <input type="text" id="userReportSearchInput" placeholder="Search fountain name or report ID..." class="search-input">
+                    <select id="userReportStatusFilter" class="btn btn-ghost" style="padding: 0.6rem 1rem; font-size: 0.875rem;">
+                        <option value="all">All Statuses</option>
+                        <option value="PASS">PASS</option>
+                        <option value="WARNING">WARNING</option>
+                        <option value="FAIL">FAIL</option>
                     </select>
                 </div>
             </div>
             
-            <div class="reports-list">
+        <div class="reports-list">
                 <!-- Injected by JS -->
             </div>
 

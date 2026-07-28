@@ -101,7 +101,7 @@ CREATE TABLE fountains (
     location VARCHAR(150) NOT NULL,
     department_id INT NOT NULL,
     model VARCHAR(100),
-    status ENUM('Online', 'Offline', 'Maintenance', 'Inactive') DEFAULT 'Online',
+    status VARCHAR(50) DEFAULT 'Online',
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     installed_date DATE,

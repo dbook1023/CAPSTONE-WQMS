@@ -251,6 +251,17 @@ function openModal(id = null) {
         form.reset();
         document.getElementById('internalId').value = '';
         document.getElementById('saveFountainBtn').textContent = 'Save Fountain';
+
+        // Auto-suggest next available Fxxx ID
+        let maxNum = 0;
+        fountains.forEach(f => {
+            const fid = f.displayId || f.display_id || '';
+            if (fid.startsWith('F')) {
+                const num = parseInt(fid.substring(1), 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+        });
+        document.getElementById('fountainId').value = 'F' + String(maxNum + 1).padStart(3, '0');
     }
     modal.classList.add('open');
 }

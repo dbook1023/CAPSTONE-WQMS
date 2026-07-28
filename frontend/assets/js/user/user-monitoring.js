@@ -482,10 +482,10 @@ function setupEventListeners() {
                 readings_count: sessionData.ph.length
             };
             
-            await API.reports.create(payload);
+            const savedReport = await API.reports.create(payload);
             
             // Automatically download PDF certificate upon successful database submission
-            triggerPdfDownload();
+            triggerPdfDownload(savedReport);
             
             if (typeof showFeedbackModal === 'function') {
                 showFeedbackModal({
@@ -503,7 +503,7 @@ function setupEventListeners() {
         }
     }
 
-    function triggerPdfDownload() {
+    function triggerPdfDownload(savedReport = null) {
         showNotification('Generating official Water Quality Certificate PDF...', 'success');
         
         const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b) / arr.length).toFixed(2) : '--';
@@ -559,7 +559,7 @@ function setupEventListeners() {
         tempDiv.style.position = 'fixed';
         tempDiv.style.left = '0';
         tempDiv.style.top = '0';
-        tempDiv.style.width = '850px';
+        tempDiv.style.width = '680px';
         tempDiv.style.zIndex = '-99999';
         tempDiv.style.opacity = '0.01';
         tempDiv.style.pointerEvents = 'none';
@@ -569,16 +569,13 @@ function setupEventListeners() {
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
                 .certificate-container {
                     border: 4px double #cbd5e1;
-                    padding: 28px 30px;
+                    padding: 24px;
                     border-radius: 12px;
                     background: #ffffff;
                     font-family: 'Inter', sans-serif;
                     color: #1e293b;
                     box-sizing: border-box;
-                    width: 100%;
-                    max-width: 850px;
-                    flex-shrink: 0;
-                    overflow-x: auto;
+                    width: 680px;
                 }
                 @media (max-width: 640px) {
                     .certificate-container {
@@ -855,7 +852,7 @@ function setupEventListeners() {
 
                 <div class="footer">
                     <div>
-                        <strong>Platform ID:</strong> WQMS-CERT-${selectedFountain.id}-${Date.now().toString().slice(-6)}<br>
+                        <strong>Report ID:</strong> ${savedReport?.report_code || formatReportId(savedReport?.id || selectedFountain.id, savedReport?.created_at || new Date())}<br>
                         Generated Autonomously by AquaMonitor WQMS
                     </div>
                     <div class="signature-line">
@@ -868,18 +865,17 @@ function setupEventListeners() {
         tempDiv.innerHTML = htmlContent;
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
-        const width = container.offsetWidth || 850;
-        const height = (container.offsetHeight || 1100) + 12;
 
+        const reportCode = savedReport?.report_code || formatReportId(savedReport?.id || selectedFountain.id, savedReport?.created_at || new Date());
         const opt = {
-            margin:       0,
-            filename:     `WQMS-Certificate-${selectedFountain.name.replace(/\s+/g, '_')}-${Date.now().toString().slice(-6)}.pdf`,
+            margin:       [15, 15, 15, 15],
+            filename:     `${reportCode}_${selectedFountain.name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2.5, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'px', format: [width, height], orientation: 'portrait' }
+            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(tempDiv.querySelector('.certificate-container')).save().then(() => {
+        html2pdf().set(opt).from(container).save().then(() => {
             document.body.removeChild(tempDiv);
             showNotification('Compliance PDF saved directly to downloads successfully!', 'success');
         }).catch(err => {

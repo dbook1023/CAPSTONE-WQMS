@@ -158,24 +158,38 @@ async function saveChanges() {
                 updatePayload.avatar = tempAvatarData;
             }
 
-            const updated = await API.users.update(userId, updatePayload);
-            
-            session.name = updated.name;
-            
-            if (tempAvatarData === 'REMOVE') {
-                delete session.avatar;
-            } else if (tempAvatarData) {
-                session.avatar = tempAvatarData;
-            }
-            
-            localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
-            tempAvatarData = null; 
+            // Prompt confirmation modal before saving
+            showFeedbackModal({
+                type: 'confirm',
+                title: 'Confirm Profile Update',
+                message: 'Are you sure you want to update your profile information?',
+                confirmText: 'Save Changes',
+                cancelText: 'Cancel',
+                onConfirm: async () => {
+                    try {
+                        const updated = await API.users.update(userId, updatePayload);
+                        
+                        session.name = updated.name;
+                        
+                        if (tempAvatarData === 'REMOVE') {
+                            delete session.avatar;
+                        } else if (tempAvatarData) {
+                            session.avatar = tempAvatarData;
+                        }
+                        
+                        localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
+                        tempAvatarData = null; 
 
-            if (typeof initAuthFeatures === 'function') {
-                initAuthFeatures();
-            }
+                        if (typeof initAuthFeatures === 'function') {
+                            initAuthFeatures();
+                        }
 
-            showToast('Settings saved successfully', 'success');
+                        showToast('Settings saved successfully', 'success');
+                    } catch (error) {
+                        showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+                    }
+                }
+            });
 
         } else if (tabName === 'security') {
             const currentPassInput = fields['current password'];
@@ -204,13 +218,27 @@ async function saveChanges() {
                     return;
                 }
 
-                await API.users.update(userId, { current_password: currentPassword, new_password: newPassword });
+                // Prompt confirmation modal before changing password
+                showFeedbackModal({
+                    type: 'confirm',
+                    title: 'Confirm Password Change',
+                    message: 'Are you sure you want to change your account password?',
+                    confirmText: 'Change Password',
+                    cancelText: 'Cancel',
+                    onConfirm: async () => {
+                        try {
+                            await API.users.update(userId, { current_password: currentPassword, new_password: newPassword });
 
-                currentPassInput.value = '';
-                newPassInput.value = '';
-                confirmPassInput.value = '';
+                            currentPassInput.value = '';
+                            newPassInput.value = '';
+                            confirmPassInput.value = '';
 
-                showToast('Password changed successfully', 'success');
+                            showToast('Password changed successfully', 'success');
+                        } catch (error) {
+                            showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+                        }
+                    }
+                });
             }
         }
     } catch (error) {

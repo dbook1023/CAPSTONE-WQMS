@@ -6,6 +6,11 @@
     flex-direction: column;
     min-height: 100vh;
     background: white;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
 }
 
 
@@ -744,6 +749,9 @@
         margin-left: 0;
     }
 
+    .top-header {
+        padding: 12px 16px;
+    }
 
     .search-bar-wrap {
         padding: 12px 16px;
@@ -751,29 +759,111 @@
 
     .page-body {
         padding: 16px;
+        gap: 16px;
     }
 
     .stat-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .stat-value {
         font-size: 36px;
     }
 
+    .filter-tabs {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Alert cards: keep icon inline with body, wrap resolve btn below */
     .alert-card {
         padding: 16px;
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alert-icon-wrap {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        flex-shrink: 0;
+        margin-top: 0;
+    }
+
+    .alert-body {
+        flex: 1 1 calc(100% - 54px);
+        min-width: 0;
     }
 
     .resolve-btn {
         width: 100%;
         justify-content: center;
+        margin-top: 4px;
+    }
+
+    .alert-title {
+        font-size: 14px;
+    }
+
+    .alert-title-row {
+        gap: 6px;
     }
 
     .alert-meta {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+    }
+
+    .alert-desc {
+        font-size: 13px;
+    }
+
+    .alert-action {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    /* Action summary panel mobile */
+    .action-summary-panel {
+        padding: 14px 16px;
+    }
+
+    .action-hero-bar {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .action-main-title {
+        font-size: 15px;
+    }
+
+    .action-item-card {
         flex-direction: column;
-        gap: 8px;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+
+    .action-resolve-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .action-stream-header {
+        flex-direction: column;
+        gap: 2px;
     }
 }
 
@@ -801,6 +891,10 @@
 
     .stat-value {
         font-size: 40px;
+    }
+
+    .action-hero-bar {
+        grid-template-columns: 1fr;
     }
 }
 

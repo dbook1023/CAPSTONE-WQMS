@@ -525,8 +525,12 @@ class Report(Base):
     fountain = relationship('Fountain')
     user = relationship('User')
 
+    def get_report_code(self):
+        dt = self.created_at or datetime.utcnow()
+        return f"WQMS{dt.strftime('%Y%m%d')}{self.id:04d}"
+
     def __repr__(self):
-        return f"<Report {self.id} - Fountain {self.fountain_id}>"
+        return f"<Report {self.get_report_code()} - Fountain {self.fountain_id}>"
 
     def to_dict(self):
         created_at = None
@@ -535,6 +539,7 @@ class Report(Base):
 
         return {
             'id': self.id,
+            'report_code': self.get_report_code(),
             'fountain_id': self.fountain_id,
             'fountain_name': self.fountain.name if self.fountain else None,
             'location': self.fountain.location if self.fountain else None,

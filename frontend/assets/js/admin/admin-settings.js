@@ -152,26 +152,40 @@ async function saveChanges() {
                 updatePayload.avatar = tempAvatarData;
             }
 
-            const updated = await API.admins.update(adminId, updatePayload);
-            
-            session.name = updated.name;
-            session.email = updated.email;
-            session.job_title = updated.job_title;
-            
-            if (tempAvatarData === 'REMOVE') {
-                delete session.avatar;
-            } else if (tempAvatarData) {
-                session.avatar = tempAvatarData;
-            }
-            
-            localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
-            tempAvatarData = null;
+            // Prompt confirmation modal before saving
+            showFeedbackModal({
+                type: 'confirm',
+                title: 'Confirm Profile Update',
+                message: 'Are you sure you want to update your profile information?',
+                confirmText: 'Save Changes',
+                cancelText: 'Cancel',
+                onConfirm: async () => {
+                    try {
+                        const updated = await API.admins.update(adminId, updatePayload);
+                        
+                        session.name = updated.name;
+                        session.email = updated.email;
+                        session.job_title = updated.job_title;
+                        
+                        if (tempAvatarData === 'REMOVE') {
+                            delete session.avatar;
+                        } else if (tempAvatarData) {
+                            session.avatar = tempAvatarData;
+                        }
+                        
+                        localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
+                        tempAvatarData = null;
 
-            if (typeof initAuthFeatures === 'function') {
-                initAuthFeatures();
-            }
+                        if (typeof initAuthFeatures === 'function') {
+                            initAuthFeatures();
+                        }
 
-            showToast('Settings saved successfully', 'success');
+                        showToast('Settings saved successfully', 'success');
+                    } catch (error) {
+                        showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+                    }
+                }
+            });
 
         } else if (tabName === 'security') {
             const currentPassInput = fields['current password'];
@@ -200,13 +214,27 @@ async function saveChanges() {
                     return;
                 }
 
-                await API.admins.update(adminId, { current_password: currentPassword, new_password: newPassword });
+                // Prompt confirmation modal before changing password
+                showFeedbackModal({
+                    type: 'confirm',
+                    title: 'Confirm Password Change',
+                    message: 'Are you sure you want to change your account password?',
+                    confirmText: 'Change Password',
+                    cancelText: 'Cancel',
+                    onConfirm: async () => {
+                        try {
+                            await API.admins.update(adminId, { current_password: currentPassword, new_password: newPassword });
 
-                currentPassInput.value = '';
-                newPassInput.value = '';
-                confirmPassInput.value = '';
+                            currentPassInput.value = '';
+                            newPassInput.value = '';
+                            confirmPassInput.value = '';
 
-                showToast('Password changed successfully', 'success');
+                            showToast('Password changed successfully', 'success');
+                        } catch (error) {
+                            showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+                        }
+                    }
+                });
             }
         }
     } catch (error) {
@@ -320,52 +348,51 @@ async function saveDeviceCalibration() {
     const serial = select.value;
     const device = registeredDevices.find(d => d.serial_number === serial);
     if (!device) return;
-    
-    const saveBtn = document.getElementById('saveCalBtn');
-    const originalBtnHTML = saveBtn.innerHTML;
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving Constants...';
-    
-    const payload = {
-        serial_number: device.serial_number,
-        fountain_id: device.fountain_id,
-        calibration_params: {
-            ph_slope: parseFloat(document.getElementById('phSlopeInput').value),
-            ph_offset: parseFloat(document.getElementById('phOffsetInput').value),
-            tds_k_value: parseFloat(document.getElementById('tdsKInput').value),
-            turb_a: parseFloat(document.getElementById('turbAInput').value),
-            turb_b: parseFloat(document.getElementById('turbBInput').value),
-            turb_c: parseFloat(document.getElementById('turbCInput').value)
+
+    showFeedbackModal({
+        type: 'confirm',
+        title: 'Confirm Calibration Update',
+        message: `Are you sure you want to update calibration parameters for ${device.serial_number}?`,
+        confirmText: 'Save Parameters',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+            const saveBtn = document.getElementById('saveCalBtn');
+            const originalBtnHTML = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving Constants...';
+            
+            const payload = {
+                serial_number: device.serial_number,
+                fountain_id: device.fountain_id,
+                calibration_params: {
+                    ph_slope: parseFloat(document.getElementById('phSlopeInput').value),
+                    ph_offset: parseFloat(document.getElementById('phOffsetInput').value),
+                    tds_k_value: parseFloat(document.getElementById('tdsKInput').value),
+                    turb_a: parseFloat(document.getElementById('turbAInput').value),
+                    turb_b: parseFloat(document.getElementById('turbBInput').value),
+                    turb_c: parseFloat(document.getElementById('turbCInput').value)
+                }
+            };
+            
+            try {
+                const response = await API.sensors.register(payload);
+                
+                // Refresh local cache
+                await fetchHardwareNodes();
+                
+                // Reselect and trigger refresh of fields
+                select.value = serial;
+                loadDeviceCalibration();
+                
+                showToast(response.message || 'Calibration constants updated successfully', 'success');
+            } catch (error) {
+                showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'Failed to save calibration parameters.' });
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnHTML;
+            }
         }
-    };
-    
-    try {
-        const response = await API.sensors.register(payload);
-        
-        // Refresh local cache
-        await fetchHardwareNodes();
-        
-        // Reselect and trigger refresh of fields
-        select.value = serial;
-        loadDeviceCalibration();
-        
-        // Show success toast
-        const toast = document.getElementById('toast');
-        const originalText = toast.innerText;
-        toast.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> ${response.message}`;
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => { toast.innerText = originalText; }, 300);
-        }, 2800);
-        
-    } catch (error) {
-        alert('Failed to save calibration parameters: ' + error.message);
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = originalBtnHTML;
-    }
+    });
 }
 
 function generateConfig() {
