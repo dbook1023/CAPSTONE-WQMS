@@ -277,27 +277,27 @@ function initStandardsModal() {
                         <tbody>
                             <tr>
                                 <td><strong>pH Level</strong></td>
-                                <td><span class="status-indicator status-ideal">7.0 - 8.0</span></td>
-                                <td><span class="status-indicator status-warning">6.4 - 8.6</span></td>
-                                <td><span class="status-indicator status-critical">&lt; 6.3 / &gt; 8.7</span></td>
+                                <td><span class="status-indicator status-ideal">6.5 - 8.5</span></td>
+                                <td><span class="status-indicator status-warning">6.35 - 6.5 / 8.5 - 9.0</span></td>
+                                <td><span class="status-indicator status-critical">&lt; 6.35 / &gt; 9.0</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Turbidity</strong></td>
-                                <td><span class="status-indicator status-ideal">0 - 1 NTU</span></td>
-                                <td><span class="status-indicator status-warning">3 - 5 NTU</span></td>
-                                <td><span class="status-indicator status-critical">&gt; 5 NTU</span></td>
+                                <td><span class="status-indicator status-ideal">0 - 5.0 NTU</span></td>
+                                <td><span class="status-indicator status-warning">5.0 - 5.5 NTU</span></td>
+                                <td><span class="status-indicator status-critical">&gt; 5.5 NTU</span></td>
                             </tr>
                             <tr>
                                 <td><strong>TDS</strong></td>
-                                <td><span class="status-indicator status-ideal">50 - 300 ppm</span></td>
-                                <td><span class="status-indicator status-warning">400 - 500 ppm</span></td>
-                                <td><span class="status-indicator status-critical">&gt; 500 ppm</span></td>
+                                <td><span class="status-indicator status-ideal">0 - 500 ppm</span></td>
+                                <td><span class="status-indicator status-warning">500 - 550 ppm</span></td>
+                                <td><span class="status-indicator status-critical">&gt; 550 ppm</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Temperature</strong></td>
-                                <td><span class="status-indicator status-ideal">25 - 30°C</span></td>
-                                <td><span class="status-indicator status-warning">30 - 32°C</span></td>
-                                <td><span class="status-indicator status-critical">&gt; 32°C</span></td>
+                                <td><span class="status-indicator status-ideal">15 - 30°C</span></td>
+                                <td><span class="status-indicator status-warning">13.5 - 15°C / 30 - 33°C</span></td>
+                                <td><span class="status-indicator status-critical">&lt; 13.5°C / &gt; 33°C</span></td>
                             </tr>
                         </tbody>
                     </table>

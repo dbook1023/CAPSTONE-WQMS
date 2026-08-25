@@ -269,8 +269,8 @@ function processLiveReading(latest) {
 
         // Store latest telemetry values for our continuous smooth flowing chart
         latestTelemetry.ph = parseFloat(latest.ph);
-        latestTelemetry.turbidity = parseFloat(latest.turbidity);
-        latestTelemetry.temperature = parseFloat(latest.temperature);
+        latestTelemetry.turbidity = parseFloat(latest.turbidity !== undefined && latest.turbidity !== null ? latest.turbidity : latest.ntu);
+        latestTelemetry.temperature = parseFloat(latest.temperature !== undefined && latest.temperature !== null ? latest.temperature : latest.temp);
         latestTelemetry.tds = parseFloat(latest.tds);
 
         const timestampStr = latest.timestamp || new Date().toISOString();
@@ -1104,12 +1104,20 @@ async function saveCurrentReading() {
     sessionData.temperature.push(temperature);
     sessionData.tds.push(tds);
 
-    // Compute status on the fly to match the backend PNSDW logic exactly
-    const ph_status = (ph >= 6.5 && ph <= 8.5) ? 'PASS' : 'FAIL';
-    const turb_status = turbidity <= 5.0 ? 'PASS' : 'FAIL';
-    const temp_status = (temperature >= 15.0 && temperature <= 30.0) ? 'PASS' : 'FAIL';
-    const tds_status = tds <= 500.0 ? 'PASS' : 'FAIL';
-    const overall_status = (ph_status === 'PASS' && turb_status === 'PASS' && temp_status === 'PASS' && tds_status === 'PASS') ? 'PASS' : 'FAIL';
+    // Compute status on the fly using 3-tier PNSDW logic (PASS / WARNING / FAIL)
+    const phSafety = getParameterSafetyStatus('ph', ph);
+    const turbSafety = getParameterSafetyStatus('turbidity', turbidity);
+    const tempSafety = getParameterSafetyStatus('temperature', temperature);
+    const tdsSafety = getParameterSafetyStatus('tds', tds);
+
+    const ph_status = phSafety === 'CRITICAL' ? 'FAIL' : (phSafety === 'WARNING' ? 'WARNING' : 'PASS');
+    const turb_status = turbSafety === 'CRITICAL' ? 'FAIL' : (turbSafety === 'WARNING' ? 'WARNING' : 'PASS');
+    const temp_status = tempSafety === 'CRITICAL' ? 'FAIL' : (tempSafety === 'WARNING' ? 'WARNING' : 'PASS');
+    const tds_status = tdsSafety === 'CRITICAL' ? 'FAIL' : (tdsSafety === 'WARNING' ? 'WARNING' : 'PASS');
+
+    const overall_status = (ph_status === 'FAIL' || turb_status === 'FAIL' || temp_status === 'FAIL' || tds_status === 'FAIL') 
+        ? 'FAIL' 
+        : ((ph_status === 'WARNING' || turb_status === 'WARNING' || temp_status === 'WARNING' || tds_status === 'WARNING') ? 'WARNING' : 'PASS');
 
     // Record snapshot manually
     const snapshotData = {
@@ -1210,9 +1218,10 @@ function updateComparisonTable() {
         const tempStyle = getBadgeStyle(tempSafety, 'rgba(20,184,166,0.1)', '#14b8a6');
         const tdsStyle = getBadgeStyle(tdsSafety, 'rgba(245,158,11,0.1)', '#b45309');
         
-        const isOverallSafe = phSafety !== 'CRITICAL' && turbSafety !== 'CRITICAL' && tempSafety !== 'CRITICAL' && tdsSafety !== 'CRITICAL';
-        let diagnosis = isOverallSafe ? 'Safe (Optimal)' : 'Danger (Critical)';
-        let diagnosisColor = isOverallSafe ? '#14b8a6' : '#dc2626';
+        const hasCrit = phSafety === 'CRITICAL' || turbSafety === 'CRITICAL' || tempSafety === 'CRITICAL' || tdsSafety === 'CRITICAL';
+        const hasWarn = phSafety === 'WARNING' || turbSafety === 'WARNING' || tempSafety === 'WARNING' || tdsSafety === 'WARNING';
+        let diagnosis = hasCrit ? 'Danger (Critical)' : (hasWarn ? 'Warning (Follow-up)' : 'Safe (Optimal)');
+        let diagnosisColor = hasCrit ? '#dc2626' : (hasWarn ? '#d97706' : '#14b8a6');
 
         return `
             <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -1800,39 +1809,42 @@ function closeSelectionModal() {
 }
 
 function buildCurrentReadingSnapshot() {
+    let reading = null;
+
     if (sessionSnapshots.length > 0) {
-        return sessionSnapshots[0];
-    }
-
-    if (
-        latestTelemetry.ph === null ||
-        latestTelemetry.turbidity === null ||
-        latestTelemetry.temperature === null ||
-        latestTelemetry.tds === null
+        reading = sessionSnapshots[0];
+    } else if (
+        latestTelemetry.ph !== null && !isNaN(latestTelemetry.ph) &&
+        latestTelemetry.turbidity !== null && !isNaN(latestTelemetry.turbidity) &&
+        latestTelemetry.temperature !== null && !isNaN(latestTelemetry.temperature) &&
+        latestTelemetry.tds !== null && !isNaN(latestTelemetry.tds)
     ) {
-        return null;
+        reading = {
+            timestamp: formatPhilippineDateTime(new Date()),
+            ph: latestTelemetry.ph,
+            turbidity: latestTelemetry.turbidity,
+            temperature: latestTelemetry.temperature,
+            tds: latestTelemetry.tds
+        };
     }
 
-    const phStatus = getParameterSafetyStatus('ph', latestTelemetry.ph);
-    const turbidityStatus = getParameterSafetyStatus('turbidity', latestTelemetry.turbidity);
-    const temperatureStatus = getParameterSafetyStatus('temperature', latestTelemetry.temperature);
-    const tdsStatus = getParameterSafetyStatus('tds', latestTelemetry.tds);
-    const overall_status = [phStatus, turbidityStatus, temperatureStatus, tdsStatus].includes('CRITICAL')
-        ? 'FAIL'
-        : [phStatus, turbidityStatus, temperatureStatus, tdsStatus].includes('WARNING')
-            ? 'WARNING'
-            : 'PASS';
+    if (!reading) return null;
+
+    const phStatus = getParameterSafetyStatus('ph', reading.ph);
+    const turbidityStatus = getParameterSafetyStatus('turbidity', reading.turbidity);
+    const temperatureStatus = getParameterSafetyStatus('temperature', reading.temperature);
+    const tdsStatus = getParameterSafetyStatus('tds', reading.tds);
+
+    const isCrit = phStatus === 'CRITICAL' || turbidityStatus === 'CRITICAL' || temperatureStatus === 'CRITICAL' || tdsStatus === 'CRITICAL';
+    const isWarn = phStatus === 'WARNING' || turbidityStatus === 'WARNING' || temperatureStatus === 'WARNING' || tdsStatus === 'WARNING';
+    const overall_status = isCrit ? 'FAIL' : (isWarn ? 'WARNING' : 'PASS');
 
     return {
-        timestamp: formatPhilippineDateTime(new Date()),
-        ph: latestTelemetry.ph,
-        ph_status: phStatus,
-        turbidity: latestTelemetry.turbidity,
-        turbidity_status: turbidityStatus,
-        temperature: latestTelemetry.temperature,
-        temperature_status: temperatureStatus,
-        tds: latestTelemetry.tds,
-        tds_status: tdsStatus,
+        ...reading,
+        ph_status: phStatus === 'CRITICAL' ? 'FAIL' : (phStatus === 'WARNING' ? 'WARNING' : 'PASS'),
+        turbidity_status: turbidityStatus === 'CRITICAL' ? 'FAIL' : (turbidityStatus === 'WARNING' ? 'WARNING' : 'PASS'),
+        temperature_status: temperatureStatus === 'CRITICAL' ? 'FAIL' : (temperatureStatus === 'WARNING' ? 'WARNING' : 'PASS'),
+        tds_status: tdsStatus === 'CRITICAL' ? 'FAIL' : (tdsStatus === 'WARNING' ? 'WARNING' : 'PASS'),
         overall_status
     };
 }
@@ -1908,10 +1920,6 @@ function openReportModal() {
     
     // Calculate dynamic DOH safety badge
     const count = sessionData.ph.length;
-    const isPhSafe = count > 0 && parseFloat(avgPhVal) >= 7.0 && parseFloat(avgPhVal) <= 8.0;
-    const isTurbSafe = count > 0 && parseFloat(avgTurbVal) <= 5.0; // Warning threshold
-    const isTempSafe = count > 0 && parseFloat(avgTempVal) <= 32.0; // Warning threshold
-    const isTdsSafe = count > 0 && parseFloat(avgTdsVal) <= 500.0; // Warning threshold
     const hasCritical = actionPlan?.severity === 'critical';
     const hasWarning = actionPlan?.severity === 'warning';
 

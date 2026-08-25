@@ -368,13 +368,18 @@ class SensorLog(Base):
         tds_val = float(self.tds)
         temp_val = float(self.temperature)
 
-        # PNSDW AO 2017 Classifications
-        ph_status = 'PASS' if 6.5 <= ph_val <= 8.5 else 'FAIL'
-        turb_status = 'PASS' if turb_val <= 5.0 else 'FAIL'
-        tds_status = 'PASS' if tds_val <= 500 else 'FAIL'
-        temp_status = 'PASS' if 15.0 <= temp_val <= 32.0 else 'FAIL'
+        # PNSDW AO 2017 Classifications (3-Tier: PASS / WARNING / FAIL)
+        ph_status = 'PASS' if (6.5 <= ph_val <= 8.5) else ('WARNING' if ((6.35 <= ph_val < 6.5) or (8.5 < ph_val <= 9.0)) else 'FAIL')
+        turb_status = 'PASS' if (turb_val <= 5.0) else ('WARNING' if (turb_val <= 5.5) else 'FAIL')
+        tds_status = 'PASS' if (tds_val <= 500.0) else ('WARNING' if (tds_val <= 550.0) else 'FAIL')
+        temp_status = 'PASS' if (15.0 <= temp_val <= 30.0) else ('WARNING' if ((13.5 <= temp_val < 15.0) or (30.0 < temp_val <= 33.0)) else 'FAIL')
 
-        overall_status = 'PASS' if all(s == 'PASS' for s in [ph_status, turb_status, tds_status, temp_status]) else 'FAIL'
+        if any(s == 'FAIL' for s in [ph_status, turb_status, temp_status, tds_status]):
+            overall_status = 'FAIL'
+        elif any(s == 'WARNING' for s in [ph_status, turb_status, temp_status, tds_status]):
+            overall_status = 'WARNING'
+        else:
+            overall_status = 'PASS'
 
         return {
             'id': self.id,

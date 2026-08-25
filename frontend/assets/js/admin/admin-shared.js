@@ -522,15 +522,15 @@ function initStandardsModal() {
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f0fdf4; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #166534;">Safe (Ideal)</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">7.0 — 8.0</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">6.5 — 8.5</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fffbeb; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #92400e;">Warning</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">6.4 — 8.6</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">6.35 — 6.5 / 8.5 — 9.0</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fef2f2; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #991b1b;">Critical</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&lt; 6.3 / &gt; 8.7</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&lt; 6.35 / &gt; 9.0</span>
                                 </div>
                             </div>
                         </div>
@@ -546,15 +546,15 @@ function initStandardsModal() {
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f0fdf4; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #166534;">Safe (Ideal)</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">0 — 1 NTU</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">0 — 5.0 NTU</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fffbeb; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #92400e;">Warning</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">1 — 5 NTU</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">5.0 — 5.5 NTU</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fef2f2; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #991b1b;">Critical</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&gt; 5 NTU</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&gt; 5.5 NTU</span>
                                 </div>
                             </div>
                         </div>
@@ -570,15 +570,15 @@ function initStandardsModal() {
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f0fdf4; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #166534;">Safe (Ideal)</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">25°C — 30°C</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">15°C — 30°C</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fffbeb; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #92400e;">Warning</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">30°C — 32°C</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">13.5 — 15°C / 30 — 33°C</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fef2f2; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #991b1b;">Critical</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&gt; 32°C</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&lt; 13.5°C / &gt; 33°C</span>
                                 </div>
                             </div>
                         </div>
@@ -594,15 +594,15 @@ function initStandardsModal() {
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f0fdf4; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #166534;">Safe (Ideal)</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">50 — 300 ppm</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #15803d;">0 — 500 ppm</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fffbeb; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #92400e;">Warning</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">400 — 500 ppm</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b45309;">500 — 550 ppm</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fef2f2; border-radius: 12px;">
                                     <span style="font-size: 0.875rem; font-weight: 600; color: #991b1b;">Critical</span>
-                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&gt; 500 ppm</span>
+                                    <span style="font-family: 'Inter'; font-weight: 700; color: #b91c1c;">&gt; 550 ppm</span>
                                 </div>
                             </div>
                         </div>
