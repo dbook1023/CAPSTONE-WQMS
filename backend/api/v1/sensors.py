@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models import SessionLocal, SensorLog, Fountain, Sensor
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 sensors_bp = Blueprint('sensors', __name__)
 
@@ -84,13 +84,12 @@ def delete_sensor(id):
 # --- DATA INGESTION ENDPOINTS ---
 
 @sensors_bp.route('/latest', methods=['GET'])
-# ... (rest of the file)
 def get_latest_data():
     """Returns the most recent sensor readings for all active fountains"""
     try:
         db = get_db()
         # Subquery to get the max ID for each fountain_id
-        subquery = db.query(func.max(SensorLog.id)).group_by(SensorLog.fountain_id).subquery()
+        subquery = select(func.max(SensorLog.id)).group_by(SensorLog.fountain_id)
         
         # Query sensor logs that match those IDs
         latest_logs = db.query(SensorLog).filter(SensorLog.id.in_(subquery)).all()
