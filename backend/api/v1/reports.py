@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from models import get_db, Report, Fountain, User, Alert, AlertSeverity, AuditLog, SystemSetting
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, timezone
+from services.sms_service import notify_admins_report_submitted
 
 reports_bp = Blueprint('reports_bp', __name__)
 
@@ -66,6 +67,11 @@ def get_alert_thresholds(parameter):
 
 def create_report_alert(db, fountain_id, parameter, value):
     severity_level, category = classify_water_reading(parameter, value)
+    
+    # Only generate system alerts for WARNING and CRITICAL parameter readings from submitted user reports
+    if category not in ['Warning', 'Critical']:
+        return None
+
     severity = db.query(AlertSeverity).filter(AlertSeverity.severity_level == severity_level).first()
 
     if not severity:
@@ -216,6 +222,12 @@ def save_report():
 
         db.commit()
         db.refresh(report)
+
+        # Notify admins via SMS (fire-and-forget; failure won't affect the response)
+        try:
+            notify_admins_report_submitted(db, report, fountain, user)
+        except Exception as sms_err:
+            print(f'SMS notification failed (non-blocking): {sms_err}')
         
         return jsonify({
             'status': 'success',

@@ -54,6 +54,7 @@ function showToast(message, type = 'success') {
 }
 
 let tempAvatarData = null;
+let currentAdminPhone = '';
 
 async function fetchProfile() {
     try {
@@ -78,7 +79,15 @@ async function fetchProfile() {
             if (fields['full name']) fields['full name'].value = user.name || '';
             if (fields['email address']) fields['email address'].value = user.email || '';
             if (fields['job title']) fields['job title'].value = user.job_title || 'System Administrator';
-            if (fields['phone number']) fields['phone number'].value = user.phone || '';
+            if (fields['phone number']) {
+                const rawP = user.phone || '';
+                const normP = (rawP.startsWith('+63') && rawP.length === 13) ? '0' + rawP.slice(3) : rawP;
+                fields['phone number'].value = normP;
+                currentAdminPhone = normP;
+                if (typeof attachPhoneInputFilter === 'function') {
+                    attachPhoneInputFilter(fields['phone number']);
+                }
+            }
             if (fields['admin id']) fields['admin id'].value = `ADM${String(user.id).padStart(4, '0')}`;
             if (fields['engineering branch']) fields['engineering branch'].value = user.branch || 'General';
             if (fields['branch code']) fields['branch code'].value = user.branch_code || 'GEN';
@@ -91,7 +100,6 @@ async function fetchProfile() {
                 session.avatar = user.avatar;
                 localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
             } else if (session.avatar) {
-                // Server missing avatar but localStorage has one — push it up
                 if (profilePreview) profilePreview.src = session.avatar;
                 try {
                     await API.admins.update(adminId, { avatar: session.avatar });
@@ -136,69 +144,111 @@ async function saveChanges() {
             const name = Sanitizer.cleanInput(nameInput.value);
             const email = Sanitizer.cleanInput(emailInput.value);
             const job_title = jobTitleInput ? Sanitizer.cleanInput(jobTitleInput.value) : 'System Administrator';
-            const phone = phoneInput ? Sanitizer.cleanInput(phoneInput.value) : '';
+            const rawPhone = phoneInput ? Sanitizer.cleanInput(phoneInput.value) : '';
 
             if (!name || !email) {
                 showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'Name and Email are required.' });
                 return;
             }
 
-            const updatePayload = { name, email, job_title, phone };
+            // Phone Validation
+            if (rawPhone) {
+                const phoneValidation = validatePhoneNumber(rawPhone);
+                if (!phoneValidation.valid) {
+                    showFeedbackModal({
+                        type: 'error',
+                        title: 'Invalid Phone Number',
+                        message: phoneValidation.message
+                    });
+                    return;
+                }
+            }
 
-            // Include avatar in the server update
+            const cleanPhone = rawPhone ? validatePhoneNumber(rawPhone).cleaned : '';
+            const isPhoneChanged = cleanPhone !== currentAdminPhone && (cleanPhone !== '' || currentAdminPhone !== '');
+
+            const updatePayload = { name, email, job_title, phone: cleanPhone };
+
             if (tempAvatarData === 'REMOVE') {
                 updatePayload.avatar = null;
             } else if (tempAvatarData) {
                 updatePayload.avatar = tempAvatarData;
             }
 
-            // Prompt confirmation modal before saving
-            showFeedbackModal({
-                type: 'confirm',
-                title: 'Confirm Profile Update',
-                message: 'Are you sure you want to update your profile information?',
-                confirmText: 'Save Changes',
-                cancelText: 'Cancel',
-                onConfirm: async () => {
-                    try {
-                        const updated = await API.admins.update(adminId, updatePayload);
-                        
-                        session.name = updated.name;
-                        session.email = updated.email;
-                        session.job_title = updated.job_title;
-                        
-                        if (tempAvatarData === 'REMOVE') {
-                            delete session.avatar;
-                        } else if (tempAvatarData) {
-                            session.avatar = tempAvatarData;
-                        }
-                        
-                        localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
-                        tempAvatarData = null;
-
-                        if (typeof initAuthFeatures === 'function') {
-                            initAuthFeatures();
-                        }
-
-                        showToast('Settings saved successfully', 'success');
-                    } catch (error) {
-                        showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+            const executeUpdate = async () => {
+                try {
+                    const updated = await API.admins.update(adminId, updatePayload);
+                    
+                    session.name = updated.name;
+                    session.email = updated.email;
+                    session.job_title = updated.job_title;
+                    currentAdminPhone = updated.phone || '';
+                    
+                    if (tempAvatarData === 'REMOVE') {
+                        delete session.avatar;
+                    } else if (tempAvatarData) {
+                        session.avatar = tempAvatarData;
                     }
+                    
+                    localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
+                    tempAvatarData = null;
+
+                    if (typeof initAuthFeatures === 'function') {
+                        initAuthFeatures();
+                    }
+
+                    showToast('Settings saved successfully', 'success');
+                } catch (error) {
+                    showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
                 }
-            });
+            };
+
+            // If phone changed, trigger SMS OTP verification modal first
+            if (isPhoneChanged && cleanPhone) {
+                showPhoneOtpModal({
+                    phone: cleanPhone,
+                    entityType: 'admin',
+                    entityId: adminId,
+                    onVerified: () => {
+                        executeUpdate();
+                    },
+                    onCancel: () => {
+                        showToast('Phone number update cancelled.', 'info');
+                    }
+                });
+            } else {
+                // Standard confirmation modal
+                showFeedbackModal({
+                    type: 'confirm',
+                    title: 'Confirm Profile Update',
+                    message: 'Are you sure you want to update your profile information?',
+                    confirmText: 'Save Changes',
+                    cancelText: 'Cancel',
+                    onConfirm: executeUpdate
+                });
+            }
 
         } else if (tabName === 'security') {
+            const toggle2FA = document.getElementById('toggle2FA');
+            const toggleSessionTimeout = document.getElementById('toggleSessionTimeout');
+            const toggleLoginLimit = document.getElementById('toggleLoginLimit');
+
+            const securityPayload = {};
+            if (toggle2FA) securityPayload.enable_2fa = toggle2FA.classList.contains('on') ? 'true' : 'false';
+            if (toggleSessionTimeout) securityPayload.session_timeout_enabled = toggleSessionTimeout.classList.contains('on') ? 'true' : 'false';
+            if (toggleLoginLimit) securityPayload.login_limit_enabled = toggleLoginLimit.classList.contains('on') ? 'true' : 'false';
+
             const currentPassInput = fields['current password'];
             const newPassInput = fields['new password'];
             const confirmPassInput = fields['confirm new password'];
 
-            if (!currentPassInput || !newPassInput || !confirmPassInput) return;
+            const currentPassword = currentPassInput ? currentPassInput.value : '';
+            const newPassword = newPassInput ? newPassInput.value : '';
+            const confirmPassword = confirmPassInput ? confirmPassInput.value : '';
 
-            const currentPassword = currentPassInput.value;
-            const newPassword = newPassInput.value;
-            const confirmPassword = confirmPassInput.value;
+            const isPasswordFormFilled = currentPassword || newPassword || confirmPassword;
 
-            if (currentPassword || newPassword || confirmPassword) {
+            if (isPasswordFormFilled) {
                 if (!currentPassword || !newPassword || !confirmPassword) {
                     showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'All password fields are required to change password.' });
                     return;
@@ -214,22 +264,38 @@ async function saveChanges() {
                     return;
                 }
 
-                // Prompt confirmation modal before changing password
                 showFeedbackModal({
                     type: 'confirm',
-                    title: 'Confirm Password Change',
-                    message: 'Are you sure you want to change your account password?',
-                    confirmText: 'Change Password',
+                    title: 'Confirm Security & Password Update',
+                    message: 'Are you sure you want to update your security preferences and change password?',
+                    confirmText: 'Save Changes',
                     cancelText: 'Cancel',
                     onConfirm: async () => {
                         try {
+                            await API.settings.update(securityPayload);
                             await API.admins.update(adminId, { current_password: currentPassword, new_password: newPassword });
 
                             currentPassInput.value = '';
                             newPassInput.value = '';
                             confirmPassInput.value = '';
 
-                            showToast('Password changed successfully', 'success');
+                            showToast('Security settings and password updated successfully', 'success');
+                        } catch (error) {
+                            showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+                        }
+                    }
+                });
+            } else {
+                showFeedbackModal({
+                    type: 'confirm',
+                    title: 'Save Security Preferences',
+                    message: 'Are you sure you want to save these security toggle preferences?',
+                    confirmText: 'Save Settings',
+                    cancelText: 'Cancel',
+                    onConfirm: async () => {
+                        try {
+                            await API.settings.update(securityPayload);
+                            showToast('Security settings saved successfully', 'success');
                         } catch (error) {
                             showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
                         }
@@ -273,14 +339,20 @@ function removeProfilePhoto() {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        const phoneField = document.getElementById('adminPhoneInput') || document.querySelector('input[type="tel"]');
+        if (phoneField && typeof attachPhoneInputFilter === 'function') attachPhoneInputFilter(phoneField);
         fetchProfile();
         initProfileUpload();
         fetchHardwareNodes();
+        fetchSecuritySettings();
     });
 } else {
+    const phoneField = document.getElementById('adminPhoneInput') || document.querySelector('input[type="tel"]');
+    if (phoneField && typeof attachPhoneInputFilter === 'function') attachPhoneInputFilter(phoneField);
     fetchProfile();
     initProfileUpload();
     fetchHardwareNodes();
+    fetchSecuritySettings();
 }
 
 async function fetchHardwareNodes() {
@@ -423,3 +495,55 @@ function syncHardware() {
         }, 2000);
     }, 2500);
 }
+
+async function fetchSecuritySettings() {
+    try {
+        if (typeof API === 'undefined' || !API.settings) return;
+        const settings = await API.settings.getAll();
+        if (!settings) return;
+
+        const toggle2FA = document.getElementById('toggle2FA');
+        const toggleSessionTimeout = document.getElementById('toggleSessionTimeout');
+        const toggleLoginLimit = document.getElementById('toggleLoginLimit');
+
+        if (toggle2FA) {
+            const is2FA = settings.enable_2fa !== 'false';
+            toggle2FA.classList.toggle('on', is2FA);
+        }
+        if (toggleSessionTimeout) {
+            const isTimeout = settings.session_timeout_enabled !== 'false';
+            toggleSessionTimeout.classList.toggle('on', isTimeout);
+        }
+        if (toggleLoginLimit) {
+            const isLimit = settings.login_limit_enabled !== 'false';
+            toggleLoginLimit.classList.toggle('on', isLimit);
+        }
+    } catch (e) {
+        console.error('Failed to fetch security settings:', e);
+    }
+}
+
+async function toggleSecuritySetting(key, element) {
+    if (!element) return;
+    const currentState = element.classList.contains('on');
+    const newState = !currentState;
+
+    element.classList.toggle('on', newState);
+
+    try {
+        await API.settings.update({ [key]: newState ? 'true' : 'false' });
+        const labelMap = {
+            'enable_2fa': 'Two-Factor Authentication',
+            'session_timeout_enabled': 'Session Timeout',
+            'login_limit_enabled': 'Login Attempt Limiting'
+        };
+        const label = labelMap[key] || 'Security setting';
+        showToast(`${label} ${newState ? 'enabled' : 'disabled'}`, 'success');
+    } catch (err) {
+        element.classList.toggle('on', currentState);
+        showToast(`Failed to update setting: ${err.message}`, 'error');
+    }
+}
+
+window.toggleSecuritySetting = toggleSecuritySetting;
+

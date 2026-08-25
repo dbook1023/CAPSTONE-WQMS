@@ -54,6 +54,7 @@ function showToast(message, type = 'success') {
 }
 
 let tempAvatarData = null;
+let currentUserPhone = '';
 
 async function fetchProfile() {
     try {
@@ -79,7 +80,15 @@ async function fetchProfile() {
                 if (fields['full name']) fields['full name'].value = user.name || '';
                 if (fields['email address']) fields['email address'].value = user.email || '';
                 if (fields['user id']) fields['user id'].value = `PCO${String(user.id).padStart(4, '0')}`;
-                if (fields['phone number']) fields['phone number'].value = user.phone || '';
+                if (fields['phone number']) {
+                    const rawP = user.phone || '';
+                    const normP = (rawP.startsWith('+63') && rawP.length === 13) ? '0' + rawP.slice(3) : rawP;
+                    fields['phone number'].value = normP;
+                    currentUserPhone = normP;
+                    if (typeof attachPhoneInputFilter === 'function') {
+                        attachPhoneInputFilter(fields['phone number']);
+                    }
+                }
                 if (fields['system role']) fields['system role'].value = user.role_name || '';
                 if (fields['engineering branch']) fields['engineering branch'].value = user.branch || 'General';
                 if (fields['branch code']) fields['branch code'].value = user.branch_code || 'GEN';
@@ -88,12 +97,10 @@ async function fetchProfile() {
 
                 // Avatar sync: server is source of truth
                 if (user.avatar) {
-                    // Server has avatar — use it
                     if (profilePreview) profilePreview.src = user.avatar;
                     session.avatar = user.avatar;
                     localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
                 } else if (session.avatar) {
-                    // Server missing avatar but localStorage has one — push it up
                     if (profilePreview) profilePreview.src = session.avatar;
                     try {
                         await API.users.update(userId, { avatar: session.avatar });
@@ -105,7 +112,6 @@ async function fetchProfile() {
                 }
             }
         } else {
-            // Offline fallback
             if (profilePreview && session.avatar) {
                 profilePreview.src = session.avatar;
             } else if (profilePreview) {
@@ -142,54 +148,87 @@ async function saveChanges() {
             if (!nameInput) return;
 
             const name = Sanitizer.cleanInput(nameInput.value);
-            const phone = phoneInput ? Sanitizer.cleanInput(phoneInput.value) : '';
+            const rawPhone = phoneInput ? Sanitizer.cleanInput(phoneInput.value) : '';
 
             if (!name) {
                 showFeedbackModal({ type: 'error', title: 'Validation Error', message: 'Name is required.' });
                 return;
             }
 
-            const updatePayload = { name, phone };
+            // Phone Validation
+            if (rawPhone) {
+                const phoneValidation = validatePhoneNumber(rawPhone);
+                if (!phoneValidation.valid) {
+                    showFeedbackModal({
+                        type: 'error',
+                        title: 'Invalid Phone Number',
+                        message: phoneValidation.message
+                    });
+                    return;
+                }
+            }
 
-            // Include avatar in the server update
+            const cleanPhone = rawPhone ? validatePhoneNumber(rawPhone).cleaned : '';
+            const isPhoneChanged = cleanPhone !== currentUserPhone && (cleanPhone !== '' || currentUserPhone !== '');
+
+            const updatePayload = { name, phone: cleanPhone };
+
             if (tempAvatarData === 'REMOVE') {
                 updatePayload.avatar = null;
             } else if (tempAvatarData) {
                 updatePayload.avatar = tempAvatarData;
             }
 
-            // Prompt confirmation modal before saving
-            showFeedbackModal({
-                type: 'confirm',
-                title: 'Confirm Profile Update',
-                message: 'Are you sure you want to update your profile information?',
-                confirmText: 'Save Changes',
-                cancelText: 'Cancel',
-                onConfirm: async () => {
-                    try {
-                        const updated = await API.users.update(userId, updatePayload);
-                        
-                        session.name = updated.name;
-                        
-                        if (tempAvatarData === 'REMOVE') {
-                            delete session.avatar;
-                        } else if (tempAvatarData) {
-                            session.avatar = tempAvatarData;
-                        }
-                        
-                        localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
-                        tempAvatarData = null; 
-
-                        if (typeof initAuthFeatures === 'function') {
-                            initAuthFeatures();
-                        }
-
-                        showToast('Settings saved successfully', 'success');
-                    } catch (error) {
-                        showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
+            const executeUpdate = async () => {
+                try {
+                    const updated = await API.users.update(userId, updatePayload);
+                    
+                    session.name = updated.name;
+                    currentUserPhone = updated.phone || '';
+                    
+                    if (tempAvatarData === 'REMOVE') {
+                        delete session.avatar;
+                    } else if (tempAvatarData) {
+                        session.avatar = tempAvatarData;
                     }
+                    
+                    localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
+                    tempAvatarData = null; 
+
+                    if (typeof initAuthFeatures === 'function') {
+                        initAuthFeatures();
+                    }
+
+                    showToast('Settings saved successfully', 'success');
+                } catch (error) {
+                    showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
                 }
-            });
+            };
+
+            // If phone changed, trigger SMS OTP verification modal first
+            if (isPhoneChanged && cleanPhone) {
+                showPhoneOtpModal({
+                    phone: cleanPhone,
+                    entityType: 'user',
+                    entityId: userId,
+                    onVerified: () => {
+                        executeUpdate();
+                    },
+                    onCancel: () => {
+                        showToast('Phone number update cancelled.', 'info');
+                    }
+                });
+            } else {
+                // Standard confirmation modal
+                showFeedbackModal({
+                    type: 'confirm',
+                    title: 'Confirm Profile Update',
+                    message: 'Are you sure you want to update your profile information?',
+                    confirmText: 'Save Changes',
+                    cancelText: 'Cancel',
+                    onConfirm: executeUpdate
+                });
+            }
 
         } else if (tabName === 'security') {
             const currentPassInput = fields['current password'];
@@ -277,10 +316,14 @@ function removeProfilePhoto() {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        const phoneField = document.getElementById('userPhoneInput') || document.querySelector('input[type="tel"]');
+        if (phoneField && typeof attachPhoneInputFilter === 'function') attachPhoneInputFilter(phoneField);
         fetchProfile();
         initProfileUpload();
     });
 } else {
+    const phoneField = document.getElementById('userPhoneInput') || document.querySelector('input[type="tel"]');
+    if (phoneField && typeof attachPhoneInputFilter === 'function') attachPhoneInputFilter(phoneField);
     fetchProfile();
     initProfileUpload();
 }

@@ -8,12 +8,32 @@ auth_bp = Blueprint('auth', __name__)
 def get_db():
     return SessionLocal()
 
+from datetime import timedelta
+from models import SystemSetting
+
+# Failed login attempt tracking: { email: { 'count': int, 'locked_until': datetime } }
+_failed_attempts = {}
+
+
+def _get_setting_bool(db, key, default=True):
+    setting = db.query(SystemSetting).filter(SystemSetting.setting_key == key).first()
+    if not setting:
+        return default
+    return setting.setting_value.lower() in ['true', '1', 'yes', 'on']
+
+
+def _mask_phone(phone):
+    if not phone or len(phone) < 7:
+        return '***'
+    return phone[:4] + '***' + phone[-4:]
+
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Authenticate user/admin and return session data"""
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    """Authenticate user/admin with 2FA and Login Attempt Limiting"""
+    data = request.get_json() or {}
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
     portal_type = data.get('portal_type', 'user')
     
     if not email or not password:
@@ -21,26 +41,120 @@ def login():
 
     try:
         db = get_db()
+        login_limit_enabled = _get_setting_bool(db, 'login_limit_enabled', True)
+        enable_2fa = _get_setting_bool(db, 'enable_2fa', True)
+
+        # 1. Check Account Lockout if Login Attempt Limiting is enabled
+        if login_limit_enabled:
+            record = _failed_attempts.get(email)
+            if record and record.get('locked_until'):
+                if datetime.utcnow() < record['locked_until']:
+                    db.close()
+                    remaining = int((record['locked_until'] - datetime.utcnow()).total_seconds() / 60) + 1
+                    return api_error(f'Account locked due to 5 consecutive failed login attempts. Please try again after {remaining} minute(s).', 403)
+                else:
+                    # Lock expired, reset
+                    _failed_attempts.pop(email, None)
+
         if portal_type == 'admin':
             from models import Admin
             user = db.query(Admin).filter(Admin.email == email).first()
         else:
             user = db.query(User).filter(User.email == email).first()
-        
+
         if user and user.check_password(password):
-            # Update last login
+            # Password correct -> Reset failed attempts
+            _failed_attempts.pop(email, None)
+
+            # 2. Check Two-Factor Authentication (2FA) - Admin Accounts Only
+            if enable_2fa and portal_type == 'admin' and user.phone:
+                from services.sms_service import generate_and_send_phone_otp
+                otp_res = generate_and_send_phone_otp(user.phone, entity_type=portal_type, entity_id=user.id)
+                db.close()
+
+                if otp_res['status'] == 'success':
+                    return api_success({
+                        'require_2fa': True,
+                        'phone': user.phone,
+                        'phone_masked': _mask_phone(user.phone),
+                        'user_id': user.id,
+                        'email': user.email,
+                        'portal_type': portal_type
+                    }, f'2FA code sent via SMS to {_mask_phone(user.phone)}')
+                else:
+                    return api_error(f'Failed to send 2FA SMS code: {otp_res.get("message")}', 500)
+
+            # 2FA disabled or no phone number -> Direct login
             user.last_login = datetime.utcnow()
             db.commit()
             
             user_data = user.to_dict()
             db.close()
-            
             return api_success(user_data, 'Login successful')
+
         else:
-            if db: db.close()
-            return api_error('Invalid credentials', 401)
+            # Invalid credentials
+            if login_limit_enabled:
+                record = _failed_attempts.get(email, {'count': 0, 'locked_until': None})
+                record['count'] += 1
+                if record['count'] >= 5:
+                    record['locked_until'] = datetime.utcnow() + timedelta(minutes=1)
+                    _failed_attempts[email] = record
+                    if db: db.close()
+                    return api_error('Account locked due to 5 consecutive failed login attempts. Please try again in 1 minute.', 403)
+                else:
+                    _failed_attempts[email] = record
+                    remaining_attempts = 5 - record['count']
+                    if db: db.close()
+                    return api_error(f'Invalid credentials. {remaining_attempts} attempt(s) remaining before account lockout.', 401)
+            else:
+                if db: db.close()
+                return api_error('Invalid credentials', 401)
+
     except Exception as e:
         return api_error(str(e), 500)
+
+
+@auth_bp.route('/verify-2fa-login', methods=['POST'])
+def verify_2fa_login():
+    """Verify 2FA SMS OTP code to complete user/admin login"""
+    try:
+        data = request.get_json() or {}
+        phone = data.get('phone', '').strip()
+        code = data.get('code', '').strip()
+        user_id = data.get('user_id')
+        portal_type = data.get('portal_type', 'user')
+
+        if not phone or not code or not user_id:
+            return api_error('Phone number, user ID, and verification code are required', 400)
+
+        from services.sms_service import verify_phone_otp
+        is_valid, msg = verify_phone_otp(phone, code)
+
+        if not is_valid:
+            return api_error(msg, 400)
+
+        db = get_db()
+        if portal_type == 'admin':
+            from models import Admin
+            user = db.query(Admin).filter(Admin.id == user_id).first()
+        else:
+            user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            db.close()
+            return api_error('User account not found', 404)
+
+        user.last_login = datetime.utcnow()
+        db.commit()
+
+        user_data = user.to_dict()
+        db.close()
+
+        return api_success(user_data, '2FA verification successful. Welcome!')
+    except Exception as e:
+        return api_error(str(e), 500)
+
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
@@ -83,3 +197,54 @@ def register():
         return api_success(result, 'Registration successful', 201)
     except Exception as e:
         return api_error(str(e), 500)
+
+
+@auth_bp.route('/send-phone-otp', methods=['POST'])
+def send_phone_otp():
+    """Send an SMS OTP code to verify a phone number change"""
+    try:
+        data = request.get_json() or {}
+        phone = data.get('phone', '').strip()
+        entity_type = data.get('entity_type', 'user')
+        entity_id = data.get('entity_id')
+
+        if not phone:
+            return api_error('Phone number is required', 400)
+
+        # Basic phone normalization check
+        clean_num = ''.join(c for c in phone if c.isdigit() or c == '+')
+        if len(clean_num.replace('+', '')) < 10 or len(clean_num.replace('+', '')) > 12:
+            return api_error('Invalid phone number. Must be a valid 11-digit number (e.g., 09171234567 or +639171234567).', 400)
+
+        from services.sms_service import generate_and_send_phone_otp
+        res = generate_and_send_phone_otp(phone, entity_type=entity_type, entity_id=entity_id)
+
+        if res['status'] == 'success':
+            return api_success(res, res['message'])
+        else:
+            return api_error(res['message'], 400)
+    except Exception as e:
+        return api_error(str(e), 500)
+
+
+@auth_bp.route('/verify-phone-otp', methods=['POST'])
+def verify_phone_otp_route():
+    """Verify an SMS OTP code for a phone number change"""
+    try:
+        data = request.get_json() or {}
+        phone = data.get('phone', '').strip()
+        code = data.get('code', '').strip()
+
+        if not phone or not code:
+            return api_error('Phone number and verification code are required', 400)
+
+        from services.sms_service import verify_phone_otp
+        is_valid, msg = verify_phone_otp(phone, code)
+
+        if is_valid:
+            return api_success({'verified': True}, msg)
+        else:
+            return api_error(msg, 400)
+    except Exception as e:
+        return api_error(str(e), 500)
+

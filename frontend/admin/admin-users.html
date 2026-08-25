@@ -188,5 +188,68 @@
         </div>
     </div>
 </div>
+
+<!-- VIEW USER DETAILS MODAL -->
+<div class="modal-overlay" id="viewUserModal" onclick="if(event.target===this)closeViewUserModal()">
+    <div class="modal" style="max-width: 520px; width: 100%; border-radius: 20px; padding: 28px;">
+        <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9; margin-bottom: 20px;">
+            <div>
+                <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0;">User Details</h2>
+                <p style="font-size: 0.8rem; color: #64748b; margin: 2px 0 0;">Complete profile and permission information</p>
+            </div>
+            <button onclick="closeViewUserModal()" style="background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; border-radius: 8px; transition: all 0.2s;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <div class="modal-body" style="padding: 0;">
+            <!-- Profile Header Card -->
+            <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; border-radius: 14px; padding: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                <div id="viewUserAvatar" style="width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; color: white; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    --
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <h3 id="viewUserName" style="font-family: 'Poppins', sans-serif; font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</h3>
+                        <span id="viewUserStatusBadge" class="badge active" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;">Active</span>
+                    </div>
+                    <p id="viewUserEmail" style="font-size: 0.825rem; color: #64748b; margin: 4px 0 0; word-break: break-all;">--</p>
+                </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-family: 'Inter', sans-serif;">
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Account ID</span>
+                    <span id="viewUserId" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Account Type</span>
+                    <span id="viewUserAccountType" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Engineering Branch</span>
+                    <span id="viewUserBranch" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">System Role / Title</span>
+                    <span id="viewUserRole" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Contact Number</span>
+                    <span id="viewUserPhone" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f1f5f9; padding: 12px 14px; border-radius: 10px;">
+                    <span style="font-size: 0.725rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Last Active</span>
+                    <span id="viewUserLastActive" style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <button class="btn btn-ghost" onclick="closeViewUserModal()" style="border-radius: 10px; font-weight: 600;">Close</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

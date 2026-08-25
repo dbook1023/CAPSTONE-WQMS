@@ -87,9 +87,9 @@
                         <div class="toggle-row">
                             <div class="toggle-info">
                                 <h4>Two-Factor Authentication</h4>
-                                <p>Require 2FA for all admin accounts</p>
+                                <p>Require 2FA via SMS for accounts with contact numbers</p>
                             </div>
-                            <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
+                            <div class="toggle-wrap on" id="toggle2FA" onclick="toggleSecuritySetting('enable_2fa', this)">
                                 <div class="toggle-track">
                                     <div class="toggle-thumb"></div>
                                 </div>
@@ -98,10 +98,10 @@
                         <div class="toggle-row">
                             <div class="toggle-info">
                                 <h4>Session Timeout</h4>
-                                <p>Automatically log out inactive sessions</p>
+                                <p>Automatically log out inactive sessions after 1 minute</p>
                             </div>
-                            <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
-                                <div class="tog-track">
+                            <div class="toggle-wrap on" id="toggleSessionTimeout" onclick="toggleSecuritySetting('session_timeout_enabled', this)">
+                                <div class="toggle-track">
                                     <div class="toggle-thumb"></div>
                                 </div>
                             </div>
@@ -109,9 +109,9 @@
                         <div class="toggle-row">
                             <div class="toggle-info">
                                 <h4>Login Attempt Limiting</h4>
-                                <p>Lock accounts after 5 failed attempts</p>
+                                <p>Lock accounts for 1 minute after 5 consecutive failed attempts</p>
                             </div>
-                            <div class="toggle-wrap on" onclick="this.classList.toggle('on')">
+                            <div class="toggle-wrap on" id="toggleLoginLimit" onclick="toggleSecuritySetting('login_limit_enabled', this)">
                                 <div class="toggle-track">
                                     <div class="toggle-thumb"></div>
                                 </div>
@@ -220,8 +220,8 @@
                             </div>
                             <div class="field-group">
                                 <div class="field-label">Phone Number</div>
-                                <input class="field-input" type="tel" value="">
-                                <div class="field-hint">For SMS notifications</div>
+                                <input class="field-input" type="tel" id="adminPhoneInput" placeholder="09171234567" maxlength="11">
+                                <div class="field-hint">11-digit mobile number (e.g. 09171234567)</div>
                             </div>
                             <div class="field-group">
                                 <div class="field-label">

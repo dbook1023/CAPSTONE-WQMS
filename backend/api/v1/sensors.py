@@ -147,7 +147,7 @@ def update_sensor_data():
         # Pre-calibrated values take precedence when present.
 
         fountain_id = data.get('fountain_id')
-        serial_number = data.get('serial') or data.get('serial_number')
+        serial_number = data.get('serial') or data.get('serial_number') or data.get('device_id')
 
         ph_voltage = data.get('ph_voltage')
         turb_voltage = data.get('turbidity_voltage')
@@ -158,86 +158,94 @@ def update_sensor_data():
 
         # Pre-calibrated fields (if provided by ESP32)
         pre_ph = data.get('ph')
-        pre_turbidity = data.get('ntu') or data.get('turbidity')
+        pre_turbidity = data.get('ntu') if data.get('ntu') is not None else data.get('turbidity')
         pre_tds = data.get('tds')
 
         db = get_db()
         fountain = None
         sensor_record = None
 
-        # 1. Lookup by Serial Number (Preferred for portable devices)
+        # 1. Lookup by Serial Number / Device ID (Preferred for portable devices)
         if serial_number:
             from models import Sensor
-            sensor_record = db.query(Sensor).filter(Sensor.serial_number == serial_number).first()
+            sensor_record = db.query(Sensor).filter(Sensor.serial_number == str(serial_number)).first()
             if sensor_record:
                 fountain = sensor_record.fountain
                 fountain_id = sensor_record.fountain_id
+            elif fountain_id:
+                fountain = db.query(Fountain).filter(Fountain.id == fountain_id).first()
             else:
-                db.close()
-                return jsonify({"error": f"Device with serial {serial_number} not registered"}), 404
+                # Auto-fallback to the first Online fountain if serial isn't explicitly linked yet
+                fountain = db.query(Fountain).filter(Fountain.status == 'Online').first()
+                if fountain:
+                    fountain_id = fountain.id
 
         # 2. Fallback to direct Fountain ID
         elif fountain_id:
             fountain = db.query(Fountain).filter(Fountain.id == fountain_id).first()
-            if not fountain:
-                db.close()
-                return jsonify({"error": "Fountain not found"}), 404
+
+        # 3. Fallback to first Online Fountain
+        if not fountain:
+            fountain = db.query(Fountain).filter(Fountain.status == 'Online').first()
+            if fountain:
+                fountain_id = fountain.id
 
         if not fountain:
             db.close()
             return jsonify({"error": "No fountain or device identified"}), 400
 
-        if pre_ph is not None and pre_turbidity is not None and pre_tds is not None and temperature is not None:
-            # Bypass backend calibration if ESP32 sends calibrated data
+        # ==============================================
+        # PARAMETER EXTRACTION (ESP32 Pre-calibrated vs Backend Calibration)
+        # ==============================================
+        # 1. pH Parameter
+        if pre_ph is not None:
             ph = float(pre_ph)
-            turbidity = float(pre_turbidity)
-            tds = float(pre_tds)
-        else:
-            # Fallback to backend calibration if raw voltages are sent
-            if any(v is None for v in [ph_voltage, turb_voltage, tds_voltage, temperature]):
-                db.close()
-                return jsonify({"error": "Missing sensor data: either provide pre-calibrated values (ph, ntu, tds) or raw voltages"}), 400
-                
-            # ==============================================
-            # PER-DEVICE CALIBRATION COEFFICIENTS
-            # Falls back to global defaults if not set
-            # ==============================================
-            if sensor_record:
-                cal = sensor_record.get_calibration()
-            else:
-                from models import Sensor as SensorModel
-                cal = SensorModel.DEFAULT_CALIBRATION
-    
-            # ==============================================
-            # SENSOR CALIBRATION & MATH LAYER
-            # ==============================================
-    
-            # 1. pH Calculation (linear model)
+        elif ph_voltage is not None:
+            cal = sensor_record.get_calibration() if sensor_record else {}
             ph_slope = cal.get('ph_slope', -5.70)
             ph_offset = cal.get('ph_offset', 21.34)
             ph = (ph_slope * float(ph_voltage)) + ph_offset
-            ph = max(0.0, min(14.0, ph))  # Clamp to 0-14 physical limits
-    
-            # 2. Turbidity Calculation (quadratic polynomial)
+            ph = max(0.0, min(14.0, ph))
+        else:
+            ph = 7.0
+
+        # 2. Turbidity Parameter
+        if pre_turbidity is not None:
+            turbidity = float(pre_turbidity)
+        elif turb_voltage is not None:
+            cal = sensor_record.get_calibration() if sensor_record else {}
             turb_a = cal.get('turb_a', -1120.4)
             turb_b = cal.get('turb_b', 5742.3)
             turb_c = cal.get('turb_c', -4352.9)
             tv = float(turb_voltage) * 2.0
             turbidity = (turb_a * (tv ** 2)) + (turb_b * tv) + turb_c
-            turbidity = max(0.0, turbidity)  # Prevent negative
-    
-            # 3. TDS Calculation (with Temp Compensation and 3.3V Scaling)
+            turbidity = max(0.0, turbidity)
+        else:
+            turbidity = 0.0
+
+        # 3. Temperature Parameter
+        if temperature is not None:
+            temperature = float(temperature)
+        else:
+            temperature = 25.0
+
+        # 4. TDS Parameter
+        if pre_tds is not None:
+            tds = float(pre_tds)
+        elif tds_voltage is not None:
+            cal = sensor_record.get_calibration() if sensor_record else {}
             temp_c = float(temperature)
             compensation = 1.0 + 0.02 * (temp_c - 25.0)
             comp_voltage = float(tds_voltage) / compensation if compensation != 0 else float(tds_voltage)
             kValue = cal.get('tds_k_value', 0.2)
-    
             tds = (
                 (133.42 * (comp_voltage ** 3))
                 - (255.86 * (comp_voltage ** 2))
                 + (857.39 * comp_voltage)
             ) * 0.5 * kValue
             tds = max(0.0, tds)
+        else:
+            tds = 0.0
 
         # Use UTC time for emitted timestamps to avoid timezone mismatches on clients
         from datetime import timezone as _tz

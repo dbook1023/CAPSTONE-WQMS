@@ -73,7 +73,19 @@ const API = {
             method: 'POST',
             body: JSON.stringify(credentials)
         }),
-        logout: () => API.request('/auth/logout', { method: 'POST' })
+        logout: () => API.request('/auth/logout', { method: 'POST' }),
+        sendPhoneOtp: (data) => API.request('/auth/send-phone-otp', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        verifyPhoneOtp: (data) => API.request('/auth/verify-phone-otp', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        verify2faLogin: (data) => API.request('/auth/verify-2fa-login', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
     },
 
     // Sensor Endpoints

@@ -280,9 +280,23 @@ async function handleUserEdit(btnId) {
         }
 
         const names = user.name.split(' ');
-        document.getElementById('firstName').value = names[0] || '';
-        document.getElementById('lastName').value = names.slice(1).join(' ') || '';
-        document.getElementById('email').value = user.email;
+        const fnInput = document.getElementById('firstName');
+        const lnInput = document.getElementById('lastName');
+        const emailInput = document.getElementById('email');
+
+        if (fnInput) fnInput.value = names[0] || '';
+        if (lnInput) lnInput.value = names.slice(1).join(' ') || '';
+        if (emailInput) emailInput.value = user.email || '';
+
+        // Make Name and Email read-only during edit
+        [fnInput, lnInput, emailInput].forEach(el => {
+            if (el) {
+                el.readOnly = true;
+                el.style.background = '#f8fafc';
+                el.style.color = '#64748b';
+                el.style.cursor = 'not-allowed';
+            }
+        });
         
         // Handle branch select & custom additions
         const branchSelect = document.getElementById('branch');
@@ -403,9 +417,23 @@ function openAddModal() {
         modalUserIdInput.placeholder = 'Auto-generated';
     }
 
-    document.getElementById('firstName').value = '';
-    document.getElementById('lastName').value = '';
-    document.getElementById('email').value = '';
+    const fnInput = document.getElementById('firstName');
+    const lnInput = document.getElementById('lastName');
+    const emailInput = document.getElementById('email');
+
+    if (fnInput) fnInput.value = '';
+    if (lnInput) lnInput.value = '';
+    if (emailInput) emailInput.value = '';
+
+    // Re-enable Name and Email inputs for new account creation
+    [fnInput, lnInput, emailInput].forEach(el => {
+        if (el) {
+            el.readOnly = false;
+            el.style.background = '#ffffff';
+            el.style.color = '#0f172a';
+            el.style.cursor = 'text';
+        }
+    });
     
     // Reset branch select to General
     const branchSelect = document.getElementById('branch');
@@ -434,7 +462,105 @@ function openAddModal() {
     addModal.classList.add('open');
 }
 
+/**
+ * Handle User View Details Modal
+ */
+function handleUserView(param1, param2) {
+    let userId = null;
+    let origin = 'user';
+
+    if (typeof param1 === 'object' && param1 !== null) {
+        userId = param1.dataset ? param1.dataset.userId : null;
+        origin = param1.dataset ? (param1.dataset.origin || 'user') : 'user';
+    } else if (typeof param1 === 'string' && document.getElementById(param1)) {
+        const btn = document.getElementById(param1);
+        userId = btn.dataset ? btn.dataset.userId : null;
+        origin = btn.dataset ? (btn.dataset.origin || 'user') : 'user';
+    } else {
+        userId = param1;
+        origin = param2 || 'user';
+    }
+
+    if (!userId) return;
+
+    let user = users.find(u => 
+        String(u.id) === String(userId) && 
+        ((u.is_admin_record && origin === 'admin') || (!u.is_admin_record && origin !== 'admin'))
+    );
+
+    if (!user) {
+        user = users.find(u => String(u.id) === String(userId));
+    }
+
+    if (!user) return;
+
+    const esc = (window.Sanitizer && window.Sanitizer.escapeHTML) ? window.Sanitizer.escapeHTML : (s => s || '');
+
+    const displayId = origin === 'admin' ? `ADM${String(user.id).padStart(4, '0')}` : `PCO${String(user.id).padStart(4, '0')}`;
+    const initials = getInitials(user.name);
+    const bgGradient = getAvatarColor(user.name || user.email || '');
+
+    const avatarEl = document.getElementById('viewUserAvatar');
+    if (avatarEl) {
+        if (user.avatar) {
+            avatarEl.innerHTML = `<img src="${esc(user.avatar)}" alt="${esc(initials)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            avatarEl.style.background = 'transparent';
+        } else {
+            avatarEl.textContent = initials;
+            avatarEl.style.background = bgGradient;
+        }
+    }
+
+    const nameEl = document.getElementById('viewUserName');
+    if (nameEl) nameEl.textContent = user.name || 'Unnamed User';
+
+    const emailEl = document.getElementById('viewUserEmail');
+    if (emailEl) emailEl.textContent = user.email || 'No email provided';
+
+    const statusBadge = document.getElementById('viewUserStatusBadge');
+    if (statusBadge) {
+        const st = user.status || 'Active';
+        statusBadge.textContent = st;
+        statusBadge.className = `badge ${st.toLowerCase()}`;
+    }
+
+    const idEl = document.getElementById('viewUserId');
+    if (idEl) idEl.textContent = displayId;
+
+    const typeEl = document.getElementById('viewUserAccountType');
+    if (typeEl) typeEl.textContent = origin === 'admin' ? 'Administrator' : 'User (Operator)';
+
+    const branchEl = document.getElementById('viewUserBranch');
+    if (branchEl) branchEl.textContent = `${user.branch || 'General'} (${user.branch_code || 'GEN'})`;
+
+    const roleEl = document.getElementById('viewUserRole');
+    if (roleEl) roleEl.textContent = user.job_title || user.role_name || (origin === 'admin' ? 'System Administrator' : 'System Operator');
+
+    const phoneEl = document.getElementById('viewUserPhone');
+    if (phoneEl) {
+        const rawP = user.phone || '';
+        phoneEl.textContent = rawP ? (rawP.startsWith('+63') ? '0' + rawP.slice(3) : rawP) : 'Not specified';
+    }
+
+    const lastActiveEl = document.getElementById('viewUserLastActive');
+    if (lastActiveEl) {
+        lastActiveEl.textContent = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never logged in';
+    }
+
+    const modal = document.getElementById('viewUserModal');
+    if (modal) modal.classList.add('open');
+
+    if (window.closeAllPopovers) window.closeAllPopovers();
+}
+
+function closeViewUserModal() {
+    const modal = document.getElementById('viewUserModal');
+    if (modal) modal.classList.remove('open');
+}
+
 // Map to global window
+window.handleUserView = handleUserView;
+window.closeViewUserModal = closeViewUserModal;
 window.handleUserStatusUpdate = handleUserStatusUpdate;
 window.handleUserEdit = handleUserEdit;
 window.handleUserSubmit = handleUserSubmit;

@@ -22,6 +22,7 @@ let lastProcessedTimeMs = Date.now();
 let sessionStartTimeMs = Date.now();
 let currentVirtualTimeMs = Date.now();
 
+
 function getOrdinalIndicator(n) {
     if (!n) return '0 Readings';
     const s = ["th", "st", "nd", "rd"];
@@ -143,6 +144,22 @@ function getParameterSafetyStatus(key, val) {
     return 'IDEAL';
 }
 
+function formatSensorDisplay(key, number, suffixText) {
+    if (number === null || number === undefined || Number.isNaN(number)) return '--';
+    // TDS shown as integer ppm
+    if (key === 'tds' || /ppm/i.test(suffixText)) {
+        return Math.round(number) + suffixText;
+    }
+    // Temperature and turbidity show two decimal places
+    if (key === 'temp' || key === 'temperature' || /°C/.test(suffixText) || /ntu/i.test(suffixText)) {
+        return number.toFixed(2) + suffixText;
+    }
+    // pH - two decimal places
+    if (key === 'ph') return number.toFixed(2) + suffixText;
+    // Fallback
+    return number.toString() + suffixText;
+}
+
 function updateSingleMetricCard(fountainId, domKey, val, suffix) {
     const cardValId = `val-${domKey}-${fountainId}`;
     const cardEl = document.getElementById(cardValId);
@@ -151,24 +168,7 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
     const newVal = parseFloat(val);
     if (isNaN(newVal)) return;
 
-    // Format display values consistently per parameter
-    function formatSensorDisplay(key, number, suffixText) {
-        if (number === null || number === undefined || Number.isNaN(number)) return '--';
-        // TDS shown as integer ppm
-        if (key === 'tds' || /ppm/i.test(suffixText)) {
-            return Math.round(number) + suffixText;
-        }
-        // Temperature and turbidity show two decimal places
-        if (key === 'temp' || key === 'temperature' || /°C/.test(suffixText) || /ntu/i.test(suffixText)) {
-            return number.toFixed(2) + suffixText;
-        }
-        // pH - two decimal places
-        if (key === 'ph') return number.toFixed(2) + suffixText;
-
-        // Fallback
-        return number.toString() + suffixText;
-    }
-
+    // Instant direct update — zero delay, raw ESP32 value displayed immediately
     cardEl.textContent = formatSensorDisplay(domKey, newVal, suffix);
 
     const parent = cardEl.closest('.fc-metric');
@@ -245,8 +245,24 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
 }
 
 function processLiveReading(latest) {
-    // 1. If we are actively reading, and this reading is from our selected fountain:
-    if (isReading && selectedFountain && String(latest.fountain_id) === String(selectedFountain.id)) {
+    // 1. Ignore persisted database snapshots from overwriting active live telemetry!
+    if (latest && (latest._persisted || latest.source === 'user_snapshot')) {
+        console.log('[Monitoring] Ignored persisted database snapshot from overwriting live stream.');
+        return;
+    }
+
+    // 2. Check reading timestamp freshness:
+    // Ignore historical database logs generated before the current test session started!
+    if (latest && latest.timestamp && isReading) {
+        const readingTimeMs = new Date(latest.timestamp).getTime();
+        if (!isNaN(readingTimeMs) && readingTimeMs < (sessionStartTimeMs - 5000)) {
+            console.log(`[Monitoring] Ignored reading from previous test session (Timestamp: ${latest.timestamp})`);
+            return;
+        }
+    }
+
+    // 3. If this reading is from our selected fountain:
+    if (selectedFountain && String(latest.fountain_id) === String(selectedFountain.id)) {
         // Reset watchdog timer immediately
         lastProcessedTimeMs = Date.now();
         setConnectionStatus(true);
@@ -261,7 +277,7 @@ function processLiveReading(latest) {
         if (lastProcessedTimestamp !== timestampStr) {
             lastProcessedTimestamp = timestampStr;
         }
-        // Update the detailed selected fountain card's last-updated timestamp
+        // Update the detailed selected fountain card's metrics immediately
         try {
             updateFountainCardMetrics(latest);
         } catch (e) {
@@ -270,16 +286,18 @@ function processLiveReading(latest) {
         }
     }
 
-    // 2. Always sync metrics on the grid cards dynamically for all active fountains!
-    sensorConfigs.forEach(cfg => {
-        let key = cfg.id.replace('Chart', '').toLowerCase();
-        if (key === 'temp') key = 'temperature';
-        const newVal = parseFloat(latest[key]);
-        if (isNaN(newVal)) return;
+    // 4. Always sync metrics on the grid cards dynamically for all active fountains!
+    if (latest && latest.fountain_id) {
+        sensorConfigs.forEach(cfg => {
+            let key = cfg.id.replace('Chart', '').toLowerCase();
+            if (key === 'temp') key = 'temperature';
+            const newVal = parseFloat(latest[key]);
+            if (isNaN(newVal)) return;
 
-        const domKey = cfg.id.replace('Chart', '').toLowerCase();
-        updateSingleMetricCard(latest.fountain_id, domKey, newVal, cfg.suffix);
-    });
+            const domKey = cfg.id.replace('Chart', '').toLowerCase();
+            updateSingleMetricCard(latest.fountain_id, domKey, newVal, cfg.suffix);
+        });
+    }
 }
 
 /**
@@ -296,9 +314,17 @@ async function pollLatestReading() {
         if (!latestArr || latestArr.length === 0) return;
         // Find the entry matching our selected fountain
         const match = latestArr.find(r => r.fountain_id == selectedFountain.id);
-        if (match) {
-            console.log('[REST Fallback] Polled latest reading for fountain', selectedFountain.id);
-            processLiveReading(match);
+        if (match && match.timestamp) {
+            // Skip database records that are persisted snapshots
+            if (match._persisted || match.source === 'user_snapshot') {
+                return;
+            }
+            const readingTimeMs = new Date(match.timestamp).getTime();
+            // Only process polled reading if it was created during the current test session!
+            if (!isNaN(readingTimeMs) && readingTimeMs >= (sessionStartTimeMs - 5000)) {
+                console.log('[REST Fallback] Polled fresh reading for fountain', selectedFountain.id);
+                processLiveReading(match);
+            }
         }
     } catch (err) {
         // Silent fail — WebSocket may still be working fine
@@ -568,25 +594,26 @@ function setupEventListeners() {
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
                 .certificate-container {
-                    border: 4px double #cbd5e1;
-                    padding: 24px;
-                    border-radius: 12px;
+                    border: 3px double #cbd5e1;
+                    padding: 16px 18px;
+                    border-radius: 10px;
                     background: #ffffff;
                     font-family: 'Inter', sans-serif;
                     color: #1e293b;
                     box-sizing: border-box;
                     width: 680px;
+                    page-break-inside: avoid;
                 }
                 @media (max-width: 640px) {
                     .certificate-container {
-                        padding: 16px 12px;
+                        padding: 12px 10px;
                         border-width: 2px;
                     }
                     .meta-grid {
                         grid-template-columns: 1fr;
                     }
                     .cert-table th, .cert-table td {
-                        padding: 6px;
+                        padding: 5px;
                         font-size: 9px;
                     }
                     .header h1 {
@@ -594,39 +621,39 @@ function setupEventListeners() {
                     }
                     .compliance-banner {
                         font-size: 12px;
-                        padding: 8px;
+                        padding: 6px;
                     }
                 }
                 .header {
                     text-align: center;
                     border-bottom: 2px solid #e2e8f0;
-                    padding-bottom: 16px;
-                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    margin-bottom: 12px;
                 }
                 .header h1 {
                     font-family: 'Poppins', sans-serif;
-                    font-size: 18px;
+                    font-size: 16px;
                     font-weight: 700;
                     color: #0f172a;
-                    margin: 0 0 4px 0;
-                    letter-spacing: 0.05em;
+                    margin: 0 0 2px 0;
+                    letter-spacing: 0.04em;
                     text-transform: uppercase;
                 }
                 .header p {
-                    font-size: 10px;
+                    font-size: 9.5px;
                     color: #64748b;
                     margin: 0;
                     font-weight: 600;
-                    letter-spacing: 0.1em;
+                    letter-spacing: 0.08em;
                     text-transform: uppercase;
                 }
                 .meta-grid {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                    margin-bottom: 20px;
+                    gap: 8px 12px;
+                    margin-bottom: 12px;
                     background: #f8fafc;
-                    padding: 16px;
+                    padding: 12px;
                     border-radius: 8px;
                     border: 1px solid #e2e8f0;
                 }
@@ -635,7 +662,7 @@ function setupEventListeners() {
                     flex-direction: column;
                 }
                 .meta-label {
-                    font-size: 9px;
+                    font-size: 8.5px;
                     font-weight: 700;
                     color: #64748b;
                     text-transform: uppercase;
@@ -643,7 +670,7 @@ function setupEventListeners() {
                     margin-bottom: 2px;
                 }
                 .meta-value {
-                    font-size: 12px;
+                    font-size: 11.5px;
                     font-weight: 600;
                     color: #0f172a;
                 }
@@ -651,56 +678,16 @@ function setupEventListeners() {
                     background: ${overallColor}10;
                     border: 1.5px solid ${overallColor};
                     color: ${overallColor};
-                    padding: 12px;
+                    padding: 10px;
                     border-radius: 8px;
                     text-align: center;
-                    font-size: 15px;
+                    font-size: 14px;
                     font-weight: 800;
                     letter-spacing: 0.05em;
-                    margin-bottom: 20px;
+                    margin-bottom: 12px;
                     text-transform: uppercase;
                 }
                 .section-title {
-                    font-family: 'Poppins', sans-serif;
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: #0f172a;
-                    margin-bottom: 10px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-                .cert-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 20px;
-                    background: transparent;
-                }
-                .cert-table th {
-                    background: #f1f5f9;
-                    color: #475569;
-                    font-weight: 700;
-                    font-size: 10px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    text-align: left;
-                    padding: 8px 10px;
-                    border: 1px solid #e2e8f0;
-                }
-                .cert-table td {
-                    padding: 8px 10px;
-                    font-size: 11px;
-                    border: 1px solid #e2e8f0;
-                    color: #1e293b;
-                    text-align: left;
-                }
-                .action-plan {
-                    margin-bottom: 20px;
-                    border: 1.5px solid #cbd5e1;
-                    border-radius: 10px;
-                    background: #f8fafc;
-                    padding: 14px;
-                }
-                .action-plan-title {
                     font-family: 'Poppins', sans-serif;
                     font-size: 12px;
                     font-weight: 700;
@@ -709,29 +696,69 @@ function setupEventListeners() {
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                 }
-                .action-plan-headline {
-                    font-size: 12px;
+                .cert-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 12px;
+                    background: transparent;
+                }
+                .cert-table th {
+                    background: #f1f5f9;
+                    color: #475569;
                     font-weight: 700;
-                    margin-bottom: 10px;
+                    font-size: 9.5px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    text-align: left;
+                    padding: 6px 8px;
+                    border: 1px solid #e2e8f0;
+                }
+                .cert-table td {
+                    padding: 5px 8px;
+                    font-size: 10.5px;
+                    border: 1px solid #e2e8f0;
+                    color: #1e293b;
+                    text-align: left;
+                }
+                .action-plan {
+                    margin-bottom: 12px;
+                    border: 1.5px solid #cbd5e1;
+                    border-radius: 8px;
+                    background: #f8fafc;
+                    padding: 10px 12px;
+                }
+                .action-plan-title {
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin-bottom: 4px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .action-plan-headline {
+                    font-size: 11px;
+                    font-weight: 700;
+                    margin-bottom: 6px;
                 }
                 .action-plan-list {
                     display: grid;
-                    gap: 8px;
+                    gap: 6px;
                 }
                 .action-plan-item {
                     background: white;
                     border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    padding: 10px 12px;
-                    font-size: 11px;
-                    line-height: 1.45;
+                    border-radius: 6px;
+                    padding: 6px 10px;
+                    font-size: 10px;
+                    line-height: 1.35;
                     color: #334155;
                 }
                 .status-badge {
                     display: inline-block;
                     padding: 2px 8px;
                     border-radius: 4px;
-                    font-size: 10px;
+                    font-size: 9.5px;
                     font-weight: 700;
                     text-transform: uppercase;
                 }
@@ -748,20 +775,20 @@ function setupEventListeners() {
                     color: #dc2626;
                 }
                 .footer {
-                    margin-top: 24px;
+                    margin-top: 14px;
                     display: flex;
                     justify-content: space-between;
-                    font-size: 10px;
+                    font-size: 9.5px;
                     color: #64748b;
                     border-top: 1px solid #e2e8f0;
-                    padding-top: 16px;
+                    padding-top: 10px;
                 }
                 .signature-line {
-                    width: 180px;
+                    width: 160px;
                     border-top: 1.5px solid #94a3b8;
-                    margin-top: 24px;
+                    margin-top: 14px;
                     text-align: center;
-                    padding-top: 6px;
+                    padding-top: 4px;
                     font-weight: 600;
                 }
             </style>
@@ -868,11 +895,12 @@ function setupEventListeners() {
 
         const reportCode = savedReport?.report_code || formatReportId(savedReport?.id || selectedFountain.id, savedReport?.created_at || new Date());
         const opt = {
-            margin:       [15, 15, 15, 15],
+            margin:       [6, 8, 6, 8],
             filename:     `${reportCode}_${selectedFountain.name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(container).save().then(() => {
@@ -1660,7 +1688,9 @@ function startReading() {
 
     if (generateReportBtn) generateReportBtn.disabled = true; // Wait for at least one snapshot
     if (saveReadingBtn) {
-        saveReadingBtn.style.display = 'none';
+        saveReadingBtn.style.display = 'inline-flex';
+        saveReadingBtn.disabled = false;
+        saveReadingBtn.style.opacity = '1';
     }
     const generateReportBtnMobile = document.getElementById('generateReportBtnMobile');
     if (generateReportBtnMobile) {
@@ -1668,8 +1698,9 @@ function startReading() {
         generateReportBtnMobile.disabled = true;
     }
     if (saveReadingBtnMobile) {
-        saveReadingBtnMobile.style.display = 'none';
-        saveReadingBtnMobile.disabled = true;
+        saveReadingBtnMobile.style.display = 'inline-flex';
+        saveReadingBtnMobile.disabled = false;
+        saveReadingBtnMobile.style.opacity = '1';
     }
 
     // Add to scanned list if not already there
@@ -1698,8 +1729,7 @@ function startReading() {
         }
     });
 
-    // Instantly load active fountain history from DB
-    fetchInitialFountainData();
+    // Start fresh session with clean null timeline charts (do not load old test history)
 
     console.log(`WebSocket Monitoring Session started for fountain: ${selectedFountain.name}`);
 
@@ -1711,10 +1741,7 @@ function startReading() {
     chartFlowInterval = setInterval(updateChartFlow, 1000);
 
     // Start REST API polling fallback every 10 seconds
-    // This guarantees the watchdog stays alive even when the WebSocket transport drops
     restPollInterval = setInterval(pollLatestReading, 10000);
-    // Also poll immediately to get the very first reading fast
-    pollLatestReading();
 }
 
 function stopReading() {

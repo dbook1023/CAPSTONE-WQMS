@@ -54,7 +54,58 @@ document.addEventListener('DOMContentLoaded', async function() {
     initSidebarToggle();
     initStandardsModal(); // New global modal init
     initAuthFeatures();
+    initSessionTimeoutTracker();
 });
+
+function initSessionTimeoutTracker() {
+    let inactivityTimer = null;
+    const INACTIVITY_LIMIT_MS = 1 * 60 * 1000; // 1 minute inactivity limit
+
+    async function checkTimeoutEnabled() {
+        try {
+            if (typeof API !== 'undefined' && API.settings) {
+                const settings = await API.settings.getAll();
+                const enabled = !settings || settings.session_timeout_enabled === 'true';
+                if (!enabled) return;
+
+                resetTimer();
+
+                const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+                events.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+            }
+        } catch (e) {
+            console.warn('Session timeout check failed:', e);
+        }
+    }
+
+    function resetTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(triggerLogout, INACTIVITY_LIMIT_MS);
+    }
+
+    function triggerLogout() {
+        if (typeof showFeedbackModal === 'function') {
+            showFeedbackModal({
+                type: 'warning',
+                title: 'Session Expired',
+                message: 'Your session has expired due to inactivity. Please sign in again.',
+                onConfirm: () => {
+                    if (typeof logout === 'function') logout();
+                    else window.location.href = '../login.html';
+                }
+            });
+            setTimeout(() => {
+                if (typeof logout === 'function') logout();
+                else window.location.href = '../login.html';
+            }, 4000);
+        } else {
+            if (typeof logout === 'function') logout();
+            else window.location.href = '../login.html';
+        }
+    }
+
+    checkTimeoutEnabled();
+}
 
 // Re-verify authentication on browser Back/Forward (bfcache) navigation
 window.addEventListener('pageshow', initAuthFeatures);

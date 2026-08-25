@@ -53,7 +53,7 @@ function checkSessionAndRedirect() {
         }
     }
     
-    console.log('[auth.js] checkSessionAndRedirect | pageName:', pageName, '| validAdmin:', validAdmin, '| validUser:', validUser);
+    
     
     // If any active session exists, prevent accessing login pages and redirect to dashboard
     if (validAdmin) {
@@ -91,55 +91,80 @@ function handleLogin(event, portalType) {
     // Show loading state
     setLoading(true, portalType);
     
+    const completeLogin = (user) => {
+        const role = (user.role_name || '').toLowerCase();
+        
+        if (portalType === 'admin' && role !== 'admin') {
+            showMessage('Access denied. This portal is for administrators only.', 'error');
+            setLoading(false, portalType);
+            return;
+        }
+        if (portalType === 'user' && role === 'admin') {
+            showMessage('Administrators must use the admin portal to sign in.', 'error');
+            setLoading(false, portalType);
+            return;
+        }
+
+        showMessage('Login successful! Redirecting...', 'success');
+        
+        const sessionData = {
+            id: user.id,
+            email: user.email,
+            role: user.role_name,
+            name: user.name,
+            avatar: user.avatar,
+            loginTime: new Date().toISOString()
+        };
+        const sessionKey = role === 'admin' ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';
+        localStorage.setItem(sessionKey, JSON.stringify(sessionData));
+        
+        setTimeout(() => {
+            redirectUser(role === 'admin' ? 'admin' : 'operator');
+        }, 1000);
+    };
+
     // Call backend API
     API.auth.login({ email, password, portal_type: portalType })
         .then(response => {
-            // API.request returns either the wrapped payload.data or the raw object.
-            // Support both shapes: { user: {...} } and {...} by falling back.
-            const user = (response && response.user) ? response.user : response;
+            // Check if 2FA is required
+            if (response && response.require_2fa) {
+                setLoading(false, portalType);
+                showMessage(`2FA required. Code sent to ${response.phone_masked}`, 'info');
 
+                if (typeof showPhoneOtpModal === 'function') {
+                    showPhoneOtpModal({
+                        phone: response.phone,
+                        entityType: portalType,
+                        entityId: response.user_id,
+                        customVerify: async (code) => {
+                            const fullUser = await API.auth.verify2faLogin({
+                                phone: response.phone,
+                                code: code,
+                                user_id: response.user_id,
+                                portal_type: portalType
+                            });
+                            completeLogin(fullUser);
+                        },
+                        onCancel: () => {
+                            showMessage('Login cancelled.', 'error');
+                        }
+                    });
+                } else {
+                    showMessage('OTP Modal not loaded.', 'error');
+                }
+                return;
+            }
+
+            const user = (response && response.user) ? response.user : response;
             if (!user) {
                 showMessage('Unexpected server response. Please try again.', 'error');
                 setLoading(false, portalType);
                 return;
             }
 
-            // STRICT PORTAL CHECK
-            const role = (user.role_name || '').toLowerCase();
-            
-            if (portalType === 'admin' && role !== 'admin') {
-                showMessage('Access denied. This portal is for administrators only.', 'error');
-                setLoading(false, portalType);
-                return;
-            }
-            if (portalType === 'user' && role === 'admin') {
-                showMessage('Administrators must use the admin portal to sign in.', 'error');
-                setLoading(false, portalType);
-                return;
-            }
-
-            // Success
-            showMessage('Login successful! Redirecting...', 'success');
-            
-            // Save session separately based on portal role
-            const sessionData = {
-                id: user.id,
-                email: user.email,
-                role: user.role_name, // Save original string
-                name: user.name,
-                avatar: user.avatar,  // Ensure avatar is persisted in session upon login
-                loginTime: new Date().toISOString()
-            };
-            const sessionKey = role === 'admin' ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';
-            localStorage.setItem(sessionKey, JSON.stringify(sessionData));
-            
-            // Redirect
-            setTimeout(() => {
-                redirectUser(role === 'admin' ? 'admin' : 'operator');
-            }, 1000);
+            completeLogin(user);
         })
         .catch(error => {
-            // Failure
             showMessage(error.message || 'Invalid email or password. Please try again.', 'error');
             setLoading(false, portalType);
         });

@@ -138,7 +138,7 @@ table {
 
 #usersTable {
     table-layout: auto;
-    min-width: 640px;
+    min-width: 800px;
 }
 
 thead tr {
@@ -180,6 +180,7 @@ td {
     display: flex;
     align-items: center;
     gap: 12px;
+    white-space: nowrap;
 }
 
 .user-cell > div {
@@ -207,14 +208,14 @@ td {
     font-weight: 600;
     color: #0f172a;
     font-size: 14px;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
 }
 
 .user-id {
     font-size: 11px;
     color: #94a3b8;
     margin-top: 1px;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
 }
 
 /* Email */
@@ -224,6 +225,7 @@ td {
     gap: 7px;
     color: #475569;
     font-size: 13.5px;
+    white-space: nowrap;
 }
 
 /* Role badge */
@@ -348,7 +350,7 @@ td {
     }
 
     .role-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 }
 

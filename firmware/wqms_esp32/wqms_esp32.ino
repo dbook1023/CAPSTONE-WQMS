@@ -34,7 +34,7 @@ DisplayManager display(0x27, 16, 2);
 // ================= GLOBAL VARIABLES =================
 String deviceSerialNumber = "";
 unsigned long lastSendTime = 0;
-const unsigned long SEND_INTERVAL = 10000; // Send data every 10 seconds
+const unsigned long SEND_INTERVAL = 1000; // Send data every 1 second for instant live streaming
 bool wifiConnected = false;
 
 // ================= WIFI FUNCTIONS =================

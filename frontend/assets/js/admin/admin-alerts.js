@@ -6,6 +6,8 @@
 // State
 let alerts = [];
 let currentFilter = 'all';
+let currentPage = 1;
+const ITEMS_PER_PAGE = 6;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,12 +35,16 @@ function setupEventListeners() {
     const filterTabs = document.querySelectorAll('.tab-btn');
 
     if (searchInput) {
-        searchInput.addEventListener('input', renderAlerts);
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            renderAlerts();
+        });
     }
 
     if (alertsFilterBtn) {
         alertsFilterBtn.addEventListener('click', () => {
             currentFilter = 'all';
+            currentPage = 1;
             document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
             const defaultTab = document.querySelector('.tab-btn[data-filter="all"]');
             if (defaultTab) defaultTab.classList.add('active');
@@ -57,6 +63,7 @@ function setupEventListeners() {
             document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentFilter = tab.dataset.filter;
+            currentPage = 1;
             renderAlerts();
         });
     });
@@ -69,12 +76,23 @@ function renderAlerts() {
     const filtered = getVisibleAlerts();
     updateActionSummary(filtered);
 
-    if (filtered.length === 0) {
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+    const pageItems = filtered.slice(startIndex, endIndex);
+
+    if (totalItems === 0) {
         alertsList.innerHTML = `<div style="text-align:center; padding: 48px; color: #64748b;">No alerts found for this criteria.</div>`;
+        renderPaginationControls(0, 0, 0, 1);
         return;
     }
 
-    alertsList.innerHTML = filtered.map(a => {
+    alertsList.innerHTML = pageItems.map(a => {
         const category = getAlertCategory(a);
         const canResolve = category === 'critical' || category === 'warning';
         const esc = (s) => (s !== undefined && s !== null)
@@ -122,7 +140,65 @@ function renderAlerts() {
             ` : ''}
         </div>
     `}).join('');
+
+    renderPaginationControls(startIndex + 1, endIndex, totalItems, totalPages);
 }
+
+function renderPaginationControls(start, end, total, totalPages) {
+    const infoEl = document.getElementById('paginationInfo');
+    const buttonsEl = document.getElementById('paginationButtons');
+    const container = document.getElementById('paginationContainer');
+
+    if (!container) return;
+
+    if (total === 0) {
+        if (infoEl) infoEl.innerHTML = 'Showing <span>0</span> to <span>0</span> of <span>0</span> alerts';
+        if (buttonsEl) buttonsEl.innerHTML = '';
+        return;
+    }
+
+    if (infoEl) {
+        infoEl.innerHTML = `Showing <span>${start}</span> to <span>${end}</span> of <span>${total}</span> alerts`;
+    }
+
+    if (!buttonsEl) return;
+
+    let buttonsHTML = '';
+
+    // Previous Button (Circular SVG Chevron)
+    const prevDisabled = currentPage === 1;
+    buttonsHTML += `
+        <button class="pg-btn ${prevDisabled ? 'disabled' : ''}" ${prevDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+    `;
+
+    // Page Numbers (Circular Badges)
+    for (let p = 1; p <= totalPages; p++) {
+        const isActive = p === currentPage;
+        buttonsHTML += `
+            <button class="pg-btn ${isActive ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>
+        `;
+    }
+
+    // Next Button (Circular SVG Chevron)
+    const nextDisabled = currentPage === totalPages;
+    buttonsHTML += `
+        <button class="pg-btn ${nextDisabled ? 'disabled' : ''}" ${nextDisabled ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    `;
+
+    buttonsEl.innerHTML = buttonsHTML;
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderAlerts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.goToPage = goToPage;
 
 function getVisibleAlerts() {
     const searchInput = document.getElementById('searchInput');

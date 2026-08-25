@@ -55,7 +55,58 @@ document.addEventListener('DOMContentLoaded', async function() {
     initStandardsModal(); // New global modal init
     initAuthFeatures();
     initActionsPopovers();
+    initSessionTimeoutTracker();
 });
+
+function initSessionTimeoutTracker() {
+    let inactivityTimer = null;
+    const INACTIVITY_LIMIT_MS = 1 * 60 * 1000; // 1 minute inactivity limit
+
+    async function checkTimeoutEnabled() {
+        try {
+            if (typeof API !== 'undefined' && API.settings) {
+                const settings = await API.settings.getAll();
+                const enabled = !settings || settings.session_timeout_enabled === 'true';
+                if (!enabled) return;
+
+                resetTimer();
+
+                const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+                events.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+            }
+        } catch (e) {
+            console.warn('Session timeout check failed:', e);
+        }
+    }
+
+    function resetTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(triggerLogout, INACTIVITY_LIMIT_MS);
+    }
+
+    function triggerLogout() {
+        if (typeof showFeedbackModal === 'function') {
+            showFeedbackModal({
+                type: 'warning',
+                title: 'Session Expired',
+                message: 'Your session has expired due to inactivity. Please sign in again.',
+                onConfirm: () => {
+                    if (typeof logout === 'function') logout();
+                    else window.location.href = '../login.html';
+                }
+            });
+            setTimeout(() => {
+                if (typeof logout === 'function') logout();
+                else window.location.href = '../login.html';
+            }, 4000);
+        } else {
+            if (typeof logout === 'function') logout();
+            else window.location.href = '../login.html';
+        }
+    }
+
+    checkTimeoutEnabled();
+}
 
 // Re-verify authentication on browser Back/Forward (bfcache) navigation
 window.addEventListener('pageshow', initAuthFeatures);
@@ -243,6 +294,10 @@ function togglePopover(container, btn) {
         const currentStatus = row.querySelector('.status-badge')?.textContent.trim().toLowerCase();
         
         actionsHTML = `
+            <button class="popover-item" onclick="handleUserView('${btn.id}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>View Details</span>
+            </button>
             <button class="popover-item" onclick="handleUserEdit('${btn.id}')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 <span>Edit User</span>

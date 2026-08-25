@@ -8,12 +8,29 @@ def get_db():
 
 @settings_bp.route('/', methods=['GET'])
 def get_settings():
-    """Returns all system-wide threshold settings"""
+    """Returns all system-wide settings including security controls"""
     try:
         db = get_db()
         settings = db.query(SystemSetting).all()
-        # Convert list of settings to a dictionary for easier frontend use
         settings_dict = {item.setting_key: item.setting_value for item in settings} if settings else {}
+        
+        # Ensure default security toggle settings are initialized
+        defaults = {
+            'enable_2fa': 'true',
+            'session_timeout_enabled': 'true',
+            'login_limit_enabled': 'true'
+        }
+        for k, v in defaults.items():
+            if k not in settings_dict:
+                settings_dict[k] = v
+                new_s = SystemSetting(setting_key=k, setting_value=v)
+                db.add(new_s)
+        
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+
         db.close()
         return jsonify(settings_dict)
     except Exception as e:
@@ -21,19 +38,18 @@ def get_settings():
 
 @settings_bp.route('/update', methods=['PUT'])
 def update_setting():
-    """Updates specific threshold settings"""
+    """Updates specific settings (thresholds or security toggles)"""
     try:
-        data = request.get_json()
-        # Expecting { "ph_min": 6.5, "ph_max": 8.5, ... }
+        data = request.get_json() or {}
         
         db = get_db()
         for key, value in data.items():
             setting = db.query(SystemSetting).filter(SystemSetting.setting_key == key).first()
             if setting:
-                setting.setting_value = str(value)
+                setting.setting_value = str(value).lower() if isinstance(value, bool) else str(value)
             else:
-                # Optionally create if doesn't exist
-                new_setting = SystemSetting(setting_key=key, setting_value=str(value))
+                str_val = str(value).lower() if isinstance(value, bool) else str(value)
+                new_setting = SystemSetting(setting_key=key, setting_value=str_val)
                 db.add(new_setting)
         
         db.commit()
