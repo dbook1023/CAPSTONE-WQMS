@@ -42,6 +42,10 @@ app.register_blueprint(reports_bp, url_prefix='/api/v1/reports')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 app.socketio = socketio
 
+# Base & Project Root Paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+
 @app.after_request
 def apply_security_headers(response):
     """Attach security HTTP response headers to protect against XSS, MIME-sniffing & Clickjacking"""
@@ -53,11 +57,15 @@ def apply_security_headers(response):
 
 @app.route('/')
 def index():
-    return send_from_directory('..', 'login.html')
+    return send_from_directory(PROJECT_ROOT, 'index.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('..', path)
+    full_path = os.path.join(PROJECT_ROOT, path)
+    if os.path.exists(full_path):
+        return send_from_directory(PROJECT_ROOT, path)
+    return send_from_directory(PROJECT_ROOT, 'index.html')
+
 
 # --- REST API V1 ROUTES ---
 
@@ -113,7 +121,7 @@ if __name__ == '__main__':
     # Run the application
     print("Starting WQMS Backend Server...")
     api_host = os.getenv('API_HOST', '0.0.0.0')
-    api_port = int(os.getenv('API_PORT', 5000))
+    api_port = int(os.getenv('PORT', os.getenv('API_PORT', 5000)))
     print(f"API running on {api_host}:{api_port}")
     print(f"Database: {os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME', 'wqms_db')}")
     

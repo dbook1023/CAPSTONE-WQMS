@@ -640,7 +640,17 @@ class AuditLog(Base):
 from dotenv import load_dotenv
 load_dotenv()
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'mysql+pymysql://root@localhost:3306/wqms_db')
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    db_user = os.getenv('DB_USER', 'root')
+    db_pass = os.getenv('DB_PASSWORD', '')
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_port = os.getenv('DB_PORT', '3306')
+    db_name = os.getenv('DB_NAME', 'wqms_db')
+    DATABASE_URL = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine = create_engine(
     DATABASE_URL,
@@ -652,6 +662,12 @@ engine = create_engine(
 from sqlalchemy.orm import sessionmaker
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Auto-create missing database tables on startup
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Notice: Automatic table creation check: {e}")
 
 def get_db():
     """Dependency for Flask to inject database sessions"""

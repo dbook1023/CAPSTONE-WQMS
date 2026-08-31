@@ -5,10 +5,22 @@ Seed the WQMS database with sample data for development
 from dotenv import load_dotenv
 load_dotenv()
 
-from models import SessionLocal, User, Admin, Fountain, Department
+from models import SessionLocal, User, Admin, Fountain, Department, Role
 from werkzeug.security import generate_password_hash
 
 db = SessionLocal()
+
+# 0. Seed default roles if roles table is empty
+if db.query(Role).count() == 0:
+    default_roles = [
+        Role(id=1, role_name='Super Admin', permissions={"all": True}, description='Full System Control'),
+        Role(id=2, role_name='Admin', permissions={"manage": True}, description='Administrative Access'),
+        Role(id=3, role_name='Technician', permissions={"hardware": True}, description='Sensor Maintenance'),
+        Role(id=4, role_name='User', permissions={"read": True}, description='Standard Monitoring Access')
+    ]
+    db.add_all(default_roles)
+    db.commit()
+    print("Seeded default roles (Super Admin, Admin, Technician, User)")
 
 # 1. Seed admin into the separate admins table
 admin = db.query(Admin).filter(Admin.email == 'admin@olfu.edu.ph').first()
@@ -41,7 +53,11 @@ if f1:
 
 # 4. Add more fountains
 dept = db.query(Department).first()
-dept_id = dept.id if dept else 1
+if not dept:
+    dept = Department(department_name='Facilities & Maintenance', location_desc='Main Campus Building', contact_person='Admin', contact_email='admin@olfu.edu.ph')
+    db.add(dept)
+    db.commit()
+dept_id = dept.id
 
 new_fountains = [
     {'display_id': 'F002', 'name': 'Student Center North', 'location': 'Level 2, Near Cafeteria', 'status': 'Online'},
