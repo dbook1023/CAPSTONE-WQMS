@@ -36,7 +36,7 @@ else:
 # 2. Add a regular user into the users table
 existing_user = db.query(User).filter(User.email == 'user@olfu.edu.ph').first()
 if not existing_user:
-    user = User(name='Regular User', email='user@olfu.edu.ph', role_id=4, phone='+1-555-0002', status='Active')
+    user = User(name='Regular User', email='user@olfu.edu.ph', role_id=4, phone='09171234567', status='Active')
     user.set_password('user123')
     db.add(user)
     print("Created regular user: user@olfu.edu.ph / user123")
