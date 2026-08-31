@@ -11,7 +11,7 @@ from sqlalchemy import (
     Index, UniqueConstraint, TIMESTAMP,
     BIGINT, Numeric
 )
-from sqlalchemy.dialects.mysql import TINYINT
+from sqlalchemy.dialects.mysql import TINYINT, LONGTEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, validates
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -84,7 +84,7 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False, index=True)
     phone = Column(String(20))
-    avatar = Column(Text)
+    avatar = Column(Text().with_variant(LONGTEXT, 'mysql'))
     status = Column(String(20), default='Active', index=True)
     branch = Column(String(100), default='General')
     branch_code = Column(String(50), default='GEN')
@@ -146,7 +146,7 @@ class Admin(Base):
     name = Column(String(100), nullable=False)
     password = Column(String(255), nullable=False)
     phone = Column(String(20))
-    avatar = Column(Text)
+    avatar = Column(Text().with_variant(LONGTEXT, 'mysql'))
     job_title = Column(String(100), default='System Administrator')
     status = Column(String(20), default='Active', index=True)
     branch = Column(String(100), default='General')
