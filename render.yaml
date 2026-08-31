@@ -6,7 +6,7 @@ services:
     startCommand: "gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT --chdir backend wsgi:app"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.8
       - key: SECRET_KEY
         generateValue: true
       - key: API_HOST
