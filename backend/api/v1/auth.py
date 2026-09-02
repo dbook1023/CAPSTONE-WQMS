@@ -293,6 +293,12 @@ def forgot_password():
         res = send_password_reset_email(email, reset_token, portal_type=portal_type, origin_url=origin_url)
         db.close()
 
+        if res.get('status') == 'error':
+            return api_error(f"Failed to send reset email: {res.get('reason', 'Unknown error')}. Please try again later.", 500)
+
+        if res.get('status') == 'skipped':
+            return api_error("Email service is not configured. Please contact your system administrator.", 500)
+
         masked = email[:3] + '***@' + email.split('@')[-1] if '@' in email else email
         return api_success({
             'email': email,
