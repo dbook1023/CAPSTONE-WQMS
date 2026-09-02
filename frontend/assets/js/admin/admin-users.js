@@ -49,23 +49,16 @@ function setupEventListeners() {
         });
     }
 
-    const accountTypeSelect = document.getElementById('accountTypeSelect');
-    if (accountTypeSelect) {
-        accountTypeSelect.addEventListener('change', () => {
+    const roleSelect = document.getElementById('roleSelect');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', () => {
             const isEditing = !!document.getElementById('editUserId').value;
-            const jobTitleGroup = document.getElementById('jobTitleGroup');
-            const roleGroup = document.getElementById('roleGroup');
-            const modalUserIdInput = document.getElementById('modalUserId');
             const modalIdLabel = document.getElementById('modalIdLabel');
-
-            if (accountTypeSelect.value === 'admin') {
-                if (jobTitleGroup) jobTitleGroup.style.display = 'block';
-                if (roleGroup) roleGroup.style.display = 'none';
-                if (modalIdLabel && !isEditing) modalIdLabel.textContent = 'Admin ID';
-            } else {
-                if (jobTitleGroup) jobTitleGroup.style.display = 'none';
-                if (roleGroup) roleGroup.style.display = 'block';
-                if (modalIdLabel && !isEditing) modalIdLabel.textContent = 'User ID';
+            const val = roleSelect.value;
+            if ((val === '1' || val === 'admin') && modalIdLabel && !isEditing) {
+                modalIdLabel.textContent = 'Admin ID';
+            } else if (modalIdLabel && !isEditing) {
+                modalIdLabel.textContent = 'User ID';
             }
         });
     }
@@ -245,25 +238,10 @@ async function handleUserEdit(btnId) {
         document.getElementById('modalTitle').textContent = 'Edit User Details';
         document.getElementById('modalDesc').textContent = 'Modify the user information or reassign their system role.';
         
-        // Handle Account Type Select setup
-        const accountTypeSelect = document.getElementById('accountTypeSelect');
-        const jobTitleGroup = document.getElementById('jobTitleGroup');
-        const roleGroup = document.getElementById('roleGroup');
-        
-        if (accountTypeSelect) {
-            accountTypeSelect.value = origin;
-            accountTypeSelect.disabled = true; // Cannot switch type on edit
-        }
-
-        // Show/hide based on account type
-        if (origin === 'admin') {
-            if (jobTitleGroup) jobTitleGroup.style.display = 'block';
-            if (roleGroup) roleGroup.style.display = 'none';
-            document.getElementById('jobTitle').value = user.job_title || 'System Administrator';
-        } else {
-            if (jobTitleGroup) jobTitleGroup.style.display = 'none';
-            if (roleGroup) roleGroup.style.display = 'block';
-            document.getElementById('roleSelect').value = user.role_id || '';
+        const roleSelect = document.getElementById('roleSelect');
+        if (roleSelect) {
+            roleSelect.value = origin === 'admin' ? '1' : '2';
+            roleSelect.disabled = true; // Role type cannot be switched during edit
         }
 
         // Populate User/Admin ID
@@ -346,7 +324,8 @@ async function handleUserSubmit() {
     const branchVal = document.getElementById('branch').value;
     const branchCodeVal = document.getElementById('branchCode').value;
 
-    const accountType = editId ? editOrigin : document.getElementById('accountTypeSelect').value;
+    const roleVal = document.getElementById('roleSelect') ? document.getElementById('roleSelect').value : '2';
+    const accountType = editId ? editOrigin : ((roleVal === '1' || roleVal === 'admin') ? 'admin' : 'user');
 
     if (!firstName || !lastName || !email) {
         showNotification('Please fill in all basic fields (First Name, Last Name, and Email)', 'error');
@@ -361,15 +340,11 @@ async function handleUserSubmit() {
     };
 
     if (accountType === 'admin') {
-        const jobTitle = document.getElementById('jobTitle').value.trim();
+        const jobTitleInput = document.getElementById('jobTitle');
+        const jobTitle = jobTitleInput ? jobTitleInput.value.trim() : '';
         payload.job_title = jobTitle || 'System Administrator';
     } else {
-        const roleId = document.getElementById('roleSelect').value;
-        if (!roleId) {
-            showNotification('Please select a system role for the user', 'error');
-            return;
-        }
-        payload.role_id = parseInt(roleId);
+        payload.role_id = 2; // User role
     }
 
     try {
@@ -405,8 +380,8 @@ async function handleUserSubmit() {
 function openAddModal() {
     // Reset modal
     document.getElementById('editUserId').value = '';
-    document.getElementById('modalTitle').textContent = 'Add New User';
-    document.getElementById('modalDesc').textContent = 'Fill in the details to create a new user account.';
+    document.getElementById('modalTitle').textContent = 'Add New Account';
+    document.getElementById('modalDesc').textContent = 'Fill in the details to create a new user or admin account.';
     
     // Reset User/Admin ID input & label
     const modalUserIdInput = document.getElementById('modalUserId');
@@ -442,25 +417,10 @@ function openAddModal() {
     }
     document.getElementById('branchCode').value = 'GEN';
     
-    // Reset Account Type selection and enable it
-    const accountTypeSelect = document.getElementById('accountTypeSelect');
-    if (accountTypeSelect) {
-        accountTypeSelect.value = 'user';
-        accountTypeSelect.disabled = false;
-    }
-    
-    // Reset toggle fields
-    const jobTitleGroup = document.getElementById('jobTitleGroup');
-    const roleGroup = document.getElementById('roleGroup');
-    if (jobTitleGroup) jobTitleGroup.style.display = 'none';
-    if (roleGroup) roleGroup.style.display = 'block';
-    
-    document.getElementById('jobTitle').value = '';
     const roleSelect = document.getElementById('roleSelect');
     if (roleSelect) {
-        if (!roleSelect.value || roleSelect.value === '') {
-            roleSelect.value = '2';
-        }
+        roleSelect.value = '2';
+        roleSelect.disabled = false;
     }
     
     document.getElementById('saveUserBtn').textContent = 'Create User';
