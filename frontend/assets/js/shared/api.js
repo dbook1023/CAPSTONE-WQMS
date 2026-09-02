@@ -93,6 +93,14 @@ const API = {
         resetPassword: (data) => API.request('/auth/reset-password', {
             method: 'POST',
             body: JSON.stringify(data)
+        }),
+        sendEmailOtp: (data) => API.request('/auth/send-email-otp', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        verifyEmailOtp: (data) => API.request('/auth/verify-email-otp', {
+            method: 'POST',
+            body: JSON.stringify(data)
         })
     },
 

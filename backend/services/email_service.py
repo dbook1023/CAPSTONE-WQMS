@@ -21,6 +21,9 @@ RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Aqua Monitor <onboarding@res
 # In-memory store for Password Reset OTPs: { email: { 'code': '123456', 'expires_at': datetime, 'portal_type': 'user' } }
 _reset_otps = {}
 
+# In-memory store for Email Change OTPs: { "user_1": { 'new_email': '...', 'code': '123456', 'expires_at': datetime } }
+_email_change_otps = {}
+
 
 def send_email(to_addresses, subject, html_content):
     """
@@ -98,6 +101,82 @@ def verify_password_reset_otp(email, code):
     # OTP is valid — consume it
     _reset_otps.pop(email_key, None)
     return True, "Verification successful."
+
+
+def generate_email_change_otp(entity_type, entity_id, new_email):
+    """Generate a 6-digit numeric OTP code valid for 15 minutes for changing email address"""
+    code = ''.join(random.choices(string.digits, k=6))
+    key = f"{entity_type}_{entity_id}"
+    _email_change_otps[key] = {
+        'new_email': new_email.lower(),
+        'code': code,
+        'expires_at': datetime.utcnow() + timedelta(minutes=15)
+    }
+    return code
+
+
+def verify_email_change_otp(entity_type, entity_id, new_email, code):
+    """Verify if the email change OTP code is valid and not expired"""
+    key = f"{entity_type}_{entity_id}"
+    record = _email_change_otps.get(key)
+    if not record:
+        return False, "No email change verification requested or request has expired."
+
+    if record['new_email'] != new_email.lower():
+        return False, "The email address does not match the pending verification request."
+
+    if datetime.utcnow() > record['expires_at']:
+        _email_change_otps.pop(key, None)
+        return False, "Verification code has expired. Please request a new code."
+
+    if record['code'] != code.strip():
+        return False, "Invalid verification code. Please check your inbox and try again."
+
+    # OTP is valid — consume it
+    _email_change_otps.pop(key, None)
+    return True, "Email verification successful."
+
+
+def send_email_change_otp(new_email, code):
+    """Send a stylized email change OTP verification email to the new email address"""
+    subject = "Aqua Monitor - Verify Your New Email Address"
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }}
+            .container {{ max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }}
+            .header {{ text-align: center; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9; }}
+            .title {{ font-size: 22px; font-weight: 700; color: #0f172a; margin: 12px 0 4px; }}
+            .otp-box {{ background: #f0fdf4; border: 2px dashed #14b8a6; border-radius: 12px; text-align: center; padding: 20px; margin: 24px 0; }}
+            .otp-code {{ font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0d9488; font-family: monospace; }}
+            .footer {{ font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2 style="color: #14b8a6; margin:0;">💧 Aqua Monitor WQMS</h2>
+                <div class="title">Verify New Email Address</div>
+            </div>
+            <p>You requested to update your primary email address for your Aqua Monitor account to <strong>{new_email}</strong>.</p>
+            <p>Use the 6-digit verification code below to complete your email address update:</p>
+            <div class="otp-box">
+                <div style="font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600;">Verification Code</div>
+                <div class="otp-code">{code}</div>
+            </div>
+            <p style="font-size: 13px; color: #64748b;">This code will expire in <strong>15 minutes</strong>. If you did not initiate this request, please secure your account immediately.</p>
+            <div class="footer">
+                &copy; 2026 Aqua Monitor - Water Quality Monitoring System. All rights reserved.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(new_email, subject, html_content)
+
 
 
 def send_password_reset_email(email, code):

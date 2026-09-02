@@ -344,3 +344,79 @@ def reset_password():
         return api_error(str(e), 500)
 
 
+@auth_bp.route('/send-email-otp', methods=['POST'])
+def send_email_otp_route():
+    """Send an Email OTP verification code to a new email address before updating account email"""
+    try:
+        data = request.get_json() or {}
+        new_email = (data.get('new_email') or '').strip().lower()
+        entity_type = (data.get('entity_type') or 'user').strip().lower()
+        entity_id = data.get('entity_id')
+
+        if not new_email or not entity_id:
+            return api_error('New email address and account ID are required.', 400)
+
+        if '@' not in new_email or '.' not in new_email.split('@')[-1]:
+            return api_error('Invalid email address format.', 400)
+
+        db = get_db()
+        from models import User, Admin
+        
+        # Check if email is already taken by another user or admin
+        user_exists = db.query(User).filter(User.email == new_email, User.id != (entity_id if entity_type == 'user' else 0)).first()
+        admin_exists = db.query(Admin).filter(Admin.email == new_email, Admin.id != (entity_id if entity_type == 'admin' else 0)).first()
+        db.close()
+
+        if user_exists or admin_exists:
+            return api_error('This email address is already registered to another account.', 400)
+
+        from services.email_service import generate_email_change_otp, send_email_change_otp
+        code = generate_email_change_otp(entity_type, entity_id, new_email)
+        res = send_email_change_otp(new_email, code)
+
+        masked = new_email[:3] + '***@' + new_email.split('@')[-1] if '@' in new_email else new_email
+        return api_success(res, f"A 6-digit verification code has been sent to {masked}. Please check your email inbox.")
+    except Exception as e:
+        return api_error(str(e), 500)
+
+
+@auth_bp.route('/verify-email-otp', methods=['POST'])
+def verify_email_otp_route():
+    """Verify Email OTP and update the user or admin email address in the database"""
+    try:
+        data = request.get_json() or {}
+        new_email = (data.get('new_email') or '').strip().lower()
+        code = (data.get('code') or '').strip()
+        entity_type = (data.get('entity_type') or 'user').strip().lower()
+        entity_id = data.get('entity_id')
+
+        if not new_email or not code or not entity_id:
+            return api_error('New email address, verification code, and account ID are required.', 400)
+
+        from services.email_service import verify_email_change_otp
+        is_valid, msg = verify_email_change_otp(entity_type, entity_id, new_email, code)
+        if not is_valid:
+            return api_error(msg, 400)
+
+        db = get_db()
+        from models import User, Admin
+        if entity_type == 'admin':
+            account = db.query(Admin).filter(Admin.id == entity_id).first()
+        else:
+            account = db.query(User).filter(User.id == entity_id).first()
+
+        if not account:
+            db.close()
+            return api_error('Account not found.', 404)
+
+        account.email = new_email
+        db.commit()
+        updated_dict = account.to_dict()
+        db.close()
+
+        return api_success(updated_dict, 'Email address updated successfully!')
+    except Exception as e:
+        return api_error(str(e), 500)
+
+
+

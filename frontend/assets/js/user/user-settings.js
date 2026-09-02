@@ -205,8 +205,37 @@ async function saveChanges() {
                 }
             };
 
-            // If phone changed, trigger SMS OTP verification modal first
-            if (isPhoneChanged && cleanPhone) {
+            const emailInput = document.getElementById('userEmailInput');
+            const newEmail = emailInput ? emailInput.value.trim() : (session.email || '');
+            const isEmailChanged = newEmail && newEmail.toLowerCase() !== (session.email || '').toLowerCase();
+
+            // If email changed, trigger Email OTP verification modal first
+            if (isEmailChanged) {
+                showEmailOtpModal({
+                    newEmail: newEmail,
+                    entityType: 'user',
+                    entityId: userId,
+                    onVerified: (updated) => {
+                        session.email = updated.email || newEmail;
+                        localStorage.setItem('aqua_monitor_user_session', JSON.stringify(session));
+                        
+                        if (isPhoneChanged && cleanPhone) {
+                            showPhoneOtpModal({
+                                phone: cleanPhone,
+                                entityType: 'user',
+                                entityId: userId,
+                                onVerified: () => executeUpdate(),
+                                onCancel: () => showToast('Phone number update cancelled.', 'info')
+                            });
+                        } else {
+                            executeUpdate();
+                        }
+                    },
+                    onCancel: () => {
+                        showToast('Email update cancelled.', 'info');
+                    }
+                });
+            } else if (isPhoneChanged && cleanPhone) {
                 showPhoneOtpModal({
                     phone: cleanPhone,
                     entityType: 'user',

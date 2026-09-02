@@ -203,15 +203,40 @@ async function saveChanges() {
                 }
             };
 
-            // If phone changed, trigger SMS OTP verification modal first
-            if (isPhoneChanged && cleanPhone) {
+            const isEmailChanged = email && email.toLowerCase() !== (session.email || '').toLowerCase();
+
+            // If email changed, trigger Email OTP verification modal first
+            if (isEmailChanged) {
+                showEmailOtpModal({
+                    newEmail: email,
+                    entityType: 'admin',
+                    entityId: adminId,
+                    onVerified: (updated) => {
+                        session.email = updated.email || email;
+                        localStorage.setItem('aqua_monitor_admin_session', JSON.stringify(session));
+
+                        if (isPhoneChanged && cleanPhone) {
+                            showPhoneOtpModal({
+                                phone: cleanPhone,
+                                entityType: 'admin',
+                                entityId: adminId,
+                                onVerified: () => executeUpdate(),
+                                onCancel: () => showToast('Phone number update cancelled.', 'info')
+                            });
+                        } else {
+                            executeUpdate();
+                        }
+                    },
+                    onCancel: () => {
+                        showToast('Email update cancelled.', 'info');
+                    }
+                });
+            } else if (isPhoneChanged && cleanPhone) {
                 showPhoneOtpModal({
                     phone: cleanPhone,
                     entityType: 'admin',
                     entityId: adminId,
-                    onVerified: () => {
-                        executeUpdate();
-                    },
+                    onVerified: () => executeUpdate(),
                     onCancel: () => {
                         showToast('Phone number update cancelled.', 'info');
                     }
@@ -224,7 +249,9 @@ async function saveChanges() {
                     message: 'Are you sure you want to update your profile information?',
                     confirmText: 'Save Changes',
                     cancelText: 'Cancel',
-                    onConfirm: executeUpdate
+                    onConfirm: () => {
+                        executeUpdate();
+                    }
                 });
             }
 

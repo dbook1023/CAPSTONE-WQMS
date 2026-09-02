@@ -538,3 +538,142 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+/**
+ * Show Email Change OTP Verification Modal
+ * @param {Object} options - { newEmail, entityType, entityId, onVerified, onCancel }
+ */
+function showEmailOtpModal(options) {
+    const { newEmail, entityType = 'user', entityId, onVerified, onCancel } = options;
+
+    let overlay = document.getElementById('emailOtpModalOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'emailOtpModalOverlay';
+        overlay.className = 'forgot-modal-overlay';
+        overlay.innerHTML = `
+            <div class="forgot-modal-card">
+                <button type="button" onclick="closeEmailOtpModal()" style="position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="width: 48px; height: 48px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </div>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 6px;">Verify New Email Address</h3>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;" id="emailOtpSubtitle">Sending verification code...</p>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">6-Digit Email OTP Code</label>
+                    <input type="text" id="emailOtpCodeInput" maxlength="6" placeholder="e.g. 123456" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; letter-spacing: 4px; text-align: center; outline: none; box-sizing: border-box;">
+                </div>
+
+                <div id="emailOtpMsg" style="margin-bottom: 14px; font-size: 13px; display: none;"></div>
+
+                <button type="button" id="confirmEmailOtpBtn" style="width: 100%; padding: 12px; background: #14b8a6; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; margin-bottom: 8px;">
+                    Verify & Update Email
+                </button>
+
+                <div style="text-align: center;">
+                    <button type="button" id="resendEmailOtpBtn" style="background: none; border: none; font-size: 12px; color: #14b8a6; cursor: pointer; text-decoration: underline;">
+                        Resend Verification Code
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    const subtitle = document.getElementById('emailOtpSubtitle');
+    const msg = document.getElementById('emailOtpMsg');
+    const codeInput = document.getElementById('emailOtpCodeInput');
+    const confirmBtn = document.getElementById('confirmEmailOtpBtn');
+    const resendBtn = document.getElementById('resendEmailOtpBtn');
+
+    if (codeInput) codeInput.value = '';
+    if (msg) msg.style.display = 'none';
+
+    const sendCode = async () => {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#14b8a6';
+            msg.textContent = 'Sending verification code...';
+        }
+        try {
+            const res = await API.auth.sendEmailOtp({ new_email: newEmail, entity_type: entityType, entity_id: entityId });
+            if (subtitle) subtitle.textContent = `A 6-digit code was sent to ${newEmail}`;
+            if (msg) {
+                msg.style.display = 'block';
+                msg.style.color = '#14b8a6';
+                msg.textContent = res.message || 'Verification code sent to your inbox!';
+            }
+        } catch (err) {
+            if (msg) {
+                msg.style.display = 'block';
+                msg.style.color = '#ef4444';
+                msg.textContent = err.message || 'Failed to send verification code.';
+            }
+        }
+    };
+
+    confirmBtn.onclick = async () => {
+        const code = codeInput ? codeInput.value.trim() : '';
+        if (!code || code.length !== 6) {
+            if (msg) {
+                msg.style.display = 'block';
+                msg.style.color = '#ef4444';
+                msg.textContent = 'Please enter the valid 6-digit code.';
+            }
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Verifying...';
+
+        try {
+            const updatedUser = await API.auth.verifyEmailOtp({
+                new_email: newEmail,
+                code: code,
+                entity_type: entityType,
+                entity_id: entityId
+            });
+
+            if (msg) {
+                msg.style.display = 'block';
+                msg.style.color = '#14b8a6';
+                msg.textContent = 'Email verified successfully!';
+            }
+
+            setTimeout(() => {
+                closeEmailOtpModal();
+                if (typeof onVerified === 'function') onVerified(updatedUser);
+            }, 1000);
+        } catch (err) {
+            if (msg) {
+                msg.style.display = 'block';
+                msg.style.color = '#ef4444';
+                msg.textContent = err.message || 'Verification failed.';
+            }
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Verify & Update Email';
+        }
+    };
+
+    resendBtn.onclick = sendCode;
+    window._currentEmailOtpCancel = onCancel;
+
+    overlay.classList.add('open');
+    sendCode();
+}
+
+function closeEmailOtpModal() {
+    const overlay = document.getElementById('emailOtpModalOverlay');
+    if (overlay) overlay.classList.remove('open');
+    if (typeof window._currentEmailOtpCancel === 'function') {
+        window._currentEmailOtpCancel();
+        window._currentEmailOtpCancel = null;
+    }
+}
+
+
