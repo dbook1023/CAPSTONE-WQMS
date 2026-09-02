@@ -129,8 +129,8 @@ class User(Base):
             'status': self.status,
             'branch': self.branch,
             'branch_code': self.branch_code,
-            'last_login': self.last_login.isoformat() if self.last_login else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'last_login': (self.last_login.isoformat() + 'Z') if self.last_login else None,
+            'created_at': (self.created_at.isoformat() + 'Z') if self.created_at else None
         }
         if include_password:
             data['password'] = self.password
@@ -182,8 +182,8 @@ class Admin(Base):
             'status': self.status,
             'branch': self.branch,
             'branch_code': self.branch_code,
-            'last_login': self.last_login.isoformat() if self.last_login else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'last_login': (self.last_login.isoformat() + 'Z') if self.last_login else None,
+            'created_at': (self.created_at.isoformat() + 'Z') if self.created_at else None
         }
         if include_password:
             data['password'] = self.password

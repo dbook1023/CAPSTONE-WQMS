@@ -178,7 +178,7 @@ function renderUsers(data, page = 1) {
             <td>${esc(u.branch || 'General')}</td>
             <td><span class="role-badge ${u.is_admin_record ? 'admin' : 'user'}">${u.is_admin_record ? 'Admin' : 'User'}</span></td>
             <td><span class="status-badge ${esc((u.status||'').toLowerCase())}">${esc(u.status || '')}</span></td>
-            <td>${u.last_login ? new Date(u.last_login).toLocaleDateString() : 'Never'}</td>
+            <td>${u.last_login ? (typeof formatDateTime === 'function' ? formatDateTime(u.last_login) : new Date(u.last_login).toLocaleDateString()) : 'Never'}</td>
             <td>
                 <button class="actions-btn" data-user-id="${u.id}" data-origin="${origin}" id="user-actions-${origin}-${u.id}">⋮</button>
             </td>
@@ -524,7 +524,7 @@ function handleUserView(param1, param2) {
 
     const lastActiveEl = document.getElementById('viewUserLastActive');
     if (lastActiveEl) {
-        lastActiveEl.textContent = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never logged in';
+        lastActiveEl.textContent = typeof formatDateTime === 'function' ? formatDateTime(user.last_login) : (user.last_login ? new Date(user.last_login).toLocaleString() : 'Never logged in');
     }
 
     const modal = document.getElementById('viewUserModal');

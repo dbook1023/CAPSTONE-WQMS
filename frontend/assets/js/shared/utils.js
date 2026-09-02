@@ -286,4 +286,43 @@ function showPhoneOtpModal(options) {
 
 window.showPhoneOtpModal = showPhoneOtpModal;
 
+/**
+ * Safely parse a date string from server (handles UTC ISO strings without Z)
+ * @param {string|Date} dateStr 
+ * @returns {Date|null}
+ */
+function parseServerDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    const trimmed = String(dateStr).trim();
+    if (!trimmed) return null;
+    const hasTimezone = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(trimmed);
+    const isIsoLocal = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(trimmed);
+    const isoString = (isIsoLocal && !hasTimezone) ? `${trimmed.replace(' ', 'T')}Z` : trimmed;
+    const dt = new Date(isoString);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+/**
+ * Format date string to local locale string with date and time
+ * @param {string|Date} dateStr 
+ * @returns {string}
+ */
+function formatDateTime(dateStr) {
+    const dt = parseServerDate(dateStr);
+    if (!dt) return 'Never logged in';
+    return dt.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+}
+
+window.parseServerDate = parseServerDate;
+window.formatDateTime = formatDateTime;
+
 
