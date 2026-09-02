@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Resend API Configuration
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
-RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Aqua Monitor <onboarding@resend.dev>')
+RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Aqua Monitor <noreply@wqms.tech>')
 
 # In-memory store for Password Reset Tokens: { token_str: { 'email': '...', 'portal_type': 'user', 'expires_at': datetime } }
 _reset_tokens = {}
