@@ -85,8 +85,8 @@ def apply_security_headers(response):
     csp = (
         "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
         "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' https:; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
         "img-src 'self' data: blob: https:; "
         "media-src 'self' data: blob: https:; "
         "connect-src 'self' https: wss: ws:; "
