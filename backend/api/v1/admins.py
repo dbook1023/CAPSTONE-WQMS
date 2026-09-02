@@ -23,9 +23,11 @@ def index():
 def store():
     """Create a new admin"""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         name = data.get('name')
         email = data.get('email')
+        password = data.get('password')
+
         if not name or not email:
             return api_error('Name and email are required', 400)
 
