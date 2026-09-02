@@ -420,8 +420,12 @@ async function submitForgotPasswordCode(portalType) {
         btn.textContent = 'Sending Code...';
     }
 
-    try {
-        const response = await API.auth.forgotPassword({ email, portal_type: portalType });
+    try:
+        const forgotFn = (window.API && window.API.auth && typeof window.API.auth.forgotPassword === 'function')
+            ? window.API.auth.forgotPassword
+            : (data) => window.API.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) });
+
+        const response = await forgotFn({ email, portal_type: portalType });
         if (msg) {
             msg.style.display = 'block';
             msg.style.color = '#14b8a6';
@@ -496,7 +500,11 @@ async function submitPasswordReset(portalType) {
     }
 
     try {
-        const response = await API.auth.resetPassword({
+        const resetFn = (window.API && window.API.auth && typeof window.API.auth.resetPassword === 'function')
+            ? window.API.auth.resetPassword
+            : (data) => window.API.request('/auth/reset-password', { method: 'POST', body: JSON.stringify(data) });
+
+        const response = await resetFn({
             email,
             code,
             new_password: newPassword,
