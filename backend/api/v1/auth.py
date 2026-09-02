@@ -56,11 +56,23 @@ def login():
                     # Lock expired, reset
                     _failed_attempts.pop(email, None)
 
+        from models import Admin
         if portal_type == 'admin':
-            from models import Admin
             user = db.query(Admin).filter(Admin.email == email).first()
+            if not user:
+                # Check if this email exists in User table
+                regular_user = db.query(User).filter(User.email == email).first()
+                if regular_user:
+                    db.close()
+                    return api_error('Access denied. This portal is for administrators only.', 403)
         else:
             user = db.query(User).filter(User.email == email).first()
+            if not user:
+                # Check if this email exists in Admin table
+                admin_user = db.query(Admin).filter(Admin.email == email).first()
+                if admin_user:
+                    db.close()
+                    return api_error('Administrators must use the admin portal to sign in.', 403)
 
         if user and user.check_password(password):
             # Password correct -> Reset failed attempts

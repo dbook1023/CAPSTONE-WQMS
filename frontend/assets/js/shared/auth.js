@@ -59,7 +59,7 @@ function checkSessionAndRedirect() {
     if (validAdmin) {
         redirectUser('admin');
     } else if (validUser) {
-        redirectUser('operator');
+        redirectUser('user');
     }
 }
 
