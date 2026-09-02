@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -121,7 +122,7 @@ def get_status():
             "system": "online",
             "last_sync": last_sync,
             "active_sensors": active_sensors,
-            "timestamp": os.popen('date /t').read().strip()
+            "timestamp": datetime.utcnow().isoformat()
         }, 'System status retrieved successfully')
     except Exception as e:
         return api_error(str(e), 500)
