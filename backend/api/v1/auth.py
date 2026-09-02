@@ -263,7 +263,7 @@ def verify_phone_otp_route():
 
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
-    """Generate and send a 6-digit OTP code to the requested email address via Resend API"""
+    """Generate a password reset token link and send via email"""
     try:
         data = request.get_json() or {}
         email = (data.get('email') or '').strip().lower()
@@ -280,7 +280,6 @@ def forgot_password():
             account = db.query(User).filter(User.email == email).first()
 
         if not account:
-            # Check the other table to see if user is on wrong portal
             from models import Admin
             alt_account = db.query(User if portal_type == 'admin' else Admin).filter((User if portal_type == 'admin' else Admin).email == email).first()
             db.close()
@@ -288,9 +287,10 @@ def forgot_password():
                 return api_error("This account belongs to the other portal. Please use the appropriate login page.", 400)
             return api_error('No account found with this email address.', 404)
 
-        from services.email_service import generate_password_reset_otp, send_password_reset_email
-        otp_code = generate_password_reset_otp(email, portal_type=portal_type)
-        res = send_password_reset_email(email, otp_code)
+        origin_url = request.headers.get('Origin') or request.headers.get('Referer') or 'https://wqms.tech'
+        from services.email_service import generate_password_reset_token, send_password_reset_email
+        reset_token = generate_password_reset_token(email, portal_type=portal_type)
+        res = send_password_reset_email(email, reset_token, portal_type=portal_type, origin_url=origin_url)
         db.close()
 
         masked = email[:3] + '***@' + email.split('@')[-1] if '@' in email else email
@@ -298,31 +298,54 @@ def forgot_password():
             'email': email,
             'masked_email': masked,
             'status': res.get('status')
-        }, f"A 6-digit verification code has been sent to {masked}. Please check your email inbox.")
+        }, f"A password reset link has been sent to {masked}. Please check your email inbox to reset your password.")
+    except Exception as e:
+        return api_error(str(e), 500)
+
+
+@auth_bp.route('/verify-reset-token', methods=['POST'])
+def verify_reset_token_route():
+    """Verify if a password reset token from email link is valid"""
+    try:
+        data = request.get_json() or {}
+        token = (data.get('token') or '').strip()
+
+        from services.email_service import verify_password_reset_token
+        is_valid, res = verify_password_reset_token(token)
+        if not is_valid:
+            return api_error(res, 400)
+
+        masked = res['email'][:3] + '***@' + res['email'].split('@')[-1] if '@' in res['email'] else res['email']
+        return api_success({
+            'valid': True,
+            'masked_email': masked,
+            'portal_type': res['portal_type']
+        }, 'Reset token is valid.')
     except Exception as e:
         return api_error(str(e), 500)
 
 
 @auth_bp.route('/reset-password', methods=['POST'])
 def reset_password():
-    """Verify the 6-digit OTP code and set a new password"""
+    """Verify the password reset token from email and set a new password"""
     try:
         data = request.get_json() or {}
-        email = (data.get('email') or '').strip().lower()
-        code = (data.get('code') or '').strip()
+        token = (data.get('token') or '').strip()
         new_password = (data.get('new_password') or '').strip()
-        portal_type = (data.get('portal_type') or 'user').strip().lower()
 
-        if not email or not code or not new_password:
-            return api_error('Email, verification code, and new password are required.', 400)
+        if not token or not new_password:
+            return api_error('Reset token and new password are required.', 400)
 
         if len(new_password) < 6:
             return api_error('New password must be at least 6 characters long.', 400)
 
-        from services.email_service import verify_password_reset_otp
-        is_valid, msg = verify_password_reset_otp(email, code)
+        from services.email_service import consume_password_reset_token
+        is_valid, msg, record = consume_password_reset_token(token)
         if not is_valid:
             return api_error(msg, 400)
+
+        email = record['email']
+        portal_type = record['portal_type']
 
         db = get_db()
         if portal_type == 'admin':

@@ -8,6 +8,7 @@ Handles sending emails via the Resend REST API for:
 import os
 import random
 import string
+import secrets
 import requests
 import logging
 from datetime import datetime, timedelta
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Aqua Monitor <onboarding@resend.dev>')
 
-# In-memory store for Password Reset OTPs: { email: { 'code': '123456', 'expires_at': datetime, 'portal_type': 'user' } }
-_reset_otps = {}
+# In-memory store for Password Reset Tokens: { token_str: { 'email': '...', 'portal_type': 'user', 'expires_at': datetime } }
+_reset_tokens = {}
 
 # In-memory store for Email Change OTPs: { "user_1": { 'new_email': '...', 'code': '123456', 'expires_at': datetime } }
 _email_change_otps = {}
@@ -76,34 +77,41 @@ def send_email(to_addresses, subject, html_content):
         return {'status': 'error', 'reason': error_msg}
 
 
-def generate_password_reset_otp(email, portal_type='user'):
-    """Generate a 6-digit numeric OTP valid for 15 minutes"""
-    code = ''.join(random.choices(string.digits, k=6))
-    _reset_otps[email.lower()] = {
-        'code': code,
-        'expires_at': datetime.utcnow() + timedelta(minutes=15),
-        'portal_type': portal_type
+def generate_password_reset_token(email, portal_type='user'):
+    """Generate a secure url-safe token valid for 30 minutes"""
+    token = secrets.token_urlsafe(32)
+    _reset_tokens[token] = {
+        'email': email.lower(),
+        'portal_type': portal_type,
+        'expires_at': datetime.utcnow() + timedelta(minutes=30)
     }
-    return code
+    return token
 
 
-def verify_password_reset_otp(email, code):
-    """Verify if the OTP code is valid and not expired"""
-    email_key = email.lower()
-    record = _reset_otps.get(email_key)
+def verify_password_reset_token(token):
+    """Verify if the token exists and is not expired"""
+    if not token:
+        return False, "Reset token is required."
+
+    record = _reset_tokens.get(token)
     if not record:
-        return False, "No password reset requested for this email."
+        return False, "This password reset link is invalid or has already been used."
 
     if datetime.utcnow() > record['expires_at']:
-        _reset_otps.pop(email_key, None)
-        return False, "Password reset code has expired. Please request a new code."
+        _reset_tokens.pop(token, None)
+        return False, "This password reset link has expired. Please request a new link."
 
-    if record['code'] != code.strip():
-        return False, "Invalid password reset code. Please check your email and try again."
+    return True, record
 
-    # OTP is valid — consume it
-    _reset_otps.pop(email_key, None)
-    return True, "Verification successful."
+
+def consume_password_reset_token(token):
+    """Validate and consume the token so it cannot be re-used"""
+    is_valid, res = verify_password_reset_token(token)
+    if not is_valid:
+        return False, res, None
+
+    record = _reset_tokens.pop(token, None)
+    return True, "Token valid.", record
 
 
 def generate_email_change_otp(entity_type, entity_id, new_email):
@@ -182,9 +190,18 @@ def send_email_change_otp(new_email, code):
 
 
 
-def send_password_reset_email(email, code):
-    """Send a stylized password reset OTP email to user or admin"""
-    subject = "Aqua Monitor - Password Reset Code"
+def send_password_reset_email(email, reset_token, portal_type='user', origin_url=None):
+    """Send a stylized email containing a secure password reset link"""
+    subject = "Aqua Monitor - Reset Your Password"
+    
+    # Determine base portal page
+    page = "admin-login.html" if portal_type == 'admin' else "login.html"
+    base = origin_url.rstrip('/') if origin_url else "https://wqms.tech"
+    if portal_type == 'admin' and not base.endswith('/frontend/admin'):
+        reset_link = f"{base}/frontend/admin/{page}?reset_token={reset_token}"
+    else:
+        reset_link = f"{base}/{page}?reset_token={reset_token}"
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -195,8 +212,9 @@ def send_password_reset_email(email, code):
             .container {{ max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }}
             .header {{ text-align: center; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9; }}
             .title {{ font-size: 22px; font-weight: 700; color: #0f172a; margin: 12px 0 4px; }}
-            .otp-box {{ background: #f0fdf4; border: 2px dashed #14b8a6; border-radius: 12px; text-align: center; padding: 20px; margin: 24px 0; }}
-            .otp-code {{ font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0d9488; font-family: monospace; }}
+            .btn-box {{ text-align: center; margin: 28px 0; }}
+            .reset-btn {{ display: inline-block; background: #14b8a6; color: #ffffff !important; font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.3); }}
+            .link-sub {{ font-size: 12px; color: #64748b; word-break: break-all; margin-top: 16px; line-height: 1.5; }}
             .footer {{ font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px; }}
         </style>
     </head>
@@ -206,13 +224,19 @@ def send_password_reset_email(email, code):
                 <h2 style="color: #14b8a6; margin:0;">💧 Aqua Monitor WQMS</h2>
                 <div class="title">Password Reset Request</div>
             </div>
-            <p>You requested to reset your password for your Aqua Monitor account (<strong>{email}</strong>).</p>
-            <p>Use the 6-digit verification code below to authorize your password reset:</p>
-            <div class="otp-box">
-                <div style="font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600;">Verification Code</div>
-                <div class="otp-code">{code}</div>
+            <p>A password reset was requested for your Aqua Monitor account (<strong>{email}</strong>).</p>
+            <p>Click the button below to open the secure password reset page and create a new password:</p>
+            
+            <div class="btn-box">
+                <a href="{reset_link}" target="_blank" class="reset-btn">Reset My Password</a>
             </div>
-            <p style="font-size: 13px; color: #64748b;">This code will expire in <strong>15 minutes</strong>. If you did not request a password reset, please ignore this email.</p>
+
+            <div class="link-sub">
+                If the button above does not work, copy and paste this link into your web browser:<br>
+                <a href="{reset_link}" style="color: #14b8a6;">{reset_link}</a>
+            </div>
+
+            <p style="font-size: 13px; color: #64748b; margin-top: 20px;">This secure link is valid for <strong>30 minutes</strong>. If you did not request a password reset, you can safely ignore this email.</p>
             <div class="footer">
                 &copy; 2026 Aqua Monitor - Water Quality Monitoring System. All rights reserved.
             </div>

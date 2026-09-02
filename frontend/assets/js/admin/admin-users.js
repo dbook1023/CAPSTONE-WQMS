@@ -357,14 +357,29 @@ async function handleUserSubmit() {
             }
             showNotification('Account updated successfully', 'success');
         } else {
-            // CREATE
-            payload.password = 'Password123!'; // Default for new accounts
+            // CREATE - Formula: "@" + FirstName + DateCreatedDay (e.g. @Steph02)
+            const cleanFirstName = firstName.replace(/[^a-zA-Z]/g, '') || 'User';
+            const formattedFirstName = cleanFirstName.charAt(0).toUpperCase() + cleanFirstName.slice(1);
+            const now = new Date();
+            const dayDD = String(now.getDate()).padStart(2, '0');
+            const defaultPassword = `@${formattedFirstName}${dayDD}`;
+
+            payload.password = defaultPassword;
             if (accountType === 'admin') {
                 await API.admins.create(payload);
             } else {
                 await API.users.create(payload);
             }
-            showNotification('Account created successfully', 'success');
+            
+            if (typeof showFeedbackModal === 'function') {
+                showFeedbackModal({
+                    type: 'info',
+                    title: 'Account Created Successfully',
+                    message: `Account created for ${firstName} ${lastName}.\n\nDefault Generated Password: ${defaultPassword}\n(Formula: @ + First Name + Date Created Day)`
+                });
+            } else {
+                showNotification(`Account created! Default Password: ${defaultPassword}`, 'success');
+            }
         }
         
         closeModal();

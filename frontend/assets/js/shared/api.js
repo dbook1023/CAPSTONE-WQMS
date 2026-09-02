@@ -90,6 +90,10 @@ const API = {
             method: 'POST',
             body: JSON.stringify(data)
         }),
+        verifyResetToken: (token) => API.request('/auth/verify-reset-token', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        }),
         resetPassword: (data) => API.request('/auth/reset-password', {
             method: 'POST',
             body: JSON.stringify(data)

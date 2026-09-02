@@ -27,11 +27,14 @@ def store():
         data = request.get_json()
         name = data.get('name')
         email = data.get('email')
-        password = data.get('password')
-        role_id = data.get('role_id', 2)  # Default to Operator
+        if not name or not email:
+            return api_error('Name and email are required', 400)
         
-        if not all([name, email, password]):
-            return api_error('Missing required fields', 400)
+        if not password:
+            first_name = name.split()[0] if name else 'User'
+            clean_fn = ''.join(c for c in first_name if c.isalpha()).title() or 'User'
+            day_dd = datetime.utcnow().strftime('%d')
+            password = f"@{clean_fn}{day_dd}"
         
         db = get_db()
         
