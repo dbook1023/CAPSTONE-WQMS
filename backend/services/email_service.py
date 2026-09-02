@@ -59,18 +59,21 @@ def send_email(to_addresses, subject, html_content):
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=15)
-        if response.status_code == 403 and 'only send testing emails' in response.text:
-            logger.info("Resend sandbox mode active. Delivering test email to registered owner (genmon024@gmail.com).")
-            payload['to'] = ['genmon024@gmail.com']
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
-
         response.raise_for_status()
         data = response.json()
-        logger.info(f"Email sent successfully via Resend to {payload['to']}")
+        logger.info(f"Email sent successfully via Resend to {to_addresses}")
         return {'status': 'sent', 'data': data}
     except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to send email via Resend: {e}")
-        return {'status': 'error', 'reason': str(e)}
+        error_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                err_json = e.response.json()
+                if 'message' in err_json:
+                    error_msg = err_json['message']
+            except Exception:
+                pass
+        logger.error(f"Failed to send email via Resend: {error_msg}")
+        return {'status': 'error', 'reason': error_msg}
 
 
 def generate_password_reset_otp(email, portal_type='user'):
