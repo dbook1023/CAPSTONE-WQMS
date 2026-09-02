@@ -1,5 +1,8 @@
-import eventlet
-eventlet.monkey_patch()
+try:
+    import eventlet
+    eventlet.monkey_patch()
+except (ImportError, AttributeError, ModuleNotFoundError):
+    pass
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
@@ -24,9 +27,21 @@ from api.v1.settings import settings_bp
 from api.v1.reports import reports_bp
 from api.v1.admins import admins_bp
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'wqms_secret_key_2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max payload for avatar uploads
+
+# Initialize Flask-Limiter for API rate limiting
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["600 per hour", "120 per minute"],
+    storage_uri="memory://"
+)
+app.limiter = limiter
 
 # Enable CORS for frontend integration
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -49,6 +64,10 @@ app.socketio = socketio
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
 
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return api_error(f"Rate limit exceeded: {e.description}. Please slow down and try again.", 429)
+
 @app.after_request
 def apply_security_headers(response):
     """Attach security HTTP response headers to protect against XSS, MIME-sniffing & Clickjacking"""
@@ -56,6 +75,19 @@ def apply_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Permissive Content Security Policy (allows trusted fonts, CDN scripts, images, videos & inline styles)
+    csp = (
+        "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
+        "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: blob: https:; "
+        "media-src 'self' data: blob: https:; "
+        "connect-src 'self' https: wss: ws:; "
+        "frame-ancestors 'self';"
+    )
+    response.headers['Content-Security-Policy'] = csp
     return response
 
 @app.route('/')
