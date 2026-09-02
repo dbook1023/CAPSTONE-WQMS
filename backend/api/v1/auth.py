@@ -78,8 +78,8 @@ def login():
             # Password correct -> Reset failed attempts
             _failed_attempts.pop(email, None)
 
-            # 2. Check Two-Factor Authentication (2FA) - Admin Accounts Only
-            if enable_2fa and portal_type == 'admin' and user.phone:
+            # 2. Check Two-Factor Authentication (2FA)
+            if enable_2fa and user.phone:
                 from services.sms_service import generate_and_send_phone_otp
                 otp_res = generate_and_send_phone_otp(user.phone, entity_type=portal_type, entity_id=user.id)
                 db.close()

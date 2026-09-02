@@ -110,6 +110,16 @@ async function fetchProfile() {
                 } else {
                     if (profilePreview) profilePreview.src = '../assets/images/default-avatar.jpg';
                 }
+
+                // Load 2FA status
+                const toggleUser2FAElement = document.getElementById('toggleUser2FA');
+                if (toggleUser2FAElement && typeof API !== 'undefined' && API.settings) {
+                    try {
+                        const settings = await API.settings.getAll();
+                        const is2FA = settings && settings.enable_2fa !== 'false';
+                        toggleUser2FAElement.classList.toggle('on', is2FA);
+                    } catch (e) {}
+                }
             }
         } else {
             if (profilePreview && session.avatar) {
@@ -342,6 +352,39 @@ function removeProfilePhoto() {
         tempAvatarData = 'REMOVE';
     }
 }
+
+async function toggleUser2FA(element) {
+    if (!element) return;
+    const sessionStr = localStorage.getItem('aqua_monitor_user_session');
+    if (!sessionStr) return;
+    const session = JSON.parse(sessionStr);
+    const userId = session.id;
+
+    try {
+        const user = await API.users.getOne(userId);
+        if (!user || !user.phone) {
+            showFeedbackModal({
+                type: 'error',
+                title: 'Mobile Phone Number Required',
+                message: 'Please add and save a valid 11-digit mobile phone number in your Profile settings first before enabling 2FA.'
+            });
+            return;
+        }
+
+        const currentState = element.classList.contains('on');
+        const newState = !currentState;
+
+        element.classList.toggle('on', newState);
+
+        await API.settings.update({ enable_2fa: newState ? 'true' : 'false' });
+        showToast(`Two-Factor Authentication ${newState ? 'enabled' : 'disabled'}`, 'success');
+    } catch (err) {
+        element.classList.toggle('on', element.classList.contains('on'));
+        showFeedbackModal({ type: 'error', title: '2FA Update Failed', message: err.message || 'Failed to update 2FA setting.' });
+    }
+}
+
+window.toggleUser2FA = toggleUser2FA;
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

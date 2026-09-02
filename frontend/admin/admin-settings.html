@@ -99,13 +99,25 @@
                         <div class="toggle-row">
                             <div class="toggle-info">
                                 <h4>Session Timeout</h4>
-                                <p>Automatically log out inactive sessions after 1 minute</p>
+                                <p>Automatically log out inactive accounts when idle or passive</p>
                             </div>
                             <div class="toggle-wrap on" id="toggleSessionTimeout" onclick="toggleSecuritySetting('session_timeout_enabled', this)">
                                 <div class="toggle-track">
                                     <div class="toggle-thumb"></div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="toggle-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                            <div class="toggle-info">
+                                <h4>Inactivity Timeout Duration</h4>
+                                <p>Select how long the account can remain passive before auto-logout</p>
+                            </div>
+                            <select id="sessionTimeoutDuration" class="field-input" style="width: auto; min-width: 130px; padding: 6px 12px; border-radius: 8px;" onchange="updateSessionTimeoutDuration(this.value)">
+                                <option value="1">1 Minute</option>
+                                <option value="5">5 Minutes</option>
+                                <option value="15">15 Minutes</option>
+                                <option value="30">30 Minutes</option>
+                            </select>
                         </div>
                         <div class="toggle-row">
                             <div class="toggle-info">

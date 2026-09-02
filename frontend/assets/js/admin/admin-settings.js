@@ -532,6 +532,7 @@ async function fetchSecuritySettings() {
         const toggle2FA = document.getElementById('toggle2FA');
         const toggleSessionTimeout = document.getElementById('toggleSessionTimeout');
         const toggleLoginLimit = document.getElementById('toggleLoginLimit');
+        const durationSelect = document.getElementById('sessionTimeoutDuration');
 
         if (toggle2FA) {
             const is2FA = settings.enable_2fa !== 'false';
@@ -545,8 +546,20 @@ async function fetchSecuritySettings() {
             const isLimit = settings.login_limit_enabled !== 'false';
             toggleLoginLimit.classList.toggle('on', isLimit);
         }
+        if (durationSelect && settings.session_timeout_duration) {
+            durationSelect.value = settings.session_timeout_duration;
+        }
     } catch (e) {
         console.error('Failed to fetch security settings:', e);
+    }
+}
+
+async function updateSessionTimeoutDuration(val) {
+    try {
+        await API.settings.update({ session_timeout_duration: String(val) });
+        showToast(`Inactivity session timeout set to ${val} minute(s)`, 'success');
+    } catch (err) {
+        showToast(`Failed to update timeout duration: ${err.message}`, 'error');
     }
 }
 
@@ -573,4 +586,5 @@ async function toggleSecuritySetting(key, element) {
 }
 
 window.toggleSecuritySetting = toggleSecuritySetting;
+window.updateSessionTimeoutDuration = updateSessionTimeoutDuration;
 

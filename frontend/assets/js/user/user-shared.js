@@ -59,14 +59,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 function initSessionTimeoutTracker() {
     let inactivityTimer = null;
-    const INACTIVITY_LIMIT_MS = 1 * 60 * 1000; // 1 minute inactivity limit
 
     async function checkTimeoutEnabled() {
         try {
             if (typeof API !== 'undefined' && API.settings) {
                 const settings = await API.settings.getAll();
-                const enabled = !settings || settings.session_timeout_enabled === 'true';
+                const enabled = !settings || settings.session_timeout_enabled !== 'false';
                 if (!enabled) return;
+
+                const durationMins = parseInt(settings.session_timeout_duration || '1') || 1;
+                const limitMs = durationMins * 60 * 1000;
+
+                const resetTimer = () => {
+                    if (inactivityTimer) clearTimeout(inactivityTimer);
+                    inactivityTimer = setTimeout(triggerLogout, limitMs);
+                };
 
                 resetTimer();
 
@@ -78,29 +85,24 @@ function initSessionTimeoutTracker() {
         }
     }
 
-    function resetTimer() {
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(triggerLogout, INACTIVITY_LIMIT_MS);
-    }
-
     function triggerLogout() {
         if (typeof showFeedbackModal === 'function') {
             showFeedbackModal({
                 type: 'warning',
                 title: 'Session Expired',
-                message: 'Your session has expired due to inactivity. Please sign in again.',
+                message: 'Your account session has expired due to inactivity. Please sign in again.',
                 onConfirm: () => {
                     if (typeof logout === 'function') logout();
-                    else window.location.href = '../login.html';
+                    else window.location.href = '../../login.html';
                 }
             });
             setTimeout(() => {
                 if (typeof logout === 'function') logout();
-                else window.location.href = '../login.html';
-            }, 4000);
+                else window.location.href = '../../login.html';
+            }, 3000);
         } else {
             if (typeof logout === 'function') logout();
-            else window.location.href = '../login.html';
+            else window.location.href = '../../login.html';
         }
     }
 
