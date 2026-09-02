@@ -223,11 +223,17 @@ def save_report():
         db.commit()
         db.refresh(report)
 
-        # Notify admins via SMS (fire-and-forget; failure won't affect the response)
+        # Notify admins via SMS & Resend Email (fire-and-forget; failure won't affect the response)
         try:
             notify_admins_report_submitted(db, report, fountain, user)
         except Exception as sms_err:
             print(f'SMS notification failed (non-blocking): {sms_err}')
+
+        try:
+            from services.email_service import notify_admins_report_submitted_email
+            notify_admins_report_submitted_email(db, report, fountain, user)
+        except Exception as email_err:
+            print(f'Resend Email notification failed (non-blocking): {email_err}')
         
         return jsonify({
             'status': 'success',

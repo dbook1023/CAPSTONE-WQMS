@@ -260,3 +260,87 @@ def verify_phone_otp_route():
     except Exception as e:
         return api_error(str(e), 500)
 
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Generate and send a 6-digit OTP code to the requested email address via Resend API"""
+    try:
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip().lower()
+        portal_type = (data.get('portal_type') or 'user').strip().lower()
+
+        if not email:
+            return api_error('Email address is required', 400)
+
+        db = get_db()
+        if portal_type == 'admin':
+            from models import Admin
+            account = db.query(Admin).filter(Admin.email == email).first()
+        else:
+            account = db.query(User).filter(User.email == email).first()
+
+        if not account:
+            # Check the other table to see if user is on wrong portal
+            from models import Admin
+            alt_account = db.query(User if portal_type == 'admin' else Admin).filter((User if portal_type == 'admin' else Admin).email == email).first()
+            db.close()
+            if alt_account:
+                return api_error("This account belongs to the other portal. Please use the appropriate login page.", 400)
+            return api_error('No account found with this email address.', 404)
+
+        from services.email_service import generate_password_reset_otp, send_password_reset_email
+        otp_code = generate_password_reset_otp(email, portal_type=portal_type)
+        res = send_password_reset_email(email, otp_code)
+        db.close()
+
+        masked = email[:3] + '***@' + email.split('@')[-1] if '@' in email else email
+        return api_success({
+            'email': email,
+            'masked_email': masked,
+            'status': res.get('status')
+        }, f"A 6-digit verification code has been sent to {masked}. Please check your email inbox.")
+    except Exception as e:
+        return api_error(str(e), 500)
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Verify the 6-digit OTP code and set a new password"""
+    try:
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip().lower()
+        code = (data.get('code') or '').strip()
+        new_password = (data.get('new_password') or '').strip()
+        portal_type = (data.get('portal_type') or 'user').strip().lower()
+
+        if not email or not code or not new_password:
+            return api_error('Email, verification code, and new password are required.', 400)
+
+        if len(new_password) < 6:
+            return api_error('New password must be at least 6 characters long.', 400)
+
+        from services.email_service import verify_password_reset_otp
+        is_valid, msg = verify_password_reset_otp(email, code)
+        if not is_valid:
+            return api_error(msg, 400)
+
+        db = get_db()
+        if portal_type == 'admin':
+            from models import Admin
+            account = db.query(Admin).filter(Admin.email == email).first()
+        else:
+            account = db.query(User).filter(User.email == email).first()
+
+        if not account:
+            db.close()
+            return api_error('Account not found.', 404)
+
+        account.set_password(new_password)
+        db.commit()
+        db.close()
+
+        return api_success({'reset': True}, 'Password reset successful! You can now log in with your new password.')
+    except Exception as e:
+        return api_error(str(e), 500)
+
+

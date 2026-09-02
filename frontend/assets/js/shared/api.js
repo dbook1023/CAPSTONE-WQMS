@@ -85,6 +85,14 @@ const API = {
         verify2faLogin: (data) => API.request('/auth/verify-2fa-login', {
             method: 'POST',
             body: JSON.stringify(data)
+        }),
+        forgotPassword: (data) => API.request('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+        resetPassword: (data) => API.request('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(data)
         })
     },
 

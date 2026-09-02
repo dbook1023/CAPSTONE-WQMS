@@ -280,7 +280,7 @@ function togglePassword(inputId) {
     }
 }
 
-// Add animation styles for spinner
+// Add animation styles for spinner and forgot password modal
 const style = document.createElement('style');
 style.textContent = `
     .animate-spin {
@@ -290,5 +290,251 @@ style.textContent = `
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
+    .forgot-modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center; z-index: 99999;
+        opacity: 0; visibility: hidden; transition: all 0.25s ease;
+    }
+    .forgot-modal-overlay.open { opacity: 1; visibility: visible; }
+    .forgot-modal-card {
+        background: #ffffff; border-radius: 20px; width: 90%; max-width: 440px;
+        padding: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        position: relative; font-family: 'Inter', sans-serif;
+    }
 `;
 document.head.appendChild(style);
+
+/**
+ * Open Forgot Password Modal for specified portal (user or admin)
+ */
+function showForgotPasswordModal(portalType = 'user') {
+    let overlay = document.getElementById('forgotPasswordModalOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'forgotPasswordModalOverlay';
+        overlay.className = 'forgot-modal-overlay';
+        overlay.innerHTML = `
+            <div class="forgot-modal-card">
+                <button type="button" onclick="closeForgotPasswordModal()" style="position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+
+                <div id="forgotStep1">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 48px; height: 48px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 6px;">Reset Your Password</h3>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">Enter your account email to receive a 6-digit verification code via email.</p>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">Account Email Address</label>
+                        <input type="email" id="forgotEmailInput" placeholder="name@olfu.edu.ph" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; box-sizing: border-box;">
+                    </div>
+
+                    <div id="forgotStep1Msg" style="margin-bottom: 12px; font-size: 13px; display: none;"></div>
+
+                    <button type="button" id="sendForgotCodeBtn" onclick="submitForgotPasswordCode('${portalType}')" style="width: 100%; padding: 12px; background: #14b8a6; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer;">
+                        Send Verification Code
+                    </button>
+                </div>
+
+                <div id="forgotStep2" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 48px; height: 48px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 6px;">Enter Verification Code</h3>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;" id="forgotStep2Subtitle">Check your email for the 6-digit verification code.</p>
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">6-Digit OTP Code</label>
+                        <input type="text" id="forgotOtpCode" maxlength="6" placeholder="e.g. 123456" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; letter-spacing: 4px; text-align: center; outline: none; box-sizing: border-box;">
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">New Password</label>
+                        <input type="password" id="forgotNewPassword" placeholder="Minimum 6 characters" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; box-sizing: border-box;">
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">Confirm New Password</label>
+                        <input type="password" id="forgotConfirmPassword" placeholder="Re-enter new password" style="width: 100%; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; box-sizing: border-box;">
+                    </div>
+
+                    <div id="forgotStep2Msg" style="margin-bottom: 12px; font-size: 13px; display: none;"></div>
+
+                    <button type="button" id="confirmResetBtn" onclick="submitPasswordReset('${portalType}')" style="width: 100%; padding: 12px; background: #14b8a6; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer;">
+                        Reset Password
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Pre-fill email from login form if filled
+    const currentEmailInput = document.getElementById(portalType === 'admin' ? 'adminEmail' : 'email');
+    const forgotEmailInput = document.getElementById('forgotEmailInput');
+    if (forgotEmailInput && currentEmailInput && currentEmailInput.value) {
+        forgotEmailInput.value = currentEmailInput.value.trim();
+    }
+
+    // Reset view to Step 1
+    document.getElementById('forgotStep1').style.display = 'block';
+    document.getElementById('forgotStep2').style.display = 'none';
+    const msg1 = document.getElementById('forgotStep1Msg');
+    const msg2 = document.getElementById('forgotStep2Msg');
+    if (msg1) msg1.style.display = 'none';
+    if (msg2) msg2.style.display = 'none';
+
+    overlay.classList.add('open');
+}
+
+function closeForgotPasswordModal() {
+    const overlay = document.getElementById('forgotPasswordModalOverlay');
+    if (overlay) overlay.classList.remove('open');
+}
+
+async function submitForgotPasswordCode(portalType) {
+    const emailInput = document.getElementById('forgotEmailInput');
+    const btn = document.getElementById('sendForgotCodeBtn');
+    const msg = document.getElementById('forgotStep1Msg');
+
+    if (!emailInput || !emailInput.value.trim()) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = 'Please enter your account email address.';
+        }
+        return;
+    }
+
+    const email = emailInput.value.trim();
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Sending Code...';
+    }
+
+    try {
+        const response = await API.auth.forgotPassword({ email, portal_type: portalType });
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#14b8a6';
+            msg.textContent = response.message || 'Verification code sent!';
+        }
+
+        setTimeout(() => {
+            document.getElementById('forgotStep1').style.display = 'none';
+            document.getElementById('forgotStep2').style.display = 'block';
+            const subtitle = document.getElementById('forgotStep2Subtitle');
+            if (subtitle) {
+                subtitle.textContent = `A 6-digit code was sent to ${response.masked_email || email}`;
+            }
+        }, 1200);
+    } catch (err) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = err.message || 'Failed to send verification code.';
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Send Verification Code';
+        }
+    }
+}
+
+async function submitPasswordReset(portalType) {
+    const emailInput = document.getElementById('forgotEmailInput');
+    const otpInput = document.getElementById('forgotOtpCode');
+    const newPassInput = document.getElementById('forgotNewPassword');
+    const confirmPassInput = document.getElementById('forgotConfirmPassword');
+    const btn = document.getElementById('confirmResetBtn');
+    const msg = document.getElementById('forgotStep2Msg');
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    const code = otpInput ? otpInput.value.trim() : '';
+    const newPassword = newPassInput ? newPassInput.value.trim() : '';
+    const confirmPassword = confirmPassInput ? confirmPassInput.value.trim() : '';
+
+    if (!code || !newPassword || !confirmPassword) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = 'Please fill in all fields.';
+        }
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = 'New passwords do not match.';
+        }
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = 'Password must be at least 6 characters long.';
+        }
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Resetting Password...';
+    }
+
+    try {
+        const response = await API.auth.resetPassword({
+            email,
+            code,
+            new_password: newPassword,
+            portal_type: portalType
+        });
+
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#14b8a6';
+            msg.textContent = response.message || 'Password reset successfully!';
+        }
+
+        setTimeout(() => {
+            closeForgotPasswordModal();
+            showMessage('Password reset successful! Please sign in with your new password.', 'success');
+        }, 1500);
+    } catch (err) {
+        if (msg) {
+            msg.style.display = 'block';
+            msg.style.color = '#ef4444';
+            msg.textContent = err.message || 'Failed to reset password.';
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Reset Password';
+        }
+    }
+}
+
+// Bind click event listeners to forgot-password links on load
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.forgot-password').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isAdminPage = window.location.pathname.includes('admin');
+            showForgotPasswordModal(isAdminPage ? 'admin' : 'user');
+        });
+    });
+});
+
