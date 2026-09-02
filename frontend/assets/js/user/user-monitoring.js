@@ -21,6 +21,7 @@ let restPollInterval = null;
 let lastProcessedTimeMs = Date.now();
 let sessionStartTimeMs = Date.now();
 let currentVirtualTimeMs = Date.now();
+let maxLiveTimestampMs = 0;
 
 
 function getOrdinalIndicator(n) {
@@ -245,20 +246,27 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
 }
 
 function processLiveReading(latest) {
+    if (!latest) return;
+
     // 1. Ignore persisted database snapshots from overwriting active live telemetry!
-    if (latest && (latest._persisted || latest.source === 'user_snapshot' || latest.persist === true || latest.persist === 'true')) {
+    if (latest._persisted || latest.source === 'user_snapshot' || latest.persist === true || latest.persist === 'true') {
         console.log('[Monitoring] Ignored persisted database snapshot from overwriting live stream.');
         return;
     }
 
-    // 2. Check reading timestamp freshness:
-    // Ignore historical database logs generated before the current test session started!
-    if (latest && latest.timestamp && isReading) {
-        const readingTimeMs = new Date(latest.timestamp).getTime();
-        if (!isNaN(readingTimeMs) && readingTimeMs < (sessionStartTimeMs - 5000)) {
+    // 2. Check reading timestamp freshness & enforce monotonic forward time progression:
+    const readingTimeMs = latest.timestamp ? new Date(latest.timestamp).getTime() : Date.now();
+    if (!isNaN(readingTimeMs)) {
+        if (readingTimeMs < (sessionStartTimeMs - 5000)) {
             console.log(`[Monitoring] Ignored reading from previous test session (Timestamp: ${latest.timestamp})`);
             return;
         }
+        // Never allow older database logs or delayed packets to roll back the live stream!
+        if (maxLiveTimestampMs > 0 && readingTimeMs < maxLiveTimestampMs) {
+            console.log(`[Monitoring] Ignored older reading (Timestamp: ${latest.timestamp} vs Max: ${new Date(maxLiveTimestampMs).toISOString()})`);
+            return;
+        }
+        maxLiveTimestampMs = readingTimeMs;
     }
 
     // 3. If this reading is from our selected fountain:
@@ -302,13 +310,17 @@ function processLiveReading(latest) {
 
 /**
  * REST API Polling Fallback
- * Guarantees fresh data even when the WebSocket long-polling transport drops.
- * With async_mode='threading', Flask-SocketIO uses HTTP long-polling (NOT real WebSocket),
- * which can silently stall under Werkzeug's limited thread pool.
- * This function polls /sensors/latest every 10 seconds as a safety net.
+ * Only polls if WebSocket connection is silent for >15 seconds.
  */
 async function pollLatestReading() {
     if (!isReading || !selectedFountain) return;
+
+    // Only poll REST fallback if WebSocket has been silent for >15s
+    const idleSeconds = (Date.now() - lastProcessedTimeMs) / 1000;
+    if (socket && socket.connected && idleSeconds < 15) {
+        return;
+    }
+
     try {
         const latestArr = await API.sensors.getLatest();
         if (!latestArr || latestArr.length === 0) return;
@@ -316,12 +328,12 @@ async function pollLatestReading() {
         const match = latestArr.find(r => r.fountain_id == selectedFountain.id);
         if (match && match.timestamp) {
             // Skip database records that are persisted snapshots
-            if (match._persisted || match.source === 'user_snapshot') {
+            if (match._persisted || match.source === 'user_snapshot' || match.persist === true || match.persist === 'true') {
                 return;
             }
             const readingTimeMs = new Date(match.timestamp).getTime();
-            // Only process polled reading if it was created during the current test session!
-            if (!isNaN(readingTimeMs) && readingTimeMs >= (sessionStartTimeMs - 5000)) {
+            // Only process polled reading if it is NEWER than maxLiveTimestampMs!
+            if (!isNaN(readingTimeMs) && readingTimeMs > maxLiveTimestampMs && readingTimeMs >= (sessionStartTimeMs - 5000)) {
                 console.log('[REST Fallback] Polled fresh reading for fountain', selectedFountain.id);
                 processLiveReading(match);
             }
@@ -1653,6 +1665,7 @@ function startReading() {
     lastProcessedTimeMs = Date.now();
     sessionStartTimeMs = Date.now();
     currentVirtualTimeMs = Date.now();
+    maxLiveTimestampMs = 0;
     updateComparisonTable();
 
     // Reset latest telemetry
