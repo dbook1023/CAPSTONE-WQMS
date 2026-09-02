@@ -94,12 +94,12 @@ function handleLogin(event, portalType) {
     const completeLogin = (user) => {
         const role = (user.role_name || '').toLowerCase();
         
-        if (portalType === 'admin' && role !== 'admin') {
+        if (portalType === 'admin' && !role.includes('admin')) {
             showMessage('Access denied. This portal is for administrators only.', 'error');
             setLoading(false, portalType);
             return;
         }
-        if (portalType === 'user' && role === 'admin') {
+        if (portalType === 'user' && role.includes('admin')) {
             showMessage('Administrators must use the admin portal to sign in.', 'error');
             setLoading(false, portalType);
             return;
@@ -110,16 +110,17 @@ function handleLogin(event, portalType) {
         const sessionData = {
             id: user.id,
             email: user.email,
-            role: user.role_name,
+            role: user.role_name || 'User',
             name: user.name,
             avatar: user.avatar,
             loginTime: new Date().toISOString()
         };
-        const sessionKey = role === 'admin' ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';
+        const isAdmin = role.includes('admin');
+        const sessionKey = isAdmin ? 'aqua_monitor_admin_session' : 'aqua_monitor_user_session';
         localStorage.setItem(sessionKey, JSON.stringify(sessionData));
         
         setTimeout(() => {
-            redirectUser(role === 'admin' ? 'admin' : 'operator');
+            redirectUser(isAdmin ? 'admin' : 'user');
         }, 1000);
     };
 

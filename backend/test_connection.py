@@ -3,11 +3,15 @@
 Test database connection and display table information
 """
 
-from dotenv import load_dotenv
+import sys
 import os
-from models import SessionLocal, User, Fountain, Sensor, SensorLog, Alert, Role
+from dotenv import load_dotenv
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 load_dotenv()
+from models import SessionLocal, User, Fountain, Sensor, SensorLog, Alert, Role
 
 print("=" * 60)
 print("🧪 WQMS DATABASE CONNECTION TEST")

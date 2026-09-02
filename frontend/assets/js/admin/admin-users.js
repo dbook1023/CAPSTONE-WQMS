@@ -183,7 +183,7 @@ function renderUsers(data, page = 1) {
             </td>
             <td><div class="email-cell">${esc(u.email)}</div></td>
             <td>${esc(u.branch || 'General')}</td>
-            <td><span class="role-badge ${esc((u.role_name||'operator').toLowerCase())}">${esc(u.role_name || 'Operator')}</span></td>
+            <td><span class="role-badge ${u.is_admin_record ? 'admin' : 'user'}">${u.is_admin_record ? 'Admin' : 'User'}</span></td>
             <td><span class="status-badge ${esc((u.status||'').toLowerCase())}">${esc(u.status || '')}</span></td>
             <td>${u.last_login ? new Date(u.last_login).toLocaleDateString() : 'Never'}</td>
             <td>
@@ -567,8 +567,8 @@ window.handleUserSubmit = handleUserSubmit;
 window.openAddModal = openAddModal;
 
 function updateRoleStats(data) {
-    const admins = data.filter(u => u.role_id === 1).length;
-    const operators = data.filter(u => u.role_id === 2).length;
+    const admins = data.filter(u => u.is_admin_record || u.role_id === 1).length;
+    const standardUsers = data.filter(u => !u.is_admin_record && u.role_id !== 1).length;
     const inactive = data.filter(u => {
         const status = (u.status || '').toLowerCase();
         return status === 'inactive' || status === 'suspended';
@@ -577,7 +577,7 @@ function updateRoleStats(data) {
     const cards = document.querySelectorAll('.role-count');
     if (cards.length >= 3) {
         cards[0].textContent = admins;
-        cards[1].textContent = operators;
+        cards[1].textContent = standardUsers;
         cards[2].textContent = inactive;
     }
 }

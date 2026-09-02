@@ -13,14 +13,12 @@ db = SessionLocal()
 # 0. Seed default roles if roles table is empty
 if db.query(Role).count() == 0:
     default_roles = [
-        Role(id=1, role_name='Super Admin', permissions={"all": True}, description='Full System Control'),
-        Role(id=2, role_name='Admin', permissions={"manage": True}, description='Administrative Access'),
-        Role(id=3, role_name='Technician', permissions={"hardware": True}, description='Sensor Maintenance'),
-        Role(id=4, role_name='User', permissions={"read": True}, description='Standard Monitoring Access')
+        Role(id=1, role_name='Admin', permissions={"all": True}, description='Administrative Access'),
+        Role(id=2, role_name='User', permissions={"read": True}, description='Standard Monitoring Access')
     ]
     db.add_all(default_roles)
     db.commit()
-    print("Seeded default roles (Super Admin, Admin, Technician, User)")
+    print("Seeded default roles (Admin, User)")
 
 # 1. Seed admin into the separate admins table
 admin = db.query(Admin).filter(Admin.email == 'admin@olfu.edu.ph').first()
@@ -36,12 +34,14 @@ else:
 # 2. Add a regular user into the users table
 existing_user = db.query(User).filter(User.email == 'user@olfu.edu.ph').first()
 if not existing_user:
-    user = User(name='Regular User', email='user@olfu.edu.ph', role_id=4, phone='09171234567', status='Active')
+    user = User(name='Regular User', email='user@olfu.edu.ph', role_id=2, phone='09171234567', status='Active')
     user.set_password('user123')
     db.add(user)
     print("Created regular user: user@olfu.edu.ph / user123")
 else:
-    print("Regular user already exists")
+    existing_user.role_id = 2
+    db.commit()
+    print("Regular user updated to role_id=2 (User)")
 
 # 3. Update existing fountain with display_id
 f1 = db.query(Fountain).filter(Fountain.id == 1).first()

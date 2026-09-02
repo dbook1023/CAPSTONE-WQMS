@@ -68,9 +68,9 @@
                 <div class="role-icon">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
-                <div class="role-label">System Operators</div>
+                <div class="role-label">Standard Users</div>
                 <div class="role-count">--</div>
-                <div class="role-sub">Real-time monitoring & calibration</div>
+                <div class="role-sub">Campus water quality monitoring access</div>
             </div>
             <div class="role-card orange">
                 <div class="role-icon">
@@ -97,24 +97,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Injected by JS -->
+                    <!-- Loaded dynamically -->
                 </tbody>
             </table>
         </div>
         <div class="table-footer">
-            <div class="table-info">
-                Showing <span>1</span> to <span>5</span> of <span>12</span> entries
-            </div>
+            <div class="table-info">Showing <span>0</span> to <span>0</span> of <span>0</span> entries</div>
             <div class="pagination">
-                <button class="pg-btn disabled">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <button class="pg-btn active">1</button>
-                <button class="pg-btn">2</button>
-                <button class="pg-btn">3</button>
-                <button class="pg-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
+                <!-- Pagination buttons inserted by JS -->
             </div>
         </div>
         <!-- RECENT ACTIVITY LOG -->
@@ -134,39 +124,56 @@
 <div class="modal-overlay" id="addModal">
     <div class="modal">
         <div class="modal-header">
-            <h2 id="modalTitle">Add New User</h2>
-            <p id="modalDesc">Fill in the details to create a new user account.</p>
+            <div>
+                <h2 id="modalTitle">Create New Account</h2>
+                <p id="modalDesc">Add a new user or administrator to the monitoring system.</p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="editUserId">
-            <!-- Account Type: first field so the admin knows which form to fill -->
-            <div class="form-group" id="accountTypeGroup" style="margin-bottom: 16px;">
+            <div class="form-group" style="margin-bottom: 16px;">
                 <label>Account Type <span style="color: #ef4444;">*</span></label>
                 <select id="accountTypeSelect" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
-                    <option value="user" selected>User (System Operator)</option>
-                    <option value="admin">Administrator</option>
+                    <option value="user" selected>User Account</option>
+                    <option value="admin">Administrator Account</option>
                 </select>
             </div>
-            <div class="form-group" id="modalIdGroup" style="margin-bottom: 16px;">
-                <label id="modalIdLabel" style="font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 6px; display: block;">User ID</label>
-                <input type="text" id="modalUserId" readonly placeholder="Auto-generated" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: #f8fafc; color: #64748b; cursor: not-allowed; outline: none; box-sizing: border-box;">
-            </div>
             <div class="form-row">
-                <div class="form-group"><label>First Name <span style="color: #ef4444;">*</span></label><input type="text" id="firstName" placeholder="e.g. John"></div>
-                <div class="form-group"><label>Last Name <span style="color: #ef4444;">*</span></label><input type="text" id="lastName" placeholder="e.g. Doe"></div>
+                <div class="form-group">
+                    <label>First Name <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="firstName" placeholder="e.g. Juan">
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="lastName" placeholder="e.g. Dela Cruz">
+                </div>
             </div>
-            <div class="form-group"><label>Email Address <span style="color: #ef4444;">*</span></label><input type="email" id="email" placeholder="user@olfu.edu.ph"></div>
+            <div class="form-group">
+                <label>Email Address <span style="color: #ef4444;">*</span></label>
+                <input type="email" id="email" placeholder="e.g. user@olfu.edu.ph">
+            </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Engineering Branch</label>
                     <select id="branch" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
-                        <option value="General" data-code="GEN">General</option>
-                        <option value="Polution Control" data-code="PCO">Polution Control</option>
-                        <option value="Maintenance" data-code="MNT">Maintenance</option>
+                        <option value="General" data-code="GEN" selected>General Engineering</option>
+                        <option value="Valenzuela Main Campus" data-code="VMC">Valenzuela Main Campus</option>
+                        <option value="Quezon City Campus" data-code="QCC">Quezon City Campus</option>
+                        <option value="Antipolo Campus" data-code="APC">Antipolo Campus</option>
+                        <option value="Pampanga Campus" data-code="PPC">Pampanga Campus</option>
+                        <option value="Cabanatuan Campus" data-code="CBC">Cabanatuan Campus</option>
+                        <option value="Laguna Campus" data-code="LGC">Laguna Campus</option>
                         <option value="__custom__">+ Add Custom Branch...</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Branch Code</label><input type="text" id="branchCode" placeholder="e.g. EE-01" readonly></div>
+                <div class="form-group">
+                    <label id="modalIdLabel">User ID</label>
+                    <input type="text" id="modalUserId" readonly placeholder="Auto-generated" style="background: #f8fafc; color: #64748b; cursor: not-allowed;">
+                    <input type="hidden" id="branchCode" value="GEN">
+                </div>
             </div>
             <div class="form-group" id="jobTitleGroup" style="display: none; margin-bottom: 16px;">
                 <label>Job Title</label>
@@ -175,10 +182,7 @@
             <div class="form-group" id="roleGroup" style="margin-bottom: 16px;">
                 <label>System Role <span style="color: #ef4444;">*</span></label>
                 <select id="roleSelect" style="width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; background: #fff; box-sizing: border-box;">
-                    <option value="" disabled selected>Select a role...</option>
-                    <option value="2">Operator</option>
-                    <option value="3">Technician</option>
-                    <option value="4">Viewer</option>
+                    <option value="4" selected>User</option>
                 </select>
             </div>
         </div>
