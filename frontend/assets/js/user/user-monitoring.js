@@ -246,7 +246,7 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
 
 function processLiveReading(latest) {
     // 1. Ignore persisted database snapshots from overwriting active live telemetry!
-    if (latest && (latest._persisted || latest.source === 'user_snapshot')) {
+    if (latest && (latest._persisted || latest.source === 'user_snapshot' || latest.persist === true || latest.persist === 'true')) {
         console.log('[Monitoring] Ignored persisted database snapshot from overwriting live stream.');
         return;
     }
@@ -1818,9 +1818,7 @@ function closeSelectionModal() {
 function buildCurrentReadingSnapshot() {
     let reading = null;
 
-    if (sessionSnapshots.length > 0) {
-        reading = sessionSnapshots[0];
-    } else if (
+    if (
         latestTelemetry.ph !== null && !isNaN(latestTelemetry.ph) &&
         latestTelemetry.turbidity !== null && !isNaN(latestTelemetry.turbidity) &&
         latestTelemetry.temperature !== null && !isNaN(latestTelemetry.temperature) &&
@@ -1833,6 +1831,8 @@ function buildCurrentReadingSnapshot() {
             temperature: latestTelemetry.temperature,
             tds: latestTelemetry.tds
         };
+    } else if (sessionSnapshots.length > 0) {
+        reading = sessionSnapshots[0];
     }
 
     if (!reading) return null;
