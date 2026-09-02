@@ -456,7 +456,12 @@ function openAddModal() {
     if (roleGroup) roleGroup.style.display = 'block';
     
     document.getElementById('jobTitle').value = '';
-    document.getElementById('roleSelect').value = '';
+    const roleSelect = document.getElementById('roleSelect');
+    if (roleSelect) {
+        if (!roleSelect.value || roleSelect.value === '') {
+            roleSelect.value = '2';
+        }
+    }
     
     document.getElementById('saveUserBtn').textContent = 'Create User';
     addModal.classList.add('open');
