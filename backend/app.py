@@ -28,21 +28,25 @@ from api.v1.settings import settings_bp
 from api.v1.reports import reports_bp
 from api.v1.admins import admins_bp
 
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'wqms_secret_key_2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max payload for avatar uploads
 
-# Initialize Flask-Limiter for API rate limiting
-limiter = Limiter(
-    key_func=get_remote_address,
-    app=app,
-    default_limits=["600 per hour", "120 per minute"],
-    storage_uri="memory://"
-)
-app.limiter = limiter
+# Initialize Flask-Limiter for API rate limiting with fail-safe fallback
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+
+    limiter = Limiter(
+        key_func=get_remote_address,
+        app=app,
+        default_limits=["600 per hour", "120 per minute"],
+        storage_uri="memory://"
+    )
+    app.limiter = limiter
+except Exception as err:
+    print(f"Warning: Flask-Limiter disabled or unavailable ({err}). Server continuing normally.")
+    app.limiter = None
 
 # Enable CORS for frontend integration
 CORS(app, resources={r"/*": {"origins": "*"}})
