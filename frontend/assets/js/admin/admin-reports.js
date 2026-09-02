@@ -700,12 +700,13 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '0';
+        tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
         tempDiv.style.width = '680px';
-        tempDiv.style.zIndex = '-99999';
-        tempDiv.style.opacity = '0.01';
+        tempDiv.style.zIndex = '99999';
+        tempDiv.style.opacity = '1';
         tempDiv.style.pointerEvents = 'none';
+        tempDiv.style.background = '#ffffff';
 
         tempDiv.innerHTML = getCertificateHTML(report);
         document.body.appendChild(tempDiv);

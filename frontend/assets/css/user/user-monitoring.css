@@ -557,8 +557,32 @@ body.sidebar-collapsed .main-content {
 }
 
 .modal-header {
+    position: relative;
     padding: 24px 24px 16px;
     border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-close-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.modal-close-icon:hover {
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 .modal-header h2 {

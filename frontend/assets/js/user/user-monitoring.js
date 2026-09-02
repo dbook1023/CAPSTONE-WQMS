@@ -337,7 +337,10 @@ function updateFountainDropdown() {
         fountainSelect.innerHTML = '<option value="" disabled selected>Select a fountain...</option>' + 
             fountains.map(f => {
                 const isOffline = f.status === 'Offline';
-                return `<option value="${f.id}" ${isOffline ? 'disabled' : ''}>${f.displayId} - ${f.name} ${isOffline ? '(Offline)' : ''}</option>`;
+                const noHardware = !f.sensor_count || f.sensor_count === 0;
+                const isDisabled = isOffline || noHardware;
+                const suffix = isOffline ? '(Offline)' : (noHardware ? '(No Hardware)' : '');
+                return `<option value="${f.id}" ${isDisabled ? 'disabled' : ''}>${f.displayId} - ${f.name} ${suffix}</option>`;
             }).join('');
     }
 }
@@ -583,16 +586,16 @@ function setupEventListeners() {
         // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '0';
+        tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
         tempDiv.style.width = '680px';
-        tempDiv.style.zIndex = '-99999';
-        tempDiv.style.opacity = '0.01';
+        tempDiv.style.zIndex = '99999';
+        tempDiv.style.opacity = '1';
         tempDiv.style.pointerEvents = 'none';
+        tempDiv.style.background = '#ffffff';
 
         const htmlContent = `
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
                 .certificate-container {
                     border: 3px double #cbd5e1;
                     padding: 16px 18px;
@@ -928,12 +931,14 @@ function setupEventListeners() {
             const id = this.value.trim().toUpperCase();
             const f = fountains.find(item => item.displayId.toUpperCase() === id);
             if (f) {
-                if (f.status === 'Offline') {
+                const noHardware = !f.sensor_count || f.sensor_count === 0;
+                if (f.status === 'Offline' || noHardware) {
                     this.style.borderColor = '#ef4444';
                     selectedFountainInfo.style.display = 'block';
                     if (selName) selName.textContent = f.name;
+                    const reason = f.status === 'Offline' ? 'Offline' : 'No Hardware Registered';
                     if (selLoc) {
-                        selLoc.textContent = `${f.displayId} • Offline`;
+                        selLoc.textContent = `${f.displayId} • ${reason}`;
                         selLoc.style.color = '#ef4444';
                     }
                     confirmSelectionBtn.disabled = true;
@@ -1326,10 +1331,12 @@ function renderFountainGrid(data) {
 
     fountainsGrid.innerHTML = data.map(f => {
         const isOffline = f.status === 'Offline';
-        const offlineStyle = isOffline ? 'opacity: 0.65; cursor: not-allowed; filter: grayscale(1);' : 'cursor: pointer;';
+        const noHardware = !f.sensor_count || f.sensor_count === 0;
+        const isDisabled = isOffline || noHardware;
+        const disabledStyle = isDisabled ? 'opacity: 0.65; cursor: not-allowed; filter: grayscale(1);' : 'cursor: pointer;';
         
         return `
-        <div class="fountain-card" style="${offlineStyle}" data-name="${f.name}" data-location="${f.location}" data-id="${f.displayId}" onclick="${isOffline ? '' : `quickSelectFountain(${f.id})`}">
+        <div class="fountain-card" style="${disabledStyle}" data-name="${f.name}" data-location="${f.location}" data-id="${f.displayId}" onclick="${isDisabled ? '' : `quickSelectFountain(${f.id})`}">
             <div class="fc-top">
                 <span class="fc-id">${f.displayId}</span>
                 <div style="display: flex; gap: 8px; align-items: center;">

@@ -262,6 +262,7 @@ class Fountain(Base):
             'department_name': self.department.department_name if self.department else None,
             'model': self.model,
             'status': self.status,
+            'sensor_count': len(self.sensors) if self.sensors else 0,
             'latitude': float(self.latitude) if self.latitude else None,
             'longitude': float(self.longitude) if self.longitude else None,
             'installed_date': self.installed_date.isoformat() if self.installed_date else None,

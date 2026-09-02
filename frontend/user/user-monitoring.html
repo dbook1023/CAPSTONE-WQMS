@@ -407,6 +407,9 @@
             <div class="modal-header">
                 <h2>Select Fountain</h2>
                 <p>Choose a fountain to start monitoring</p>
+                <button class="modal-close-icon" onclick="closeSelectionModal()" title="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="form-group" style="margin-bottom: 16px;">
@@ -438,6 +441,9 @@
             <div class="modal-header">
                 <h2>Monitoring Report</h2>
                 <p>Summary for <span id="reportFountainName" style="font-weight: 700; color: #1e293b;">--</span></p>
+                <button class="modal-close-icon" onclick="closeReportModal()" title="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div style="background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
@@ -528,6 +534,9 @@
                     Live Monitoring Guide
                 </h2>
                 <p style="margin: 4px 0 0; font-size: 0.825rem; color: #64748b;">Step-by-step instructions on how to operate the Water Quality Monitoring System (WQMS).</p>
+                <button class="modal-close-icon" onclick="document.getElementById('guideModal').classList.remove('open')" title="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
             
             <div class="modal-body" style="padding: 10px 24px 20px;">
