@@ -420,7 +420,7 @@ async function submitForgotPasswordCode(portalType) {
         btn.textContent = 'Sending Code...';
     }
 
-    try:
+    try {
         const forgotFn = (window.API && window.API.auth && typeof window.API.auth.forgotPassword === 'function')
             ? window.API.auth.forgotPassword
             : (data) => window.API.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) });
