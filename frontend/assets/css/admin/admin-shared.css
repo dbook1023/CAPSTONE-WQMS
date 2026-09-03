@@ -710,6 +710,40 @@ body.sidebar-collapsed .main-content {
     }
 }
 
+/* ── LAPTOP & MEDIUM DESKTOP RESPONSIVENESS (1024px - 1366px e.g. 1280x800) ── */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    :root {
+        --sidebar-width: 220px;
+    }
+    .top-header {
+        padding: 0 20px;
+        height: 60px;
+    }
+    .header-titles h1,
+    .header-title {
+        font-size: 16px;
+    }
+    .header-titles p,
+    .header-sub {
+        font-size: 11px;
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .header-actions {
+        gap: 8px;
+    }
+    .header-actions .btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+    .page-body {
+        padding: 20px 24px 32px;
+        gap: 20px;
+    }
+}
+
 /* ── TABLET & SMALL DESKTOP RESPONSIVENESS ── */
 @media (max-width: 880px) {
     .header-titles p,

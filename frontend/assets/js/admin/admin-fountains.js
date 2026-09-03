@@ -240,6 +240,10 @@ function closeModal() {
  */
 async function handleFormSubmit(e) {
     e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Save Fountain';
+
     const id = document.getElementById('internalId').value;
     const payload = {
         displayId: document.getElementById('fountainId').value.trim(),
@@ -247,6 +251,11 @@ async function handleFormSubmit(e) {
         location: document.getElementById('fountainLocation').value.trim(),
         status: document.getElementById('fountainStatus').value
     };
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
 
     try {
         if (id) {
@@ -262,6 +271,11 @@ async function handleFormSubmit(e) {
         await fetchFountains(); // Refresh from server
     } catch (error) {
         showNotification('Error: ' + error.message, 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
     }
 }
 

@@ -629,11 +629,33 @@ select:disabled {
     position: relative;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1366px) {
     .header-btn-desktop {
         display: none !important;
     }
     #moreActionsWrap {
         display: inline-block !important;
+    }
+}
+
+/* ── LAPTOP OPTIMIZATIONS (1024px - 1366px e.g. 1280x800) ── */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    .search-bar-wrap {
+        padding: 12px 24px;
+    }
+    .page-body {
+        padding: 20px 24px 32px;
+        gap: 20px;
+    }
+    .fountains-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+    }
+    .fc-metric {
+        padding: 8px 10px !important;
+        min-height: 76px !important;
+    }
+    .fc-metric-value {
+        font-size: 15px !important;
     }
 }
