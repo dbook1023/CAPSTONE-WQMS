@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import SessionLocal, SensorLog, Fountain, Sensor
+from models import SessionLocal, SensorLog, Fountain, Sensor, Report
 from datetime import datetime
 from sqlalchemy import func, select
 
@@ -85,23 +85,55 @@ def delete_sensor(id):
 
 @sensors_bp.route('/latest', methods=['GET'])
 def get_latest_data():
-    """Returns the most recent sensor readings for all active fountains"""
+    """Returns the most recent sensor readings for all active fountains.
+    Merges data from both sensor_logs (hardware) and reports (user-submitted).
+    For each fountain, the newer source wins."""
     try:
         db = get_db()
-        # Subquery to get the max ID for each fountain_id
+        results_by_fountain = {}
+
+        # 1. Latest hardware sensor logs
         subquery = select(func.max(SensorLog.id)).group_by(SensorLog.fountain_id)
-        
-        # Query sensor logs that match those IDs
         latest_logs = db.query(SensorLog).filter(SensorLog.id.in_(subquery)).all()
-        
-        result = []
         for log in latest_logs:
             log_dict = log.to_dict()
-            log_dict['fountain_name'] = log.fountain.name if log.fountain else "Unknown"
-            result.append(log_dict)
-            
+            log_dict['fountain_name'] = log.fountain.name if log.fountain else 'Unknown'
+            log_dict['source'] = 'sensor'
+            results_by_fountain[log.fountain_id] = log_dict
+
+        # 2. Latest submitted reports per fountain
+        report_sub = select(func.max(Report.id)).group_by(Report.fountain_id)
+        latest_reports = db.query(Report).filter(Report.id.in_(report_sub)).all()
+        for rpt in latest_reports:
+            rpt_ts = rpt.created_at
+            fid = rpt.fountain_id
+
+            # Build a sensor-log-compatible dict from report averages
+            rpt_dict = {
+                'id': None,
+                'fountain_id': fid,
+                'ph': float(rpt.ph_avg) if rpt.ph_avg is not None else None,
+                'turbidity': float(rpt.turbidity_avg) if rpt.turbidity_avg is not None else None,
+                'temperature': float(rpt.temperature_avg) if rpt.temperature_avg is not None else None,
+                'tds': float(rpt.tds_avg) if rpt.tds_avg is not None else None,
+                'overall_status': rpt.overall_status,
+                'timestamp': (rpt_ts.isoformat() + 'Z') if rpt_ts else None,
+                'fountain_name': rpt.fountain.name if rpt.fountain else 'Unknown',
+                'source': 'report'
+            }
+
+            existing = results_by_fountain.get(fid)
+            if existing:
+                # Compare timestamps — keep whichever is newer
+                existing_ts = existing.get('timestamp', '')
+                rpt_ts_iso = rpt_dict.get('timestamp', '')
+                if rpt_ts_iso and rpt_ts_iso > (existing_ts or ''):
+                    results_by_fountain[fid] = rpt_dict
+            else:
+                results_by_fountain[fid] = rpt_dict
+
         db.close()
-        return jsonify(result if result else [])
+        return jsonify(list(results_by_fountain.values()) if results_by_fountain else [])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

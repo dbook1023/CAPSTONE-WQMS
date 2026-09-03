@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from models import get_db, Report, Fountain, User, Alert, AlertSeverity, AuditLog, SystemSetting
+from models import get_db, Report, Fountain, User, Alert, AlertSeverity, AuditLog, SystemSetting, SensorLog
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, timezone
 from services.sms_service import notify_admins_report_submitted
@@ -222,6 +222,10 @@ def save_report():
 
         db.commit()
         db.refresh(report)
+
+        # Update fountain.updated_at so cards reflect correct timestamp
+        fountain.updated_at = datetime.utcnow()
+        db.commit()
 
         # Notify admins via SMS & Resend Email (fire-and-forget; failure won't affect the response)
         try:

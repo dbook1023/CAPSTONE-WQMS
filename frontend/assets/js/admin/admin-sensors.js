@@ -81,14 +81,14 @@ function renderSensors(data) {
             <tr>
                 <td data-label="Device Serial">
                     <div class="td-flex">
-                        <div class="mobile-hide" style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; flex-shrink: 0;">
+                        <div class="mobile-hide" style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
                         </div>
-                        <div class="device-serial-col" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                            <span style="font-weight: 600; font-family: 'Inter'; font-size: 13.5px; word-break: break-all;">${s.serial_number}</span>
+                        <div>
+                            <span style="font-weight: 600; font-family: 'Inter';">${s.serial_number}</span>
                             ${s.firmware_version ?
-                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe;">v${s.firmware_version}</span>` :
-                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;">Unknown</span>`
+                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; margin-top: 4px;">v${s.firmware_version}</span>` :
+                `<span class="status-badge" style="display: inline-block; font-size: 10px; padding: 1px 6px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; margin-top: 4px;">Unknown</span>`
             }
                         </div>
                     </div>
@@ -114,26 +114,18 @@ function renderSensors(data) {
     }).join('');
 }
 
-function populateFountainSelect(data) {
+function populateFountainSelect(fountains) {
     if (!fountainSelect) return;
-    const options = data.map(f => `<option value="${f.id}">${f.displayId} - ${f.name}</option>`).join('');
-    fountainSelect.innerHTML = '<option value="" disabled selected>Select a fountain...</option>' + options;
+    fountainSelect.innerHTML = '<option value="">Select a fountain...</option>' +
+        fountains.map(f => `<option value="${f.id}">${f.name || f.displayId}</option>`).join('');
 }
 
-function openModal(id = null) {
-    if (id) {
-        const s = sensors.find(item => item.id === id);
-        if (!s) return;
-        document.getElementById('modalTitle').textContent = 'Reassign Device';
-        document.getElementById('serialInput').value = s.serial_number;
-        document.getElementById('serialInput').readOnly = true;
-        document.getElementById('fountainSelect').value = s.fountain_id;
-        document.getElementById('saveBtn').textContent = 'Update Configuration';
-    } else {
-        document.getElementById('modalTitle').textContent = 'Register New Device';
-        deviceForm.reset();
-        document.getElementById('serialInput').readOnly = false;
-        document.getElementById('saveBtn').textContent = 'Register Device';
+function openModal(sensorId = null) {
+    deviceForm.reset();
+    if (sensorId) {
+        const sensor = sensors.find(s => s.id === sensorId);
+        document.getElementById('serialInput').value = sensor.serial_number;
+        document.getElementById('fountainSelect').value = sensor.fountain_id || '';
     }
     deviceModal.classList.add('open');
 }

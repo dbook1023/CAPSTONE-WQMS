@@ -1,10 +1,32 @@
 from flask import Blueprint, request, jsonify
-from models import SessionLocal, Fountain
+from models import SessionLocal, Fountain, Department
 
 fountains_bp = Blueprint('fountains', __name__)
 
 def get_db():
     return SessionLocal()
+
+def resolve_department_id(db, department_id):
+    """Validate department_id exists, or fallback to first available / auto-create default."""
+    if department_id:
+        dept = db.query(Department).filter(Department.id == department_id).first()
+        if dept:
+            return dept.id
+    # Fallback: use the first existing department
+    first_dept = db.query(Department).first()
+    if first_dept:
+        return first_dept.id
+    # No departments at all — auto-create a default one
+    new_dept = Department(
+        department_name='Facilities & Maintenance',
+        location_desc='Main Campus Building',
+        contact_person='Admin',
+        contact_email='admin@olfu.edu.ph'
+    )
+    db.add(new_dept)
+    db.commit()
+    db.refresh(new_dept)
+    return new_dept.id
 
 @fountains_bp.route('/', methods=['GET'])
 def index():
@@ -26,7 +48,7 @@ def store():
         name = data.get('name', '').strip()
         location = data.get('location', '').strip()
         display_id = (data.get('displayId') or data.get('display_id') or '').strip()
-        department_id = data.get('department_id', 1)
+        department_id = data.get('department_id')
         model = data.get('model')
         status = data.get('status', 'Online')
         
@@ -34,6 +56,9 @@ def store():
             return jsonify({"error": "Fountain name and location are required."}), 400
             
         db = get_db()
+
+        # Resolve department_id — validate or fallback to prevent FK error
+        department_id = resolve_department_id(db, department_id)
 
         # Check for duplicate Fountain Name
         dup_name = db.query(Fountain).filter(Fountain.name == name).first()
@@ -126,7 +151,8 @@ def update(id):
         if 'name' in data: fountain.name = data['name'].strip()
         if 'location' in data: fountain.location = data['location'].strip()
         if 'status' in data: fountain.status = data['status']
-        if 'department_id' in data: fountain.department_id = data['department_id']
+        if 'department_id' in data:
+            fountain.department_id = resolve_department_id(db, data['department_id'])
         if 'model' in data: fountain.model = data['model']
         if 'displayId' in data: fountain.display_id = data['displayId'].strip()
         if 'display_id' in data: fountain.display_id = data['display_id'].strip()

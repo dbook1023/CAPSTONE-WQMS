@@ -96,11 +96,7 @@ function renderFountains(data) {
     const list = Array.isArray(data) ? data : [];
 
     if (list.length === 0) {
-        fountainsGrid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;">
-                <p>No fountains found. Add one to get started!</p>
-            </div>
-        `;
+        fountainsGrid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 48px; color: #64748b;"><p>No fountains found. Add one to get started!</p></div>';
         return;
     }
 
@@ -109,93 +105,61 @@ function renderFountains(data) {
         : '';
 
     fountainsGrid.innerHTML = list.map(f => {
-        const displayId = f.displayId || f.display_id || `F${String(f.id).padStart(3, '0')}`;
+        const displayId = f.displayId || f.display_id || 'F' + String(f.id).padStart(3, '0');
         const name = f.name || 'Unnamed Fountain';
         const location = f.location || 'Unknown Location';
         const status = f.status || 'Online';
         const sensor = sensorsMap[f.id] || {};
 
         const phVal = (sensor.ph !== undefined && sensor.ph !== null) ? parseFloat(sensor.ph).toFixed(1) : '--';
-        const turbidityVal = (sensor.turbidity !== undefined && sensor.turbidity !== null) ? `${parseFloat(sensor.turbidity).toFixed(1)} NTU` : '-- NTU';
-        const tempVal = (sensor.temperature !== undefined && sensor.temperature !== null) ? `${parseFloat(sensor.temperature).toFixed(1)}°C` : '--°C';
-        const tdsVal = (sensor.tds !== undefined && sensor.tds !== null) ? `${Math.round(sensor.tds)} ppm` : '-- ppm';
+        const turbidityVal = (sensor.turbidity !== undefined && sensor.turbidity !== null) ? parseFloat(sensor.turbidity).toFixed(1) + ' NTU' : '-- NTU';
+        const tempVal = (sensor.temperature !== undefined && sensor.temperature !== null) ? parseFloat(sensor.temperature).toFixed(1) + '\u00B0C' : '--\u00B0C';
+        const tdsVal = (sensor.tds !== undefined && sensor.tds !== null) ? Math.round(sensor.tds) + ' ppm' : '-- ppm';
 
-        return `
-        <div class="fountain-card" data-name="${esc(name)}" data-location="${esc(location)}" data-id="${esc(displayId)}">
-            <div class="fc-top">
-                <span class="fc-id">${esc(displayId)}</span>
-                <span class="fc-badge ${status.toLowerCase()}">
-                    ${getStatusIcon(status)}
-                    ${esc(status)}
-                </span>
-            </div>
-            <div class="fc-title">${esc(name)}</div>
-            <div class="fc-location">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                ${esc(location)}
-            </div>
-            
-            ${status === 'Offline' ? `
-                <div class="fc-offline-banner">
-                    This fountain is currently offline. No data available.
-                </div>
-            ` : `
-                <div class="fc-metrics">
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">pH Level</div>
-                        <div class="fc-metric-value">${esc(phVal)}</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Turbidity</div>
-                        <div class="fc-metric-value teal">${esc(turbidityVal)}</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">Temp</div>
-                        <div class="fc-metric-value teal">${esc(tempVal)}</div>
-                    </div>
-                    <div class="fc-metric">
-                        <div class="fc-metric-label">TDS</div>
-                        <div class="fc-metric-value teal">${esc(tdsVal)}</div>
-                    </div>
-                </div>
-            `}
-            
-            <hr class="fc-divider">
-            <div class="fc-updated">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Last updated: ${f.updated_at ? new Date(f.updated_at).toLocaleString() : 'Just now'}
-            </div>
-            <div class="fc-bottom">
-                <div class="fc-monitoring">
-                    Monitoring:
-                    <div class="toggle-wrap ${status === 'Offline' ? 'disabled' : 'on'}" onclick="toggleMonitoring(this, ${f.id})">
-                        <div class="toggle-track"><div class="toggle-thumb"></div></div>
-                    </div>
-                    <span class="monitoring-status ${status === 'Offline' ? 'disabled' : 'enabled'}">
-                        ${status === 'Offline' ? 'Disabled' : 'Enabled'}
-                    </span>
-                </div>
-                <button class="configure-btn" onclick="openModal(${f.id})">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    <span>Configure</span>
-                </button>
-                <div class="actions-dropdown">
-                    <button class="actions-btn" onclick="toggleDropdown(event, this)">⋮</button>
-                    <div class="dropdown-content">
-                        <button onclick="openModal(${f.id})">Edit</button>
-                        <button class="delete-action" onclick="deleteFountain(${f.id})">Delete</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        `;
+        // Use sensor timestamp (latest reading) if available, fallback to fountain updated_at
+        const lastUpdatedRaw = sensor.timestamp || f.updated_at;
+        const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw).toLocaleString() : 'Just now';
+
+        let metricsHtml = '';
+        if (status === 'Offline') {
+            metricsHtml = '<div class="fc-offline-banner">This fountain is currently offline. No data available.</div>';
+        } else {
+            metricsHtml = '<div class="fc-metrics">'
+                + '<div class="fc-metric"><div class="fc-metric-label">pH Level</div><div class="fc-metric-value">' + esc(phVal) + '</div></div>'
+                + '<div class="fc-metric"><div class="fc-metric-label">Turbidity</div><div class="fc-metric-value teal">' + esc(turbidityVal) + '</div></div>'
+                + '<div class="fc-metric"><div class="fc-metric-label">Temp</div><div class="fc-metric-value teal">' + esc(tempVal) + '</div></div>'
+                + '<div class="fc-metric"><div class="fc-metric-label">TDS</div><div class="fc-metric-value teal">' + esc(tdsVal) + '</div></div>'
+                + '</div>';
+        }
+
+        return '<div class="fountain-card" data-name="' + esc(name) + '" data-location="' + esc(location) + '" data-id="' + esc(displayId) + '">'
+            + '<div class="fc-top">'
+            + '<span class="fc-id">' + esc(displayId) + '</span>'
+            + '<span class="fc-badge ' + status.toLowerCase() + '">' + getStatusIcon(status) + ' ' + esc(status) + '</span>'
+            + '</div>'
+            + '<div class="fc-title">' + esc(name) + '</div>'
+            + '<div class="fc-location"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ' + esc(location) + '</div>'
+            + metricsHtml
+            + '<hr class="fc-divider">'
+            + '<div class="fc-updated"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Last updated: ' + esc(lastUpdated) + '</div>'
+            + '<div class="fc-bottom">'
+            + '<div class="fc-monitoring">Monitoring: '
+            + '<div class="toggle-wrap ' + (status === 'Offline' ? 'disabled' : 'on') + '" onclick="toggleMonitoring(this, ' + f.id + ')">'
+            + '<div class="toggle-track"><div class="toggle-thumb"></div></div></div>'
+            + '<span class="monitoring-status ' + (status === 'Offline' ? 'disabled' : 'enabled') + '">' + (status === 'Offline' ? 'Disabled' : 'Enabled') + '</span>'
+            + '</div>'
+            + '<button class="configure-btn" onclick="openModal(' + f.id + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Configure</span></button>'
+            + '<div class="actions-dropdown"><button class="actions-btn" onclick="toggleDropdown(event, this)">\u22EE</button>'
+            + '<div class="dropdown-content"><button onclick="openModal(' + f.id + ')">Edit</button>'
+            + '<button class="delete-action" onclick="deleteFountain(' + f.id + ')">Delete</button></div></div>'
+            + '</div></div>';
     }).join('');
 }
 
 function getStatusIcon(status) {
-    if (status === 'Online') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-    if (status === 'Warning' || status === 'Maintenance') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
-    return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+    if (status === 'Online') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    if (status === 'Warning' || status === 'Maintenance') return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
 }
 
 function updateStats(data) {
@@ -297,7 +261,7 @@ async function handleFormSubmit(e) {
         closeModal();
         await fetchFountains(); // Refresh from server
     } catch (error) {
-        showNotification(`Error: ${error.message}`, 'error');
+        showNotification('Error: ' + error.message, 'error');
     }
 }
 
@@ -312,7 +276,7 @@ async function deleteFountain(id) {
         showNotification('Fountain deleted', 'info');
         await fetchFountains(); // Refresh from server
     } catch (error) {
-        showNotification(`Delete failed: ${error.message}`, 'error');
+        showNotification('Delete failed: ' + error.message, 'error');
     }
 }
 
@@ -325,10 +289,10 @@ async function toggleMonitoring(el, id) {
     const newStatus = isOn ? 'Offline' : 'Online';
     try {
         await API.fountains.patchStatus(id, newStatus);
-        showNotification(`Fountain status updated to ${newStatus}`, 'info');
+        showNotification('Fountain status updated to ' + newStatus, 'info');
         await fetchFountains();
     } catch (err) {
-        showNotification(`Failed to update status: ${err.message}`, 'error');
+        showNotification('Failed to update status: ' + err.message, 'error');
     }
 }
 
@@ -357,7 +321,7 @@ function showNotification(message, type = 'info') {
     if (typeof window.showNotification === 'function') {
         window.showNotification(message, type);
     } else {
-        console.log(`[${type}] ${message}`);
+        console.log('[' + type + '] ' + message);
     }
 }
 

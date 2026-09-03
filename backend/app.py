@@ -34,7 +34,9 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max payload for avat
 
 # Initialize Flask-Limiter for API rate limiting with fail-safe fallback
 try:
+    # pyrefly: ignore [missing-import]
     from flask_limiter import Limiter
+    # pyrefly: ignore [missing-import]
     from flask_limiter.util import get_remote_address
 
     limiter = Limiter(
@@ -85,8 +87,8 @@ def apply_security_headers(response):
     csp = (
         "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
         "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; "
-        "style-src 'self' 'unsafe-inline' https:; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
         "img-src 'self' data: blob: https:; "
         "media-src 'self' data: blob: https:; "
         "connect-src 'self' https: wss: ws:; "

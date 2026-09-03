@@ -267,8 +267,8 @@ class Fountain(Base):
             'longitude': float(self.longitude) if self.longitude else None,
             'installed_date': self.installed_date.isoformat() if self.installed_date else None,
             'last_maintained': self.last_maintained.isoformat() if self.last_maintained else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': (self.created_at.isoformat() + 'Z') if (self.created_at and self.created_at.tzinfo is None) else (self.created_at.isoformat() if self.created_at else None),
+            'updated_at': (self.updated_at.isoformat() + 'Z') if (self.updated_at and self.updated_at.tzinfo is None) else (self.updated_at.isoformat() if self.updated_at else None)
         }
 
 

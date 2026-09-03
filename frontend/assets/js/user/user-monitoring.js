@@ -85,10 +85,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchFountains() {
     try {
-        const data = await API.fountains.getAll();
+        const [data, latestSensors] = await Promise.all([
+            API.fountains.getAll(),
+            API.sensors.getLatest().catch(() => [])
+        ]);
         fountains = data;
         updateFountainDropdown();
         renderFountainGrid(fountains);
+
+        // Populate metric cards with latest readings from sensors/reports
+        if (Array.isArray(latestSensors)) {
+            latestSensors.forEach(s => {
+                if (!s || !s.fountain_id) return;
+                sensorConfigs.forEach(cfg => {
+                    let key = cfg.id.replace('Chart', '').toLowerCase();
+                    if (key === 'temp') key = 'temperature';
+                    const val = parseFloat(s[key]);
+                    if (isNaN(val)) return;
+                    const domKey = cfg.id.replace('Chart', '').toLowerCase();
+                    updateSingleMetricCard(s.fountain_id, domKey, val, cfg.suffix);
+                });
+            });
+        }
     } catch (error) {
         console.error('Failed to fetch fountains:', error);
         showNotification('Failed to load fountains from server', 'error');
