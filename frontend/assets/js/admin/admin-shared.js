@@ -567,6 +567,10 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+window.showNotification = showNotification;
+window.showToast = showNotification;
+
+
 /**
  * Global Water Standards Modal
  */
@@ -771,7 +775,11 @@ function initStandardsModal() {
     };
 
     window.showFeedbackModal = function(opts) {
-        const modal = document.getElementById('feedbackModal');
+        let modal = document.getElementById('feedbackModal');
+        if (!modal) {
+            inject();
+            modal = document.getElementById('feedbackModal');
+        }
         const iconEl = document.getElementById('feedbackIcon');
         const titleEl = document.getElementById('feedbackTitle');
         const msgEl = document.getElementById('feedbackMessage');

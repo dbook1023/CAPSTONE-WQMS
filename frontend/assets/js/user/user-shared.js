@@ -474,7 +474,11 @@ function initStandardsModal() {
      * @param {string} [opts.cancelText='Cancel']
      */
     window.showFeedbackModal = function(opts) {
-        const modal = document.getElementById('feedbackModal');
+        let modal = document.getElementById('feedbackModal');
+        if (!modal) {
+            inject();
+            modal = document.getElementById('feedbackModal');
+        }
         const iconEl = document.getElementById('feedbackIcon');
         const titleEl = document.getElementById('feedbackTitle');
         const msgEl = document.getElementById('feedbackMessage');
@@ -520,3 +524,56 @@ function initStandardsModal() {
         };
     };
 })();
+
+/**
+ * Global Toast Notification System for User Portal
+ */
+function showNotification(message, type = 'info') {
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = `
+        background: white;
+        color: #1e293b;
+        padding: 12px 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        border-left: 4px solid ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    `;
+    
+    toast.innerHTML = `
+        <span>${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 10);
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+window.showNotification = showNotification;
+window.showToast = showNotification;
+
