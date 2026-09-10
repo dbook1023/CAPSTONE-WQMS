@@ -58,34 +58,99 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function initSessionTimeoutTracker() {
+    if (window._userSessionTimeoutTrackerInitialized) {
+        if (typeof window._recheckUserSessionTimeout === 'function') {
+            window._recheckUserSessionTimeout();
+        }
+        return;
+    }
+    window._userSessionTimeoutTrackerInitialized = true;
+
     let inactivityTimer = null;
+    let lastStorageWrite = 0;
+    const LAST_ACTIVITY_KEY = 'aqua_monitor_user_last_activity';
+    const CACHED_SETTINGS_KEY = 'aqua_monitor_system_settings_cache';
 
     async function checkTimeoutEnabled() {
         try {
-            if (typeof API !== 'undefined' && API.settings) {
-                const settings = await API.settings.getAll();
-                const enabled = !settings || settings.session_timeout_enabled !== 'false';
-                if (!enabled) return;
-
-                const durationMins = parseInt(settings.session_timeout_duration || '1') || 1;
-                const limitMs = durationMins * 60 * 1000;
-
-                const resetTimer = () => {
-                    if (inactivityTimer) clearTimeout(inactivityTimer);
-                    inactivityTimer = setTimeout(triggerLogout, limitMs);
-                };
-
-                resetTimer();
-
-                const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-                events.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+            let settings = null;
+            const cached = localStorage.getItem(CACHED_SETTINGS_KEY);
+            if (cached) {
+                try { settings = JSON.parse(cached); } catch (err) {}
             }
+
+            if (!settings && typeof API !== 'undefined' && API.settings) {
+                settings = await API.settings.getAll();
+                if (settings) {
+                    localStorage.setItem(CACHED_SETTINGS_KEY, JSON.stringify(settings));
+                }
+            }
+
+            const enabled = !settings || settings.session_timeout_enabled !== 'false';
+            if (!enabled) {
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                return;
+            }
+
+            const durationMins = parseInt((settings && settings.session_timeout_duration) || '1') || 1;
+            const limitMs = durationMins * 60 * 1000;
+
+            // Check if user was already inactive for longer than limitMs
+            const lastActivity = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
+            const now = Date.now();
+
+            if (lastActivity > 0 && (now - lastActivity) >= limitMs) {
+                triggerLogout();
+                return;
+            }
+
+            // Record initial activity if none recorded yet
+            if (lastActivity === 0) {
+                localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+            }
+
+            const resetTimer = () => {
+                const currentNow = Date.now();
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(triggerLogout, limitMs);
+
+                // Throttle localStorage writes to once every 5 seconds (0 DB calls, minimal I/O)
+                if (currentNow - lastStorageWrite > 5000) {
+                    lastStorageWrite = currentNow;
+                    localStorage.setItem(LAST_ACTIVITY_KEY, String(currentNow));
+                }
+            };
+
+            resetTimer();
+
+            // Event listeners for user interaction
+            const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+            events.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
+
+            // Check on tab focus / page show
+            const checkOnReturn = () => {
+                const updatedLastActivity = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
+                if (updatedLastActivity > 0 && (Date.now() - updatedLastActivity) >= limitMs) {
+                    triggerLogout();
+                } else {
+                    resetTimer();
+                }
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') checkOnReturn();
+            });
+            window.addEventListener('pageshow', checkOnReturn);
+
         } catch (e) {
             console.warn('Session timeout check failed:', e);
         }
     }
 
     function triggerLogout() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
+
         if (typeof showFeedbackModal === 'function') {
             showFeedbackModal({
                 type: 'warning',
@@ -99,12 +164,27 @@ function initSessionTimeoutTracker() {
             setTimeout(() => {
                 if (typeof logout === 'function') logout();
                 else window.location.href = '../../login.html';
-            }, 3000);
+            }, 2500);
         } else {
             if (typeof logout === 'function') logout();
             else window.location.href = '../../login.html';
         }
     }
+
+    // Allow external manual re-check
+    window._recheckUserSessionTimeout = function() {
+        localStorage.removeItem(CACHED_SETTINGS_KEY);
+        checkTimeoutEnabled();
+    };
+
+    // Listen to storage events for multi-tab logout sync
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'aqua_monitor_user_session' && !e.newValue) {
+            window.location.href = '../../login.html';
+        } else if (e.key === CACHED_SETTINGS_KEY) {
+            checkTimeoutEnabled();
+        }
+    });
 
     checkTimeoutEnabled();
 }

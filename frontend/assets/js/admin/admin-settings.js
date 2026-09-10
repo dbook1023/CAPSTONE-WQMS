@@ -300,6 +300,10 @@ async function saveChanges() {
                     onConfirm: async () => {
                         try {
                             await API.settings.update(securityPayload);
+                            localStorage.removeItem('aqua_monitor_system_settings_cache');
+                            if (typeof window._recheckSessionTimeout === 'function') {
+                                window._recheckSessionTimeout();
+                            }
                             await API.admins.update(adminId, { current_password: currentPassword, new_password: newPassword });
 
                             currentPassInput.value = '';
@@ -322,6 +326,10 @@ async function saveChanges() {
                     onConfirm: async () => {
                         try {
                             await API.settings.update(securityPayload);
+                            localStorage.removeItem('aqua_monitor_system_settings_cache');
+                            if (typeof window._recheckSessionTimeout === 'function') {
+                                window._recheckSessionTimeout();
+                            }
                             showToast('Security settings saved successfully', 'success');
                         } catch (error) {
                             showFeedbackModal({ type: 'error', title: 'Update Failed', message: error.message || 'An error occurred while updating settings.' });
