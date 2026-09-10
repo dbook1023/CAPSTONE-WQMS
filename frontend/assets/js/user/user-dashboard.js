@@ -7,7 +7,7 @@
 // State
 let charts = {};
 let availableFountains = [];
-let selectedFountainIndex = -1; // -1 = All Fountains (Average), 0..N = Specific Fountain
+let selectedFountainIndex = 0; // Starts at 0 (First Fountain). Last index (N) is All Fountains (Average)
 let latestReadingsList = [];
 
 // DOM Elements
@@ -51,7 +51,7 @@ async function fetchDashboardData() {
         const dbFountains = fountainsRes.status === 'fulfilled' && Array.isArray(fountainsRes.value) ? fountainsRes.value : [];
         latestReadingsList = latestRes.status === 'fulfilled' && Array.isArray(latestRes.value) ? latestRes.value : [];
 
-        // Build comprehensive map of all database fountains + telemetry sources
+        // Build comprehensive map of all database fountains + active telemetry sources
         const fountainMap = new Map();
 
         dbFountains.forEach(f => {
@@ -88,36 +88,47 @@ function cycleFountainScope() {
     }
 
     selectedFountainIndex++;
-    if (selectedFountainIndex >= availableFountains.length) {
-        selectedFountainIndex = -1; // Loop back to All Fountains (Average)
+    // Sequence: 0..N-1 (individual fountains) -> N (All Fountains Average) -> 0 (loop back)
+    if (selectedFountainIndex > availableFountains.length) {
+        selectedFountainIndex = 0;
     }
 
     renderCurrentScope();
 }
+
+window.cycleFountainScope = cycleFountainScope;
 
 async function renderCurrentScope() {
     const headerTitle = document.querySelector('.header-title');
     const refreshBtnText = document.getElementById('refreshBtnText');
     const lastUpdated = document.getElementById('lastUpdatedBar');
 
-    if (selectedFountainIndex === -1) {
-        // --- ALL FOUNTAINS (AVERAGE) VIEW ---
+    const totalFountains = availableFountains.length;
+
+    // Check if selected index is N (the LAST option: All Fountains Average)
+    const isAllFountainsView = totalFountains > 0 && selectedFountainIndex === totalFountains;
+
+    if (isAllFountainsView || totalFountains === 0) {
+        // --- ALL FOUNTAINS (AVERAGE) VIEW - LAST OPTION IN CYCLE ---
         if (headerTitle) {
             headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">All Fountains (Average)</span>`;
         }
         if (refreshBtnText) {
-            refreshBtnText.textContent = `Scope: All Fountains (${availableFountains.length > 0 ? availableFountains.length + ' Total' : 'Avg'})`;
+            refreshBtnText.textContent = `Viewing: All Fountains (Average)`;
         }
 
-        if (latestReadingsList.length === 0) {
+        // Filter only telemetry from fountains that have actual valid readings
+        const validTelemetry = latestReadingsList.filter(r => r && (r.ph !== null || r.turbidity !== null || r.temperature !== null || r.tds !== null));
+
+        if (validTelemetry.length === 0) {
             setEmptyState('No current readings from any campus fountains.');
             return;
         }
 
-        const avgPh = calculateMean(latestReadingsList, 'ph');
-        const avgTurb = calculateMean(latestReadingsList, 'turbidity');
-        const avgTemp = calculateMean(latestReadingsList, 'temperature');
-        const avgTds = calculateMean(latestReadingsList, 'tds');
+        const avgPh = calculateMean(validTelemetry, 'ph');
+        const avgTurb = calculateMean(validTelemetry, 'turbidity');
+        const avgTemp = calculateMean(validTelemetry, 'temperature');
+        const avgTds = calculateMean(validTelemetry, 'tds');
 
         const aggregatedData = {
             ph: avgPh,
@@ -147,7 +158,7 @@ async function renderCurrentScope() {
         }
 
         if (lastUpdated) {
-            lastUpdated.textContent = `Averaged data across ${latestReadingsList.length} fountain reading(s) • Last updated: ${new Date().toLocaleTimeString()}`;
+            lastUpdated.textContent = `Average readings from ${validTelemetry.length} active fountain(s) • Last updated: ${new Date().toLocaleTimeString()}`;
         }
     } else {
         // --- INDIVIDUAL FOUNTAIN VIEW ---
@@ -158,7 +169,7 @@ async function renderCurrentScope() {
             headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${fountainName}</span>`;
         }
         if (refreshBtnText) {
-            refreshBtnText.textContent = `Scope: ${fountainName}`;
+            refreshBtnText.textContent = `Viewing: ${fountainName}`;
         }
 
         const fountainData = fountain ? latestReadingsList.find(r => r.fountain_id == fountain.id) : null;
