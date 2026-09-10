@@ -1,10 +1,14 @@
 /**
  * USER DASHBOARD MODULE
- * Handles personal monitoring data and trend visualization
+ * Handles personal monitoring data, multi-fountain scope switching,
+ * and real-time telemetry visualization across campus drinking fountains.
  */
 
 // State
 let charts = {};
+let availableFountains = [];
+let selectedFountainIndex = -1; // -1 = All Fountains (Average), 0..N = Specific Fountain
+let latestReadingsList = [];
 
 // DOM Elements
 const metricCards = document.querySelectorAll('.metric-card');
@@ -31,40 +35,184 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchDashboardData, 30000);
     
     const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) refreshBtn.addEventListener('click', fetchDashboardData);
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', cycleFountainScope);
+    }
 });
 
 async function fetchDashboardData() {
     try {
-        const latest = await API.sensors.getLatest();
-        if (latest && latest.length > 0) {
-            // Sort by ID or Timestamp descending to get the absolute latest update first
-            latest.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            const data = latest[0];
-            
-            // Update the header title with the fountain name
-            const headerTitle = document.querySelector('.header-title');
-            if (headerTitle) {
-                headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${data.fountain_name || 'Live Device'}</span>`;
-            }
+        // Fetch registered fountains list and latest sensor telemetry
+        const [fountainsRes, latestRes] = await Promise.allSettled([
+            API.fountains.getAll(),
+            API.sensors.getLatest()
+        ]);
 
-            updateMetrics(data);
-            
-            const history = await API.sensors.getHistory(data.fountain_id, 10);
-            if (history) {
+        availableFountains = fountainsRes.status === 'fulfilled' && Array.isArray(fountainsRes.value) ? fountainsRes.value : [];
+        latestReadingsList = latestRes.status === 'fulfilled' && Array.isArray(latestRes.value) ? latestRes.value : [];
+
+        // Fallback: If no fountains endpoint list, derive unique fountains from latest readings
+        if (availableFountains.length === 0 && latestReadingsList.length > 0) {
+            const seenIds = new Set();
+            latestReadingsList.forEach(r => {
+                if (r.fountain_id && !seenIds.has(r.fountain_id)) {
+                    seenIds.add(r.fountain_id);
+                    availableFountains.push({
+                        id: r.fountain_id,
+                        name: r.fountain_name || `Fountain #${r.fountain_id}`
+                    });
+                }
+            });
+        }
+
+        await renderCurrentScope();
+    } catch (error) {
+        console.error('User Dashboard data fetch error:', error);
+    }
+}
+
+function cycleFountainScope() {
+    if (availableFountains.length === 0) {
+        fetchDashboardData();
+        return;
+    }
+
+    selectedFountainIndex++;
+    if (selectedFountainIndex >= availableFountains.length) {
+        selectedFountainIndex = -1; // Loop back to All Fountains (Average)
+    }
+
+    renderCurrentScope();
+}
+
+async function renderCurrentScope() {
+    const headerTitle = document.querySelector('.header-title');
+    const refreshBtnText = document.getElementById('refreshBtnText');
+    const lastUpdated = document.getElementById('lastUpdatedBar');
+
+    if (selectedFountainIndex === -1) {
+        // --- ALL FOUNTAINS (AVERAGE) VIEW ---
+        if (headerTitle) {
+            headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">All Fountains (Average)</span>`;
+        }
+        if (refreshBtnText) {
+            refreshBtnText.textContent = `Scope: All Fountains (${availableFountains.length > 0 ? availableFountains.length + ' Total' : 'Avg'})`;
+        }
+
+        if (latestReadingsList.length === 0) {
+            setEmptyState();
+            return;
+        }
+
+        // Calculate averages across all fountains
+        const avgPh = calculateMean(latestReadingsList, 'ph');
+        const avgTurb = calculateMean(latestReadingsList, 'turbidity');
+        const avgTemp = calculateMean(latestReadingsList, 'temperature');
+        const avgTds = calculateMean(latestReadingsList, 'tds');
+
+        const aggregatedData = {
+            ph: avgPh,
+            turbidity: avgTurb,
+            temperature: avgTemp,
+            tds: avgTds,
+            fountain_name: 'All Fountains'
+        };
+
+        updateMetrics(aggregatedData);
+
+        // Fetch history logs for all active fountains to build averaged history trend
+        const histories = await Promise.allSettled(
+            availableFountains.map(f => API.sensors.getHistory(f.id, 10))
+        );
+
+        const validHistories = histories
+            .filter(h => h.status === 'fulfilled' && Array.isArray(h.value) && h.value.length > 0)
+            .map(h => h.value);
+
+        if (validHistories.length > 0) {
+            const combinedHistory = buildAveragedHistory(validHistories);
+            renderDashboardCharts(combinedHistory);
+            updateTrendInsights(combinedHistory);
+        } else {
+            renderDashboardCharts([]);
+        }
+
+        if (lastUpdated) {
+            lastUpdated.textContent = `Averaged data across ${latestReadingsList.length} fountain(s) • Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+    } else {
+        // --- INDIVIDUAL FOUNTAIN VIEW ---
+        const fountain = availableFountains[selectedFountainIndex];
+        const fountainName = fountain.name || `Fountain #${fountain.id}`;
+
+        if (headerTitle) {
+            headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${fountainName}</span>`;
+        }
+        if (refreshBtnText) {
+            refreshBtnText.textContent = `Scope: ${fountainName}`;
+        }
+
+        const fountainData = latestReadingsList.find(r => r.fountain_id == fountain.id) || {
+            ph: null, turbidity: null, temperature: null, tds: null, fountain_name: fountainName
+        };
+
+        updateMetrics(fountainData);
+
+        try {
+            const history = await API.sensors.getHistory(fountain.id, 10);
+            if (history && history.length > 0) {
                 renderDashboardCharts(history);
                 updateTrendInsights(history);
+            } else {
+                renderDashboardCharts([]);
+                if (trendInsights.period) trendInsights.period.textContent = `No historical data for ${fountainName}`;
             }
-            
-            const lastUpdated = document.getElementById('lastUpdatedBar');
-            if (lastUpdated) lastUpdated.textContent = 'Last updated: ' + new Date().toLocaleString();
-        } else {
-            setEmptyState();
+        } catch (err) {
+            renderDashboardCharts([]);
         }
-    } catch (error) {
-        console.error('User Dashboard error:', error);
+
+        if (lastUpdated) {
+            lastUpdated.textContent = `Viewing ${fountainName} • Last updated: ${new Date().toLocaleTimeString()}`;
+        }
     }
+}
+
+function calculateMean(array, key) {
+    if (!array || array.length === 0) return null;
+    const valid = array
+        .map(item => parseFloat(item[key]))
+        .filter(val => !Number.isNaN(val) && val !== null && val !== undefined);
+    if (valid.length === 0) return null;
+    return valid.reduce((sum, val) => sum + val, 0) / valid.length;
+}
+
+function buildAveragedHistory(historiesList) {
+    if (historiesList.length === 0) return [];
+    
+    // Determine maximum history length (up to 10 entries)
+    const maxLen = Math.max(...historiesList.map(h => h.length));
+    const averagedHistory = [];
+
+    for (let i = 0; i < maxLen; i++) {
+        const sliceAtI = historiesList.map(h => h[i]).filter(Boolean);
+        if (sliceAtI.length === 0) continue;
+
+        const avgPh = calculateMean(sliceAtI, 'ph');
+        const avgTurb = calculateMean(sliceAtI, 'turbidity');
+        const avgTemp = calculateMean(sliceAtI, 'temperature');
+        const avgTds = calculateMean(sliceAtI, 'tds');
+        const timestamp = sliceAtI[0].timestamp || new Date().toISOString();
+
+        averagedHistory.push({
+            ph: avgPh,
+            turbidity: avgTurb,
+            temperature: avgTemp,
+            tds: avgTds,
+            timestamp
+        });
+    }
+
+    return averagedHistory;
 }
 
 function updateMetrics(data) {
@@ -107,10 +255,15 @@ function updateBadge(card, value, min, max) {
     const badge = card.querySelector('.safe-badge');
     const valText = card.querySelector('.metric-value');
     
-    // Define thresholds
-    const isSafe = value >= min && value <= max;
-    const isWarning = (value >= min - (min * 0.1) && value < min) || (value > max && value <= max + (max * 0.1));
-    const isUnsafe = value < min - (min * 0.1) || value > max + (max * 0.1);
+    if (value === null || value === undefined || Number.isNaN(parseFloat(value))) {
+        if (badge) badge.textContent = 'No Data';
+        return false;
+    }
+
+    const val = parseFloat(value);
+    const isSafe = val >= min && val <= max;
+    const isWarning = (val >= min - (min * 0.1) && val < min) || (val > max && val <= max + (max * 0.1));
+    const isUnsafe = val < min - (min * 0.1) || val > max + (max * 0.1);
 
     let status = 'safe';
     if (isUnsafe) status = 'unsafe';
@@ -119,24 +272,22 @@ function updateBadge(card, value, min, max) {
     if (badge) {
         const labelText = card.querySelector('.metric-label');
         const unitTexts = card.querySelectorAll('.metric-unit');
-        const icon = card.querySelector('.metric-icon svg');
 
-        // Reset colors first
         card.style.transition = 'all 0.4s ease';
         [valText, labelText, ...unitTexts].forEach(el => { if (el) el.style.color = 'white'; });
 
         if (status === 'safe') {
-            card.style.background = '#14b8a6'; // Solid Teal
+            card.style.background = '#14b8a6';
             card.style.borderColor = '#0d9488';
             badge.style.background = 'rgba(255,255,255,0.2)';
             badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Safe`;
         } else if (status === 'warning') {
-            card.style.background = '#f59e0b'; // Solid Amber
+            card.style.background = '#f59e0b';
             card.style.borderColor = '#d97706';
             badge.style.background = 'rgba(255,255,255,0.2)';
             badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Warning`;
         } else {
-            card.style.background = '#dc2626'; // Solid Red
+            card.style.background = '#dc2626';
             card.style.borderColor = '#b91c1c';
             badge.style.background = 'rgba(255,255,255,0.2)';
             badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Unsafe`;
@@ -145,7 +296,6 @@ function updateBadge(card, value, min, max) {
 
     const trendEl = card.querySelector('.metric-trend');
     if (trendEl && valText) {
-        // Let's identify which parameter this card is
         let paramName = '';
         const idVal = valText.id || '';
         if (idVal.includes('ph')) paramName = 'ph';
@@ -155,24 +305,24 @@ function updateBadge(card, value, min, max) {
 
         let finding = 'Normal';
         if (paramName === 'ph') {
-            if (value < 6.5) finding = 'Acidic (Danger)';
-            else if (value > 8.5) finding = 'Alkaline (Danger)';
-            else if (value < 6.8) finding = 'Mildly Acidic';
-            else if (value > 7.6) finding = 'Mildly Alkaline';
+            if (val < 6.5) finding = 'Acidic (Danger)';
+            else if (val > 8.5) finding = 'Alkaline (Danger)';
+            else if (val < 6.8) finding = 'Mildly Acidic';
+            else if (val > 7.6) finding = 'Mildly Alkaline';
             else finding = 'Optimal pH (Safe)';
         } else if (paramName === 'turb') {
-            if (value > 5.0) finding = 'Turbid (Danger)';
-            else if (value > 3.5) finding = 'Cloudy (Warning)';
+            if (val > 5.0) finding = 'Turbid (Danger)';
+            else if (val > 3.5) finding = 'Cloudy (Warning)';
             else finding = 'Clear (Safe)';
         } else if (paramName === 'temp') {
-            if (value < 19.8) finding = 'Overcooled Chiller';
-            else if (value > 30.8) finding = 'Overheated';
-            else if (value < 22.0) finding = 'Cool (Safe)';
-            else if (value > 28.0) finding = 'Warm (Safe)';
+            if (val < 19.8) finding = 'Overcooled Chiller';
+            else if (val > 30.8) finding = 'Overheated';
+            else if (val < 22.0) finding = 'Cool (Safe)';
+            else if (val > 28.0) finding = 'Warm (Safe)';
             else finding = 'Optimal Temp (Safe)';
         } else if (paramName === 'tds') {
-            if (value > 500) finding = 'Contaminated (Danger)';
-            else if (value > 150) finding = 'Elevated Minerals';
+            if (val > 500) finding = 'Contaminated (Danger)';
+            else if (val > 150) finding = 'Elevated Minerals';
             else finding = 'Pure Water (Safe)';
         }
 
@@ -186,9 +336,8 @@ function updateBadge(card, value, min, max) {
     return isSafe;
 }
 
-
 function updateTrendInsights(history) {
-    if (history.length === 0) return;
+    if (!history || history.length === 0) return;
     const latest = history[0];
     
     if (trendInsights.period) {
@@ -229,7 +378,6 @@ function updateTrendInsights(history) {
 function setEmptyState() {
     Object.values(metricValues).forEach(el => { if (el) el.textContent = '--'; });
     
-    // Clear trend insights
     if (trendInsights.status) trendInsights.status.textContent = '--';
     if (trendInsights.statusDesc) trendInsights.statusDesc.textContent = 'No sensor data found.';
     if (trendInsights.purity) trendInsights.purity.textContent = '--';
@@ -244,10 +392,11 @@ function setEmptyState() {
 
 function renderDashboardCharts(history) {
     if (!window.Chart) return;
-    const logs = [...history].reverse();
+    const logs = [...(history || [])].reverse();
     const labels = logs.map(log => {
+        if (!log.timestamp) return '--';
         const d = new Date(log.timestamp);
-        return d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
+        return Number.isNaN(d.getTime()) ? '--' : d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
     });
 
     const configs = [
