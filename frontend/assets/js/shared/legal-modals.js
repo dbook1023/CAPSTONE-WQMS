@@ -110,11 +110,13 @@
             }
             .legal-badge {
                 display: inline-block;
-                padding: 3px 10px;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 20px;
-                font-size: 0.75rem;
-                font-weight: 600;
+                padding: 6px 14px;
+                background: #e0f2fe;
+                color: #0369a1;
+                border: 1px solid #bae6fd;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 800;
                 letter-spacing: 0.5px;
                 text-transform: uppercase;
             }
@@ -182,11 +184,11 @@
         <h4>1. Overview</h4>
         <p>This Privacy Policy describes how the <strong>Water Quality Monitoring System (WQMS)</strong> collects, uses, and safeguards information. This system is operational exclusively at <strong>Our Lady of Fatima University (OLFU) - Antipolo Campus</strong> to monitor and maintain drinking water safety across campus hydration stations.</p>
 
-        <h4>2. Data Collection</h4>
-        <p>The WQMS platform collects operational metrics and minimal administrative account data:</p>
+        <h4>2. Data Collection & Authorized Roles</h4>
+        <p>The WQMS platform collects operational metrics and administrative account data strictly for authorized campus personnel (Operators, Technicians, and Administrators):</p>
         <ul>
             <li><strong>Water Quality Telemetry:</strong> Automated ESP32 sensor metrics including pH levels, Total Dissolved Solids (TDS in ppm), Turbidity (NTU), and Temperature (°C).</li>
-            <li><strong>Account & Access Credentials:</strong> User profile names, OLFU institutional email addresses, role assignments (Administrator, Operator, Technician, Viewer), and authentication tokens.</li>
+            <li><strong>Account & Access Credentials:</strong> Authorized operator profile names, OLFU institutional email addresses, role assignments (Administrator, Operator, Technician, Viewer), and authentication tokens.</li>
             <li><strong>System Audit Logs:</strong> Timestamped records of alert resolutions, system configurations, and maintenance actions performed by authorized campus personnel.</li>
         </ul>
 
@@ -199,7 +201,7 @@
         </ul>
 
         <h4>4. Data Protection & Access Control</h4>
-        <p>We maintain strict security measures to protect WQMS telemetry and user profiles against unauthorized access. Access to administrative controls is restricted to authorized campus staff. We do not share, sell, or disclose system telemetry or personal data to third parties.</p>
+        <p>We maintain strict security measures to protect WQMS telemetry and user profiles against unauthorized access. Access to system controls is restricted to authorized campus staff. We do not share, sell, or disclose system telemetry or personal data to third parties.</p>
 
         <h4>5. Contact Us</h4>
         <p>For questions or concerns regarding WQMS data privacy at OLFU Antipolo Campus, contact the Facilities & Technology Administration at <code>capstone@fatima.edu.ph</code>.</p>
@@ -213,12 +215,12 @@
         <p>By accessing or utilizing the <strong>WQMS Web Portal</strong>, you agree to comply with these Terms of Service. This system is dedicated exclusively to the monitoring of drinking water quality at <strong>Our Lady of Fatima University - Antipolo Campus</strong>.</p>
 
         <h4>2. Authorized System Usage</h4>
-        <p>Access to the dashboard, telemetry reports, and configuration settings is governed by system roles:</p>
+        <p>Access to the WQMS dashboard, telemetry reports, sensor configuration, and administrative settings is strictly restricted to authorized university personnel:</p>
         <ul>
-            <li><strong>Public & Students:</strong> May view general campus drinking fountain safety indicators and status reports.</li>
-            <li><strong>Operators & Technicians:</strong> Responsible for prompt response to automated parameter alerts, hardware maintenance, and logging physical repairs.</li>
-            <li><strong>Administrators:</strong> Authorized to manage system hardware registry, user roles, and operational thresholds.</li>
+            <li><strong>Operators & Technicians:</strong> Responsible for real-time monitoring, prompt response to automated parameter alerts, hardware calibration, and logging physical maintenance.</li>
+            <li><strong>Administrators:</strong> Authorized to manage system hardware registries, user roles, security policies, and operational thresholds.</li>
         </ul>
+        <p style="font-size: 0.875rem; color: #64748b; margin-top: 6px;"><em>Note: The portal is dedicated exclusively for authorized maintenance and administrative staff, and is not intended for public or general student access.</em></p>
 
         <h4>3. System Integrity & Prohibited Actions</h4>
         <p>Users are strictly prohibited from:</p>
