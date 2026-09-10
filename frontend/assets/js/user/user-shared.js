@@ -68,6 +68,8 @@ function initSessionTimeoutTracker() {
 
     let inactivityTimer = null;
     let lastStorageWrite = 0;
+    let _memSettingsCache = null;
+    let _memSettingsFetchTime = 0;
     const LAST_ACTIVITY_KEY = 'aqua_monitor_user_last_activity';
     const CACHED_SETTINGS_KEY = 'aqua_monitor_system_settings_cache';
 
@@ -77,23 +79,35 @@ function initSessionTimeoutTracker() {
         return str === 'true' || str === '1' || str === 'on' || str === 'enabled';
     }
 
-    async function checkTimeoutEnabled() {
-        try {
-            let settings = null;
-            const cached = localStorage.getItem(CACHED_SETTINGS_KEY);
-            if (cached) {
-                try { settings = JSON.parse(cached); } catch (err) {}
-            }
+    async function getLiveSettings() {
+        const now = Date.now();
+        if (_memSettingsCache && (now - _memSettingsFetchTime < 5000)) {
+            return _memSettingsCache;
+        }
 
-            if (!settings && typeof API !== 'undefined' && API.settings) {
-                settings = await API.settings.getAll();
+        try {
+            if (typeof API !== 'undefined' && API.settings) {
+                const settings = await API.settings.getAll();
                 if (settings) {
-                    localStorage.setItem(CACHED_SETTINGS_KEY, JSON.stringify(settings));
+                    _memSettingsCache = settings;
+                    _memSettingsFetchTime = now;
+                    return _memSettingsCache;
                 }
             }
+        } catch (err) {
+            console.warn('Could not fetch live settings:', err);
+        }
 
-            // Session timeout ONLY applies when settings exist AND session_timeout_enabled is explicitly enabled
+        return _memSettingsCache;
+    }
+
+    async function checkTimeoutEnabled() {
+        try {
+            const settings = await getLiveSettings();
+
+            // Session timeout ONLY applies when settings exist AND session_timeout_enabled is explicitly true/1/on/enabled
             const enabled = settings ? isSettingEnabled(settings.session_timeout_enabled) : false;
+
             if (!enabled) {
                 if (inactivityTimer) {
                     clearTimeout(inactivityTimer);
@@ -125,7 +139,7 @@ function initSessionTimeoutTracker() {
                 if (inactivityTimer) clearTimeout(inactivityTimer);
                 inactivityTimer = setTimeout(triggerLogout, limitMs);
 
-                // Throttle localStorage writes to once every 5 seconds (0 DB calls, minimal I/O)
+                // Throttle localStorage writes to once every 5 seconds
                 if (currentNow - lastStorageWrite > 5000) {
                     lastStorageWrite = currentNow;
                     localStorage.setItem(LAST_ACTIVITY_KEY, String(currentNow));
@@ -139,7 +153,19 @@ function initSessionTimeoutTracker() {
             events.forEach(evt => window.addEventListener(evt, resetTimer, { passive: true }));
 
             // Check on tab focus / page show
-            const checkOnReturn = () => {
+            const checkOnReturn = async () => {
+                const liveSettings = await getLiveSettings();
+                const stillEnabled = liveSettings ? isSettingEnabled(liveSettings.session_timeout_enabled) : false;
+
+                if (!stillEnabled) {
+                    if (inactivityTimer) {
+                        clearTimeout(inactivityTimer);
+                        inactivityTimer = null;
+                    }
+                    localStorage.removeItem(LAST_ACTIVITY_KEY);
+                    return;
+                }
+
                 const updatedLastActivity = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
                 if (updatedLastActivity > 0 && (Date.now() - updatedLastActivity) >= limitMs) {
                     triggerLogout();
@@ -184,7 +210,10 @@ function initSessionTimeoutTracker() {
 
     // Allow external manual re-check
     window._recheckUserSessionTimeout = function() {
+        _memSettingsCache = null;
+        _memSettingsFetchTime = 0;
         localStorage.removeItem(CACHED_SETTINGS_KEY);
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
         checkTimeoutEnabled();
     };
 
