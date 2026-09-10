@@ -181,7 +181,7 @@ def user_settings():
 def user_help():
     return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-help.html')
 
-"# Static file catch-all (serves CSS, JS, images, and legacy .html URLs)
+# Static file catch-all (serves CSS, JS, images, and legacy .html URLs)
 @app.route('/<path:path>')
 def serve_static(path):
     # 1. Direct check in PROJECT_ROOT
