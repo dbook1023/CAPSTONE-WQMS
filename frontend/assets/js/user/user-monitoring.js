@@ -114,8 +114,13 @@ async function fetchFountains() {
 }
 
 function initWebSocket() {
+    if (typeof io === 'undefined') {
+        console.warn('Socket.IO client library (io) is not loaded. Operating in HTTP polling mode.');
+        setConnectionStatus(true, 'Live Connection: Polling Mode');
+        return;
+    }
+
     // Connect dynamically to the Flask-SocketIO backend based on the current origin
-    // Enforce websocket transport for native high-performance, non-polling data stream
     socket = io(window.location.origin);
 
     
