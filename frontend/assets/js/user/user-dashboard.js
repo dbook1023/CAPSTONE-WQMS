@@ -48,22 +48,32 @@ async function fetchDashboardData() {
             API.sensors.getLatest()
         ]);
 
-        availableFountains = fountainsRes.status === 'fulfilled' && Array.isArray(fountainsRes.value) ? fountainsRes.value : [];
+        const dbFountains = fountainsRes.status === 'fulfilled' && Array.isArray(fountainsRes.value) ? fountainsRes.value : [];
         latestReadingsList = latestRes.status === 'fulfilled' && Array.isArray(latestRes.value) ? latestRes.value : [];
 
-        // Fallback: If no fountains endpoint list, derive unique fountains from latest readings
-        if (availableFountains.length === 0 && latestReadingsList.length > 0) {
-            const seenIds = new Set();
-            latestReadingsList.forEach(r => {
-                if (r.fountain_id && !seenIds.has(r.fountain_id)) {
-                    seenIds.add(r.fountain_id);
-                    availableFountains.push({
-                        id: r.fountain_id,
-                        name: r.fountain_name || `Fountain #${r.fountain_id}`
-                    });
-                }
-            });
-        }
+        // Build comprehensive map of all database fountains + telemetry sources
+        const fountainMap = new Map();
+
+        dbFountains.forEach(f => {
+            if (f && f.id) {
+                fountainMap.set(String(f.id), {
+                    id: f.id,
+                    name: f.name || f.display_id || `Fountain #${f.id}`
+                });
+            }
+        });
+
+        latestReadingsList.forEach(r => {
+            if (r && r.fountain_id && !fountainMap.has(String(r.fountain_id))) {
+                fountainMap.set(String(r.fountain_id), {
+                    id: r.fountain_id,
+                    name: r.fountain_name || `Fountain #${r.fountain_id}`
+                });
+            }
+        });
+
+        availableFountains = Array.from(fountainMap.values());
+        availableFountains.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }));
 
         await renderCurrentScope();
     } catch (error) {
@@ -100,11 +110,10 @@ async function renderCurrentScope() {
         }
 
         if (latestReadingsList.length === 0) {
-            setEmptyState();
+            setEmptyState('No current readings from any campus fountains.');
             return;
         }
 
-        // Calculate averages across all fountains
         const avgPh = calculateMean(latestReadingsList, 'ph');
         const avgTurb = calculateMean(latestReadingsList, 'turbidity');
         const avgTemp = calculateMean(latestReadingsList, 'temperature');
@@ -120,7 +129,6 @@ async function renderCurrentScope() {
 
         updateMetrics(aggregatedData);
 
-        // Fetch history logs for all active fountains to build averaged history trend
         const histories = await Promise.allSettled(
             availableFountains.map(f => API.sensors.getHistory(f.id, 10))
         );
@@ -132,18 +140,19 @@ async function renderCurrentScope() {
         if (validHistories.length > 0) {
             const combinedHistory = buildAveragedHistory(validHistories);
             renderDashboardCharts(combinedHistory);
-            updateTrendInsights(combinedHistory);
+            updateTrendInsights(combinedHistory, 'All Fountains (Average)');
         } else {
             renderDashboardCharts([]);
+            updateTrendInsights([], 'All Fountains (Average)');
         }
 
         if (lastUpdated) {
-            lastUpdated.textContent = `Averaged data across ${latestReadingsList.length} fountain(s) • Last updated: ${new Date().toLocaleTimeString()}`;
+            lastUpdated.textContent = `Averaged data across ${latestReadingsList.length} fountain reading(s) • Last updated: ${new Date().toLocaleTimeString()}`;
         }
     } else {
         // --- INDIVIDUAL FOUNTAIN VIEW ---
         const fountain = availableFountains[selectedFountainIndex];
-        const fountainName = fountain.name || `Fountain #${fountain.id}`;
+        const fountainName = fountain ? (fountain.name || `Fountain #${fountain.id}`) : 'Selected Fountain';
 
         if (headerTitle) {
             headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${fountainName}</span>`;
@@ -152,9 +161,17 @@ async function renderCurrentScope() {
             refreshBtnText.textContent = `Scope: ${fountainName}`;
         }
 
-        const fountainData = latestReadingsList.find(r => r.fountain_id == fountain.id) || {
-            ph: null, turbidity: null, temperature: null, tds: null, fountain_name: fountainName
-        };
+        const fountainData = fountain ? latestReadingsList.find(r => r.fountain_id == fountain.id) : null;
+
+        if (!fountainData || (fountainData.ph === null && fountainData.turbidity === null && fountainData.temperature === null && fountainData.tds === null)) {
+            updateMetrics({ ph: null, turbidity: null, temperature: null, tds: null, fountain_name: fountainName });
+            renderDashboardCharts([]);
+            updateTrendInsights([], fountainName);
+            if (lastUpdated) {
+                lastUpdated.textContent = `No current readings from this fountain (${fountainName})`;
+            }
+            return;
+        }
 
         updateMetrics(fountainData);
 
@@ -162,13 +179,14 @@ async function renderCurrentScope() {
             const history = await API.sensors.getHistory(fountain.id, 10);
             if (history && history.length > 0) {
                 renderDashboardCharts(history);
-                updateTrendInsights(history);
+                updateTrendInsights(history, fountainName);
             } else {
                 renderDashboardCharts([]);
-                if (trendInsights.period) trendInsights.period.textContent = `No historical data for ${fountainName}`;
+                updateTrendInsights([], fountainName);
             }
         } catch (err) {
             renderDashboardCharts([]);
+            updateTrendInsights([], fountainName);
         }
 
         if (lastUpdated) {
@@ -189,7 +207,6 @@ function calculateMean(array, key) {
 function buildAveragedHistory(historiesList) {
     if (historiesList.length === 0) return [];
     
-    // Determine maximum history length (up to 10 entries)
     const maxLen = Math.max(...historiesList.map(h => h.length));
     const averagedHistory = [];
 
@@ -244,20 +261,38 @@ function updateMetrics(data) {
     const sTemp = document.getElementById('status-temp');
     const sTds = document.getElementById('status-tds');
 
-    if (sPh) sPh.textContent = phSafe ? 'Within safe limits' : 'Out of range';
-    if (sTurb) sTurb.textContent = turbSafe ? 'Excellent clarity' : 'Turbid / Needs check';
-    if (sTemp) sTemp.textContent = tempSafe ? 'Optimal' : 'Needs adjustment';
-    if (sTds) sTds.textContent = tdsSafe ? 'Excellent purity' : 'High mineral content';
+    if (sPh) sPh.textContent = phSafe === null ? 'No current readings' : (phSafe ? 'Within safe limits' : 'Out of range');
+    if (sTurb) sTurb.textContent = turbSafe === null ? 'No current readings' : (turbSafe ? 'Excellent clarity' : 'Turbid / Needs check');
+    if (sTemp) sTemp.textContent = tempSafe === null ? 'No current readings' : (tempSafe ? 'Optimal' : 'Needs adjustment');
+    if (sTds) sTds.textContent = tdsSafe === null ? 'No current readings' : (tdsSafe ? 'Excellent purity' : 'High mineral content');
 }
 
 function updateBadge(card, value, min, max) {
-    if (!card) return 'safe';
+    if (!card) return null;
     const badge = card.querySelector('.safe-badge');
     const valText = card.querySelector('.metric-value');
-    
+    const trendEl = card.querySelector('.metric-trend');
+    const labelText = card.querySelector('.metric-label');
+    const unitTexts = card.querySelectorAll('.metric-unit');
+
     if (value === null || value === undefined || Number.isNaN(parseFloat(value))) {
-        if (badge) badge.textContent = 'No Data';
-        return false;
+        card.style.transition = 'all 0.4s ease';
+        card.style.background = 'linear-gradient(135deg, #475569 0%, #334155 100%)';
+        card.style.borderColor = '#1e293b';
+        [valText, labelText, ...unitTexts].forEach(el => { if (el) el.style.color = 'white'; });
+
+        if (badge) {
+            badge.style.background = 'rgba(255,255,255,0.2)';
+            badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> No Readings`;
+        }
+        if (trendEl) {
+            trendEl.innerHTML = `
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span style="font-weight: 500; margin-left: 4px;">No current readings from this fountain</span>
+            `;
+            trendEl.style.color = 'rgba(255, 255, 255, 0.85)';
+        }
+        return null;
     }
 
     const val = parseFloat(value);
@@ -270,9 +305,6 @@ function updateBadge(card, value, min, max) {
     else if (isWarning) status = 'warning';
 
     if (badge) {
-        const labelText = card.querySelector('.metric-label');
-        const unitTexts = card.querySelectorAll('.metric-unit');
-
         card.style.transition = 'all 0.4s ease';
         [valText, labelText, ...unitTexts].forEach(el => { if (el) el.style.color = 'white'; });
 
@@ -294,7 +326,6 @@ function updateBadge(card, value, min, max) {
         }
     }
 
-    const trendEl = card.querySelector('.metric-trend');
     if (trendEl && valText) {
         let paramName = '';
         const idVal = valText.id || '';
@@ -336,13 +367,22 @@ function updateBadge(card, value, min, max) {
     return isSafe;
 }
 
-function updateTrendInsights(history) {
-    if (!history || history.length === 0) return;
-    const latest = history[0];
-    
+function updateTrendInsights(history, fountainName = '') {
     if (trendInsights.period) {
-        trendInsights.period.textContent = `Real-time analytics for ${new Date().toLocaleDateString()}`;
+        trendInsights.period.textContent = `Real-time analytics for ${fountainName || 'Current Session'}`;
     }
+
+    if (!history || history.length === 0 || !history[0] || history[0].ph === null) {
+        if (trendInsights.status) trendInsights.status.textContent = 'No Readings';
+        if (trendInsights.statusDesc) trendInsights.statusDesc.textContent = `No current readings from ${fountainName || 'this fountain'}.`;
+        if (trendInsights.purity) trendInsights.purity.textContent = 'N/A';
+        if (trendInsights.purityDesc) trendInsights.purityDesc.textContent = `No current readings from ${fountainName || 'this fountain'}.`;
+        if (trendInsights.health) trendInsights.health.textContent = 'N/A';
+        if (trendInsights.healthDesc) trendInsights.healthDesc.textContent = `No current readings from ${fountainName || 'this fountain'}.`;
+        return;
+    }
+
+    const latest = history[0];
 
     if (trendInsights.status) {
         const isSafe = latest.ph >= 6.5 && latest.ph <= 8.5 && latest.turbidity <= 5;
@@ -375,19 +415,19 @@ function updateTrendInsights(history) {
     }
 }
 
-function setEmptyState() {
+function setEmptyState(msg = 'No sensor data found.') {
     Object.values(metricValues).forEach(el => { if (el) el.textContent = '--'; });
     
-    if (trendInsights.status) trendInsights.status.textContent = '--';
-    if (trendInsights.statusDesc) trendInsights.statusDesc.textContent = 'No sensor data found.';
-    if (trendInsights.purity) trendInsights.purity.textContent = '--';
-    if (trendInsights.purityDesc) trendInsights.purityDesc.textContent = 'N/A';
-    if (trendInsights.health) trendInsights.health.textContent = '--';
-    if (trendInsights.healthDesc) trendInsights.healthDesc.textContent = 'N/A';
+    if (trendInsights.status) trendInsights.status.textContent = 'No Readings';
+    if (trendInsights.statusDesc) trendInsights.statusDesc.textContent = msg;
+    if (trendInsights.purity) trendInsights.purity.textContent = 'N/A';
+    if (trendInsights.purityDesc) trendInsights.purityDesc.textContent = msg;
+    if (trendInsights.health) trendInsights.health.textContent = 'N/A';
+    if (trendInsights.healthDesc) trendInsights.healthDesc.textContent = msg;
     if (trendInsights.period) trendInsights.period.textContent = 'No active session';
 
     const lastUpdated = document.getElementById('lastUpdatedBar');
-    if (lastUpdated) lastUpdated.textContent = 'No sensor data available. Connect a fountain to start.';
+    if (lastUpdated) lastUpdated.textContent = msg;
 }
 
 function renderDashboardCharts(history) {
