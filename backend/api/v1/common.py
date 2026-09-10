@@ -47,20 +47,49 @@ def verify_auth_token(token, max_age=86400 * 30):  # 30 days max age
 
 
 def token_required(f):
-    """Decorator to enforce valid Authorization: Bearer <token> on API endpoints"""
+    """Decorator to enforce valid authentication via HttpOnly cookie or Authorization header"""
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        token = None
-        if auth_header and auth_header.startswith('Bearer '):
-            token = auth_header.split(' ')[1]
+        token = request.cookies.get('aqua_session')
+        if not token:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
         
         if not token:
             return api_error('Authentication token is missing. Access denied.', 401)
         
         payload = verify_auth_token(token)
         if not payload:
-            return api_error('Invalid or expired authentication token. Please log in again.', 401)
+            return api_error('Invalid or expired authentication session. Please log in again.', 401)
+        
+        request.current_user = payload
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    """Decorator to enforce administrator-only access"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.cookies.get('aqua_session')
+        if not token:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+        
+        if not token:
+            return api_error('Authentication token is missing. Access denied.', 401)
+        
+        payload = verify_auth_token(token)
+        if not payload:
+            return api_error('Invalid or expired authentication session. Please log in again.', 401)
+        
+        portal_type = payload.get('portal_type', '').lower()
+        role_name = payload.get('role_name', '').lower()
+        
+        if portal_type != 'admin' and role_name not in ['admin', 'administrator', 'super admin']:
+            return api_error('Access denied. Administrator privileges required.', 403)
         
         request.current_user = payload
         return f(*args, **kwargs)

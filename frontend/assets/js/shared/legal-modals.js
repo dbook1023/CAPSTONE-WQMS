@@ -253,15 +253,22 @@
                             </svg>
                             <span id="wqmsLegalModalTitleText">Legal Information</span>
                         </h3>
-                        <button type="button" class="legal-modal-close-btn" onclick="window.closeLegalModal()">&times;</button>
+                        <button type="button" class="legal-modal-close-btn" id="wqmsLegalModalCloseBtnHeader">&times;</button>
                     </div>
                     <div class="legal-modal-body" id="wqmsLegalModalBody"></div>
                     <div class="legal-modal-footer">
-                        <button type="button" class="legal-modal-btn" onclick="window.closeLegalModal()">Close</button>
+                        <button type="button" class="legal-modal-btn" id="wqmsLegalModalCloseBtnFooter">Close</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(overlay);
+
+            document.getElementById('wqmsLegalModalCloseBtnHeader')?.addEventListener('click', function() {
+                window.closeLegalModal();
+            });
+            document.getElementById('wqmsLegalModalCloseBtnFooter')?.addEventListener('click', function() {
+                window.closeLegalModal();
+            });
 
             // Close on overlay click
             overlay.addEventListener('click', function(e) {
@@ -279,6 +286,20 @@
         }
         return overlay;
     }
+
+    // Event delegation for legal modal triggers
+    document.addEventListener('click', function(e) {
+        const target = e.target;
+        if (!target) return;
+
+        if (target.id === 'footerPrivacyLink' || target.id === 'openPrivacyPolicyLink') {
+            e.preventDefault();
+            window.openPrivacyPolicyModal();
+        } else if (target.id === 'footerTermsLink' || target.id === 'openTermsLink') {
+            e.preventDefault();
+            window.openTermsModal();
+        }
+    });
 
     // Expose global methods
     window.openPrivacyPolicyModal = function() {

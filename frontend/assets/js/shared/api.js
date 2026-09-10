@@ -24,36 +24,54 @@ function getStoredSession() {
 
 const API = {
     /**
-     * Generic fetch wrapper
+     * Generic fetch wrapper with HttpOnly cookie credentials & status code resilience
      */
     async request(endpoint, options = {}) {
         const url = `${API_BASE_URL}${endpoint}`;
         
-        // Default headers
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers
         };
 
-        // Add auth token if available (future implementation)
-        const session = getStoredSession();
-        if (session) {
-            const { token } = session;
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-        }
-
         try {
             const response = await fetch(url, {
+                credentials: 'same-origin',
                 ...options,
                 headers
             });
 
-            const data = await response.json();
+            // Handle 204 No Content
+            if (response.status === 204) {
+                return null;
+            }
+
+            // Handle non-JSON or JSON parse failures safely
+            let data = null;
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = null;
+                }
+            }
+
+            // Handle 401 Unauthorized (Expired or invalid session)
+            if (response.status === 401) {
+                const isAdminPath = window.location.pathname.startsWith('/admin');
+                const targetLogin = isAdminPath ? '/admin/login' : '/login';
+                if (!window.location.pathname.includes('/login')) {
+                    localStorage.removeItem('aqua_monitor_admin_session');
+                    localStorage.removeItem('aqua_monitor_user_session');
+                    window.location.href = targetLogin;
+                }
+                throw new Error((data && (data.message || data.error)) || 'Session expired. Please sign in again.');
+            }
 
             if (!response.ok) {
-                throw new Error(data.message || data.error || 'Something went wrong');
+                const errorMsg = (data && (data.message || data.error)) || 'A server error occurred. Please try again.';
+                throw new Error(errorMsg);
             }
 
             if (data && typeof data === 'object' && 'status' in data && 'data' in data) {
@@ -62,7 +80,6 @@ const API = {
 
             return data;
         } catch (error) {
-            console.error(`API Error (${endpoint}):`, error);
             throw error;
         }
     },

@@ -82,15 +82,17 @@ def apply_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), payment=()'
     
-    # Permissive Content Security Policy (allows trusted fonts, CDN scripts, images, videos & inline styles)
+    # Hardened Content Security Policy
     csp = (
-        "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
+        "default-src 'self'; "
         "font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com data:; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-        "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "script-src-elem 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
         "img-src 'self' data: blob: https:; "
         "media-src 'self' data: blob: https:; "
         "connect-src 'self' https: wss: ws:; "

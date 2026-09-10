@@ -103,9 +103,20 @@ def login():
             user_data = user.to_dict()
             from .common import generate_auth_token
             role_name = getattr(user, 'role_name', None) or (user.role.role_name if hasattr(user, 'role') and user.role else portal_type.capitalize())
-            user_data['token'] = generate_auth_token(user.id, role_name, portal_type)
+            token = generate_auth_token(user.id, role_name, portal_type)
             db.close()
-            return api_success(user_data, 'Login successful')
+
+            resp, status_code = api_success(user_data, 'Login successful')
+            is_prod = request.is_secure or (os.getenv('FLASK_ENV') == 'production') or request.headers.get('X-Forwarded-Proto') == 'https'
+            resp.set_cookie(
+                'aqua_session',
+                token,
+                httponly=True,
+                secure=is_prod,
+                samesite='Lax',
+                max_age=86400 * 30
+            )
+            return resp, status_code
 
         else:
             # Invalid credentials
@@ -166,17 +177,29 @@ def verify_2fa_login():
         user_data = user.to_dict()
         from .common import generate_auth_token
         role_name = getattr(user, 'role_name', None) or (user.role.role_name if hasattr(user, 'role') and user.role else portal_type.capitalize())
-        user_data['token'] = generate_auth_token(user.id, role_name, portal_type)
+        token = generate_auth_token(user.id, role_name, portal_type)
         db.close()
 
-        return api_success(user_data, '2FA verification successful. Welcome!')
+        resp, status_code = api_success(user_data, '2FA verification successful. Welcome!')
+        is_prod = request.is_secure or (os.getenv('FLASK_ENV') == 'production') or request.headers.get('X-Forwarded-Proto') == 'https'
+        resp.set_cookie(
+            'aqua_session',
+            token,
+            httponly=True,
+            secure=is_prod,
+            samesite='Lax',
+            max_age=86400 * 30
+        )
+        return resp, status_code
     except Exception as e:
         return api_error(str(e), 500)
 
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    return api_success(None, 'Successfully logged out')
+    resp, status_code = api_success(None, 'Successfully logged out')
+    resp.set_cookie('aqua_session', '', expires=0, httponly=True, samesite='Lax')
+    return resp, status_code
 
 @auth_bp.route('/register', methods=['POST'])
 def register():

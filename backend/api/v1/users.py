@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from models import SessionLocal, User, Admin
 from datetime import datetime
-from .common import api_success, api_error, token_required
+from .common import api_success, api_error, token_required, admin_required
 
 users_bp = Blueprint('users', __name__)
 
@@ -9,9 +9,9 @@ def get_db():
     return SessionLocal()
 
 @users_bp.route('/', methods=['GET'])
-@token_required
+@admin_required
 def index():
-    """List users; admins are returned separately via /admins."""
+    """List users; admins only."""
     try:
         db = get_db()
         users = db.query(User).all()
@@ -22,9 +22,9 @@ def index():
         return api_error(str(e), 500)
 
 @users_bp.route('/', methods=['POST'])
-@token_required
+@admin_required
 def store():
-    """2. STORE: Create a new user"""
+    """Create a new user (admins only)"""
     try:
         data = request.get_json() or {}
         name = data.get('name')
@@ -43,13 +43,11 @@ def store():
         
         db = get_db()
         
-        # Check if user already exists
         existing_user = db.query(User).filter(User.email == email).first()
         if existing_user:
             db.close()
             return api_error('Email already exists', 400)
         
-        # Create new user
         user = User(
             name=name,
             email=email,
@@ -74,7 +72,14 @@ def store():
 @users_bp.route('/<int:id>', methods=['GET'])
 @token_required
 def show(id):
-    """3. SHOW: Get one specific user"""
+    """Get specific user (with IDOR ownership check)"""
+    current_user = getattr(request, 'current_user', {})
+    current_id = current_user.get('user_id')
+    portal_type = current_user.get('portal_type')
+
+    if current_id != id and portal_type != 'admin':
+        return api_error('Access denied. You cannot view another user\'s profile.', 403)
+
     try:
         db = get_db()
         user = db.query(User).filter(User.id == id).first()
@@ -92,9 +97,16 @@ def show(id):
 @users_bp.route('/<int:id>', methods=['PUT'])
 @token_required
 def update(id):
-    """4. UPDATE: Update a user"""
+    """Update a user (with IDOR ownership check)"""
+    current_user = getattr(request, 'current_user', {})
+    current_id = current_user.get('user_id')
+    portal_type = current_user.get('portal_type')
+
+    if current_id != id and portal_type != 'admin':
+        return api_error('Access denied. You cannot modify another user\'s profile.', 403)
+
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         db = get_db()
         
         user = db.query(User).filter(User.id == id).first()
@@ -106,9 +118,9 @@ def update(id):
             user.name = data['name']
         if 'email' in data:
             user.email = data['email']
-        if 'role_id' in data:
+        if 'role_id' in data and portal_type == 'admin':
             user.role_id = data['role_id']
-        if 'status' in data:
+        if 'status' in data and portal_type == 'admin':
             user.status = data['status']
         if 'phone' in data:
             user.phone = data['phone']
@@ -136,9 +148,9 @@ def update(id):
         return api_error(str(e), 500)
 
 @users_bp.route('/<int:id>', methods=['DELETE'])
-@token_required
+@admin_required
 def destroy(id):
-    """5. DESTROY: Delete a user"""
+    """Delete a user (admins only)"""
     try:
         db = get_db()
         user = db.query(User).filter(User.id == id).first()
@@ -158,7 +170,7 @@ def destroy(id):
 @users_bp.route('/activity', methods=['GET'])
 @token_required
 def get_user_activity():
-    """6. ACTIVITY: Get recent system activity"""
+    """Get recent system activity"""
     try:
         from models import AuditLog
         db = get_db()
@@ -172,22 +184,22 @@ def get_user_activity():
 @users_bp.route('/me', methods=['GET'])
 @token_required
 def get_current_user_profile():
-    """7. ME: Get current authenticated user"""
-    # In a real app with proper sessions/JWT, you'd get the ID from the token/session
-    # For now, we'll simulate it by returning the first user (usually the admin)
-    # or getting it from a query param if provided (for testing)
-    user_id = request.args.get('id')
+    """Get current authenticated user profile using token user_id"""
+    current_user = getattr(request, 'current_user', {})
+    user_id = current_user.get('user_id')
+    portal_type = current_user.get('portal_type', 'user')
+
     try:
         db = get_db()
-        if user_id:
-            user = db.query(User).filter(User.id == user_id).first()
+        if portal_type == 'admin':
+            user = db.query(Admin).filter(Admin.id == user_id).first()
         else:
-            user = db.query(User).first()
-        
+            user = db.query(User).filter(User.id == user_id).first()
+
         if not user:
             db.close()
-            return api_error('No users found', 404)
-            
+            return api_error('Authenticated user profile not found', 404)
+
         result = user.to_dict()
         db.close()
         return api_success(result, 'Current user retrieved successfully')

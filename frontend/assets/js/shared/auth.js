@@ -693,4 +693,26 @@ function closeEmailOtpModal() {
     }
 }
 
+// Bind DOM event listeners dynamically for form submissions & toggles
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            handleLogin(e, 'user');
+        });
+    }
 
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    if (adminLoginForm) {
+        adminLoginForm.addEventListener('submit', function(e) {
+            handleLogin(e, 'admin');
+        });
+    }
+
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            togglePassword('password');
+        });
+    }
+});
