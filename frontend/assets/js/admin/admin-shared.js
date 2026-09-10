@@ -159,16 +159,16 @@ function initSessionTimeoutTracker() {
                 message: 'Your account session has expired due to inactivity. Please sign in again.',
                 onConfirm: () => {
                     if (typeof logout === 'function') logout();
-                    else window.location.href = '../admin-login.html';
+                    else window.location.href = '/admin/login';
                 }
             });
             setTimeout(() => {
                 if (typeof logout === 'function') logout();
-                else window.location.href = '../admin-login.html';
+                else window.location.href = '/admin/login';
             }, 2500);
         } else {
             if (typeof logout === 'function') logout();
-            else window.location.href = '../admin-login.html';
+            else window.location.href = '/admin/login';
         }
     }
 
@@ -181,7 +181,7 @@ function initSessionTimeoutTracker() {
     // Listen to storage events for multi-tab logout sync
     window.addEventListener('storage', (e) => {
         if (e.key === 'aqua_monitor_admin_session' && !e.newValue) {
-            window.location.href = '../admin-login.html';
+            window.location.href = '/admin/login';
         } else if (e.key === CACHED_SETTINGS_KEY) {
             checkTimeoutEnabled();
         }
@@ -201,8 +201,7 @@ async function loadSidebarComponent() {
     if (!mount) return;
 
     try {
-        const pathPrefix = window.location.pathname.includes('/admin/') ? '../' : '';
-        const response = await fetch(`${pathPrefix}components/admin-sidebar.html`, { cache: 'no-store' });
+        const response = await fetch('/frontend/components/admin-sidebar.html', { cache: 'no-store' });
         if (!response.ok) return;
         
         mount.innerHTML = await response.text();
@@ -215,10 +214,10 @@ function setActiveSidebarLink() {
     const navItems = document.querySelectorAll('.sidebar .nav-item[href]');
     if (!navItems.length) return;
 
-    const currentPage = window.location.pathname.split('/').pop();
+    const currentPath = window.location.pathname;
     navItems.forEach(item => {
         const href = item.getAttribute('href');
-        if (href && href === currentPage) {
+        if (href && href === currentPath) {
             item.classList.add('active');
         } else {
             item.classList.remove('active');
@@ -281,8 +280,7 @@ function initAuthFeatures() {
     const session = localStorage.getItem('aqua_monitor_admin_session');
     if (!session) {
         // No session - redirect to admin login page
-        const pathPrefix = window.location.pathname.includes('/admin/') ? './' : 'frontend/admin/';
-        window.location.href = pathPrefix + 'admin-login.html';
+        window.location.href = '/admin/login';
         return;
     }
 
@@ -291,8 +289,7 @@ function initAuthFeatures() {
     // Strict portal check: Non-admins cannot access the admin portal
     if (!user.role || user.role.toLowerCase() !== 'admin') {
         localStorage.removeItem('aqua_monitor_admin_session');
-        const pathPrefix = window.location.pathname.includes('/admin/') ? '../../' : '';
-        window.location.href = pathPrefix + 'frontend/user/user-dashboard.html';
+        window.location.href = '/user/dashboard';
         return;
     }
     const userNameEl = document.querySelector('.user-name');
@@ -318,7 +315,7 @@ function initAuthFeatures() {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('aqua_monitor_admin_session');
-            window.location.href = './admin-login.html';
+            window.location.href = '/admin/login';
         });
     }
 }

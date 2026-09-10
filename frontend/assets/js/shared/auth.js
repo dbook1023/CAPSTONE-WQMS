@@ -215,18 +215,14 @@ function showMessage(text, type) {
 function redirectUser(role) {
     if (!role) return;
     
-    const isInsideSubfolder = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    const prefix = isInsideSubfolder ? '../../' : '';
-    
     // Normalize role to lowercase for comparison
     const normalizedRole = role.toLowerCase();
     const targetUrl = (normalizedRole === 'admin') 
-        ? prefix + 'frontend/admin/admin-dashboard.html'
-        : prefix + 'frontend/user/user-dashboard.html';
+        ? '/admin/dashboard'
+        : '/user/dashboard';
         
     // Prevent redundant redirects if already on target URL
-    const targetFilename = targetUrl.split('/').pop();
-    if (window.location.pathname.endsWith(targetFilename)) {
+    if (window.location.pathname === targetUrl) {
         return;
     }
     
@@ -247,9 +243,7 @@ function getCurrentUser() {
 function logout() {
     localStorage.removeItem('aqua_monitor_admin_session');
     localStorage.removeItem('aqua_monitor_user_session');
-    const isInsideSubfolder = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    const prefix = isInsideSubfolder ? '../../' : '';
-    window.location.href = prefix + 'login.html';
+    window.location.href = '/login';
 }
 
 /**

@@ -97,10 +97,91 @@ def apply_security_headers(response):
     response.headers['Content-Security-Policy'] = csp
     return response
 
+# --- CLEAN URL ROUTES ---
+# Public pages
 @app.route('/')
 def index():
     return send_from_directory(PROJECT_ROOT, 'index.html')
 
+@app.route('/about')
+def about():
+    return send_from_directory(PROJECT_ROOT, 'about.html')
+
+@app.route('/research')
+def research():
+    return send_from_directory(PROJECT_ROOT, 'research.html')
+
+@app.route('/contact')
+def contact():
+    return send_from_directory(PROJECT_ROOT, 'contact.html')
+
+@app.route('/login')
+def login():
+    return send_from_directory(PROJECT_ROOT, 'login.html')
+
+# Admin portal routes
+@app.route('/admin/login')
+def admin_login():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-login.html')
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-dashboard.html')
+
+@app.route('/admin/fountains')
+def admin_fountains():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-fountains.html')
+
+@app.route('/admin/sensors')
+def admin_sensors():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-sensors.html')
+
+@app.route('/admin/alerts')
+def admin_alerts():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-alerts.html')
+
+@app.route('/admin/users')
+def admin_users():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-users.html')
+
+@app.route('/admin/reports')
+def admin_reports():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-reports.html')
+
+@app.route('/admin/settings')
+def admin_settings():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-settings.html')
+
+@app.route('/admin/help')
+def admin_help():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'admin'), 'admin-help.html')
+
+# User (Operator) portal routes
+@app.route('/user/dashboard')
+def user_dashboard():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-dashboard.html')
+
+@app.route('/user/monitoring')
+def user_monitoring():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-monitoring.html')
+
+@app.route('/user/fountain-status')
+def user_fountain_status():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-fountain-status.html')
+
+@app.route('/user/reports')
+def user_reports():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-reports.html')
+
+@app.route('/user/settings')
+def user_settings():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-settings.html')
+
+@app.route('/user/help')
+def user_help():
+    return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-help.html')
+
+# Static file catch-all (serves CSS, JS, images, and legacy .html URLs)
 @app.route('/<path:path>')
 def serve_static(path):
     full_path = os.path.join(PROJECT_ROOT, path)

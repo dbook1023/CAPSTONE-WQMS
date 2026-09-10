@@ -4,18 +4,15 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    const pathPrefix = isInSubdir ? '../../' : '';
-    
     // Ensure legal modals script is loaded
     if (!window.openPrivacyPolicyModal) {
         const script = document.createElement('script');
-        script.src = pathPrefix + 'frontend/assets/js/shared/legal-modals.js';
+        script.src = '/frontend/assets/js/shared/legal-modals.js';
         document.head.appendChild(script);
     }
 
-    loadComponent('navbar-placeholder', pathPrefix + 'frontend/components/navbar.html', initNavbar);
-    loadComponent('footer-placeholder', pathPrefix + 'frontend/components/footer.html', initFooter);
+    loadComponent('navbar-placeholder', '/frontend/components/navbar.html', initNavbar);
+    loadComponent('footer-placeholder', '/frontend/components/footer.html', initFooter);
 });
 
 async function loadComponent(id, path, callback) {
@@ -34,39 +31,22 @@ async function loadComponent(id, path, callback) {
 }
 
 function initNavbar() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navLinksContainer = document.getElementById('navLinks');
 
-    // Set active link and update paths
-    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    const pathPrefix = isInSubdir ? '../../' : '';
-
+    // Set active link based on clean URL path
     navLinks.forEach(link => {
-        const pageAttr = link.getAttribute('data-page');
-        const originalHref = link.getAttribute('href');
-        
-        // Update href if it doesn't already have a prefix
-        if (originalHref && !originalHref.startsWith('http') && !originalHref.startsWith('..')) {
-            link.setAttribute('href', pathPrefix + originalHref);
-        }
-
-        if (pageAttr === currentPage) {
+        const href = link.getAttribute('href');
+        const isHome = (href === '/' && (currentPath === '/' || currentPath === '' || currentPath === '/index.html'));
+        const isMatch = href && (href === currentPath || href === currentPath.replace('.html', ''));
+        if (isHome || isMatch) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
         }
     });
-
-    // Also update logo link
-    const logoLink = document.querySelector('.logo');
-    if (logoLink) {
-        const originalHref = logoLink.getAttribute('href');
-        if (originalHref && !originalHref.startsWith('http') && !originalHref.startsWith('..')) {
-            logoLink.setAttribute('href', pathPrefix + originalHref);
-        }
-    }
 
     // Update Auth UI
     updateAuthUI();
@@ -121,22 +101,19 @@ function updateAuthUI() {
     if (!navAuth) return;
 
     const session = localStorage.getItem('aqua_monitor_admin_session') || localStorage.getItem('aqua_monitor_user_session');
-    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    const pathPrefix = isInSubdir ? '../../' : '';
 
     if (session) {
         const user = JSON.parse(session);
         const role = user.role ? user.role.toLowerCase() : '';
-        const dashboardPath = role === 'admin' ? 'frontend/admin/admin-dashboard.html' : 'frontend/user/user-dashboard.html';
-        const finalDashboardPath = isInSubdir ? (window.location.pathname.includes(role) ? '#' : pathPrefix + dashboardPath) : dashboardPath;
+        const dashboardPath = role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
         
         navAuth.innerHTML = `
-            <a href="${finalDashboardPath}" class="nav-link" style="font-weight: 500;">Dashboard</a>
+            <a href="${dashboardPath}" class="nav-link" style="font-weight: 500;">Dashboard</a>
             <button onclick="handleGlobalLogout()" class="btn-logout">Logout</button>
         `;
     } else {
         navAuth.innerHTML = `
-            <a href="${pathPrefix}login.html" class="btn-login">Sign In</a>
+            <a href="/login" class="btn-login">Sign In</a>
         `;
     }
 }
@@ -147,6 +124,6 @@ function updateAuthUI() {
 function handleGlobalLogout() {
     localStorage.removeItem('aqua_monitor_admin_session');
     localStorage.removeItem('aqua_monitor_user_session');
-    const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
-    window.location.href = isInSubdir ? '../../index.html' : 'index.html';
+    window.location.href = '/';
 }
+

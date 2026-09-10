@@ -34,7 +34,7 @@ function setupEventListeners() {
     if (refreshBtn) refreshBtn.addEventListener('click', fetchFountains);
     if (viewStandardsBtn) {
         viewStandardsBtn.addEventListener('click', () => {
-            window.location.href = 'admin-settings.html';
+            window.location.href = '/admin/settings';
         });
     }
 }

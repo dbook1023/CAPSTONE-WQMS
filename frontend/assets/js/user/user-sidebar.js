@@ -123,7 +123,7 @@ function initSidebarLogic() {
 function initAuthFeatures() {
     const session = localStorage.getItem('aqua_monitor_user_session');
     if (!session) {
-        window.location.href = '../../login.html';
+        window.location.href = '/login';
         return;
     }
 
@@ -132,7 +132,7 @@ function initAuthFeatures() {
         user = JSON.parse(session);
     } catch (error) {
         localStorage.removeItem('aqua_monitor_user_session');
-        window.location.href = '../../login.html';
+        window.location.href = '/login';
         return;
     }
     
@@ -151,7 +151,7 @@ function initAuthFeatures() {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             localStorage.removeItem('aqua_monitor_user_session');
-            window.location.href = '../../login.html';
+            window.location.href = '/login';
         });
     }
 }

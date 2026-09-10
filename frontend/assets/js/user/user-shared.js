@@ -158,16 +158,16 @@ function initSessionTimeoutTracker() {
                 message: 'Your account session has expired due to inactivity. Please sign in again.',
                 onConfirm: () => {
                     if (typeof logout === 'function') logout();
-                    else window.location.href = '../../login.html';
+                    else window.location.href = '/login';
                 }
             });
             setTimeout(() => {
                 if (typeof logout === 'function') logout();
-                else window.location.href = '../../login.html';
+                else window.location.href = '/login';
             }, 2500);
         } else {
             if (typeof logout === 'function') logout();
-            else window.location.href = '../../login.html';
+            else window.location.href = '/login';
         }
     }
 
@@ -180,7 +180,7 @@ function initSessionTimeoutTracker() {
     // Listen to storage events for multi-tab logout sync
     window.addEventListener('storage', (e) => {
         if (e.key === 'aqua_monitor_user_session' && !e.newValue) {
-            window.location.href = '../../login.html';
+            window.location.href = '/login';
         } else if (e.key === CACHED_SETTINGS_KEY) {
             checkTimeoutEnabled();
         }
@@ -200,9 +200,7 @@ async function loadSidebarComponent() {
     if (!mount) return;
 
     try {
-        // Path resolution: find components folder regardless of subfolder depth
-        const pathPrefix = window.location.pathname.includes('/user/') ? '../' : '';
-        const response = await fetch(`${pathPrefix}components/user-sidebar.html`, { cache: 'no-store' });
+        const response = await fetch('/frontend/components/user-sidebar.html', { cache: 'no-store' });
         if (!response.ok) return;
         
         mount.innerHTML = await response.text();
@@ -215,10 +213,10 @@ function setActiveSidebarLink() {
     const navItems = document.querySelectorAll('.sidebar .nav-item[href]');
     if (!navItems.length) return;
 
-    const currentPage = window.location.pathname.split('/').pop();
+    const currentPath = window.location.pathname;
     navItems.forEach(item => {
         const href = item.getAttribute('href');
-        if (href && href === currentPage) {
+        if (href && href === currentPath) {
             item.classList.add('active');
         } else {
             item.classList.remove('active');
@@ -283,8 +281,7 @@ function initAuthFeatures() {
     const session = localStorage.getItem('aqua_monitor_user_session');
     if (!session) {
         // No session - redirect to operator/viewer login page
-        const pathPrefix = window.location.pathname.includes('/user/') ? '../../' : '';
-        window.location.href = pathPrefix + 'login.html';
+        window.location.href = '/login';
         return;
     }
 
@@ -293,16 +290,14 @@ function initAuthFeatures() {
         user = JSON.parse(session);
     } catch (error) {
         localStorage.removeItem('aqua_monitor_user_session');
-        const pathPrefix = window.location.pathname.includes('/user/') ? '../../' : '';
-        window.location.href = pathPrefix + 'login.html';
+        window.location.href = '/login';
         return;
     }
 
     // Strict portal check: Admins cannot access the operator/viewer portal
     if (user.role && user.role.toLowerCase() === 'admin') {
         localStorage.removeItem('aqua_monitor_user_session');
-        const pathPrefix = window.location.pathname.includes('/user/') ? '../../' : '';
-        window.location.href = pathPrefix + 'frontend/admin/admin-dashboard.html';
+        window.location.href = '/admin/dashboard';
         return;
     }
     const userNameEl = document.querySelector('.user-name');
@@ -328,7 +323,7 @@ function initAuthFeatures() {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('aqua_monitor_user_session');
-            window.location.href = '../../login.html';
+            window.location.href = '/login';
         });
     }
 }
