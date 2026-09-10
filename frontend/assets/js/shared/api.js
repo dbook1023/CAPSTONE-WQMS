@@ -59,9 +59,12 @@ const API = {
 
             // Handle 401 Unauthorized (Expired or invalid session)
             if (response.status === 401) {
-                const isAdminPath = window.location.pathname.startsWith('/admin');
-                const targetLogin = isAdminPath ? '/admin/login' : '/login';
-                if (!window.location.pathname.includes('/login')) {
+                const currentPath = window.location.pathname;
+                const isOnLoginPage = currentPath.includes('/login') || currentPath === '/';
+                // Only redirect if NOT already on a login page (expired session on dashboard etc.)
+                if (!isOnLoginPage) {
+                    const isAdminPath = currentPath.startsWith('/admin');
+                    const targetLogin = isAdminPath ? '/admin/login' : '/login';
                     localStorage.removeItem('aqua_monitor_admin_session');
                     localStorage.removeItem('aqua_monitor_user_session');
                     window.location.href = targetLogin;
