@@ -72,6 +72,12 @@ function initSessionTimeoutTracker() {
     const LAST_ACTIVITY_KEY = 'aqua_monitor_admin_last_activity';
     const CACHED_SETTINGS_KEY = 'aqua_monitor_system_settings_cache';
 
+    function isSettingEnabled(val) {
+        if (val === null || val === undefined) return false;
+        const str = String(val).trim().toLowerCase();
+        return str === 'true' || str === '1' || str === 'on' || str === 'enabled';
+    }
+
     async function checkTimeoutEnabled() {
         try {
             let settings = null;
@@ -87,13 +93,18 @@ function initSessionTimeoutTracker() {
                 }
             }
 
-            const enabled = !settings || settings.session_timeout_enabled !== 'false';
+            // Session timeout ONLY applies when settings exist AND session_timeout_enabled is explicitly enabled
+            const enabled = settings ? isSettingEnabled(settings.session_timeout_enabled) : false;
             if (!enabled) {
-                if (inactivityTimer) clearTimeout(inactivityTimer);
+                if (inactivityTimer) {
+                    clearTimeout(inactivityTimer);
+                    inactivityTimer = null;
+                }
+                localStorage.removeItem(LAST_ACTIVITY_KEY);
                 return;
             }
 
-            const durationMins = parseInt((settings && settings.session_timeout_duration) || '1') || 1;
+            const durationMins = parseInt((settings && settings.session_timeout_duration) || '15', 10) || 15;
             const limitMs = durationMins * 60 * 1000;
 
             // Check if user was already inactive for longer than limitMs
@@ -173,10 +184,13 @@ function initSessionTimeoutTracker() {
     }
 
     // Allow external manual re-check (e.g. after settings update)
-    window._recheckSessionTimeout = function() {
+    const recheckFn = function() {
         localStorage.removeItem(CACHED_SETTINGS_KEY);
         checkTimeoutEnabled();
     };
+
+    window._recheckSessionTimeout = recheckFn;
+    window._recheckAdminSessionTimeout = recheckFn;
 
     // Listen to storage events for multi-tab logout sync
     window.addEventListener('storage', (e) => {

@@ -537,21 +537,26 @@ async function fetchSecuritySettings() {
         const settings = await API.settings.getAll();
         if (!settings) return;
 
+        if (settings) {
+            localStorage.setItem('aqua_monitor_system_settings_cache', JSON.stringify(settings));
+        }
+
         const toggle2FA = document.getElementById('toggle2FA');
         const toggleSessionTimeout = document.getElementById('toggleSessionTimeout');
         const toggleLoginLimit = document.getElementById('toggleLoginLimit');
         const durationSelect = document.getElementById('sessionTimeoutDuration');
 
         if (toggle2FA) {
-            const is2FA = settings.enable_2fa !== 'false';
+            const is2FA = String(settings.enable_2fa).toLowerCase() !== 'false';
             toggle2FA.classList.toggle('on', is2FA);
         }
         if (toggleSessionTimeout) {
-            const isTimeout = settings.session_timeout_enabled !== 'false';
+            const val = String(settings.session_timeout_enabled).toLowerCase();
+            const isTimeout = val === 'true' || val === '1' || val === 'on' || val === 'enabled';
             toggleSessionTimeout.classList.toggle('on', isTimeout);
         }
         if (toggleLoginLimit) {
-            const isLimit = settings.login_limit_enabled !== 'false';
+            const isLimit = String(settings.login_limit_enabled).toLowerCase() !== 'false';
             toggleLoginLimit.classList.toggle('on', isLimit);
         }
         if (durationSelect && settings.session_timeout_duration) {
@@ -562,9 +567,17 @@ async function fetchSecuritySettings() {
     }
 }
 
+function notifySettingsChanged() {
+    localStorage.removeItem('aqua_monitor_system_settings_cache');
+    if (typeof window._recheckSessionTimeout === 'function') window._recheckSessionTimeout();
+    if (typeof window._recheckAdminSessionTimeout === 'function') window._recheckAdminSessionTimeout();
+    if (typeof window._recheckUserSessionTimeout === 'function') window._recheckUserSessionTimeout();
+}
+
 async function updateSessionTimeoutDuration(val) {
     try {
         await API.settings.update({ session_timeout_duration: String(val) });
+        notifySettingsChanged();
         showToast(`Inactivity session timeout set to ${val} minute(s)`, 'success');
     } catch (err) {
         showToast(`Failed to update timeout duration: ${err.message}`, 'error');
@@ -580,6 +593,7 @@ async function toggleSecuritySetting(key, element) {
 
     try {
         await API.settings.update({ [key]: newState ? 'true' : 'false' });
+        notifySettingsChanged();
         const labelMap = {
             'enable_2fa': 'Two-Factor Authentication',
             'session_timeout_enabled': 'Session Timeout',
