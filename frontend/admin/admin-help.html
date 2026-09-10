@@ -115,7 +115,7 @@
                     <details class="faq-item">
                         <summary>How do I add a new user or administrator account?</summary>
                         <div class="faq-content">
-                            <p>Navigate to the <a href="admin-users.html"><strong>User Management</strong></a> page and click <strong>Add User</strong>. Choose the account type — <strong>User (System Operator)</strong> or <strong>Administrator</strong>. Fill in the first name, last name, and email address. For user accounts, select an Engineering Branch (General, Pollution Control, Maintenance, or create a custom one) and assign a System Role: <em>Operator</em> (monitoring &amp; alerts), <em>Technician</em> (hardware troubleshooting), or <em>Viewer</em> (read-only). New accounts are created with a default password of <code>Password123!</code>.</p>
+                            <p>Navigate to the <a href="admin-users.html"><strong>User Management</strong></a> page and click <strong>Add User</strong>. Choose the account type — <strong>User (System Operator)</strong> or <strong>Administrator</strong>. Fill in the first name, last name, and email address. Engineering Branch assignment is set to <strong>OLFU Antipolo Campus</strong>. Assign a System Role: <em>Operator</em> (monitoring &amp; alerts), <em>Technician</em> (hardware troubleshooting), or <em>Viewer</em> (read-only). New accounts are created with a default password of <code>Password123!</code>.</p>
                         </div>
                     </details>
                     <details class="faq-item">
@@ -142,11 +142,26 @@
                             <p>Go to <a href="admin-settings.html"><strong>System Settings</strong></a>. Under the <strong>Profile</strong> tab you can update your full name, email, job title, phone number, and profile picture. Under the <strong>Security</strong> tab you can change your password (enter current password, then a new one), and toggle security policies including Two-Factor Authentication, Session Timeout, and Login Attempt Limiting.</p>
                         </div>
                     </details>
+                    <details class="faq-item">
+                        <summary>Where can administrators review system Privacy Policy & Terms of Service?</summary>
+                        <div class="faq-content">
+                            <p>The WQMS platform operates under OLFU Antipolo Campus compliance and governance rules. You can review the policies using the modal controls below:</p>
+                            <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                                <button type="button" onclick="openPrivacyPolicyModal()" style="padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    🛡️ View Privacy Policy
+                                </button>
+                                <button type="button" onclick="openTermsModal()" style="padding: 8px 16px; background: #475569; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    📜 View Terms of Service
+                                </button>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="../assets/js/shared/legal-modals.js"></script>
     <script src="../assets/js/admin/admin-shared.js"></script>
     <script>
         // Simple search filter simulation

@@ -48,8 +48,8 @@ def store():
             name=name,
             email=email,
             status=data.get('status', 'Active'),
-            branch=data.get('branch', 'General'),
-            branch_code=data.get('branch_code', 'GEN'),
+            branch=data.get('branch', 'Antipolo Campus'),
+            branch_code=data.get('branch_code', 'APC'),
             job_title=data.get('job_title', 'System Administrator')
         )
         admin.set_password(password)

@@ -84,8 +84,8 @@ function setupEventListeners() {
                     this.value = cleaned;
                     document.getElementById('branchCode').value = code;
                 } else {
-                    this.value = 'General';
-                    document.getElementById('branchCode').value = 'GEN';
+                    this.value = 'Antipolo Campus';
+                    document.getElementById('branchCode').value = 'APC';
                 }
             } else {
                 const selectedOption = this.options[this.selectedIndex];
@@ -425,12 +425,12 @@ function openAddModal() {
         }
     });
     
-    // Reset branch select to General
+    // Reset branch select to Antipolo Campus
     const branchSelect = document.getElementById('branch');
     if (branchSelect) {
-        branchSelect.value = 'General';
+        branchSelect.value = 'Antipolo Campus';
     }
-    document.getElementById('branchCode').value = 'GEN';
+    document.getElementById('branchCode').value = 'APC';
     
     const roleSelect = document.getElementById('roleSelect');
     if (roleSelect) {

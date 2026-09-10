@@ -90,8 +90,8 @@ async function fetchProfile() {
                     }
                 }
                 if (fields['system role']) fields['system role'].value = user.role_name || '';
-                if (fields['engineering branch']) fields['engineering branch'].value = user.branch || 'General';
-                if (fields['branch code']) fields['branch code'].value = user.branch_code || 'GEN';
+                if (fields['engineering branch']) fields['engineering branch'].value = user.branch || 'Antipolo Campus';
+                if (fields['branch code']) fields['branch code'].value = user.branch_code || 'APC';
                 if (fields['status']) fields['status'].value = user.status || 'Active';
                 if (fields['account created']) fields['account created'].value = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 

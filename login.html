@@ -22,6 +22,7 @@
     <script defer src="frontend/assets/js/shared/utils.js?v=6"></script>
     <script defer src="frontend/assets/js/shared/api.js?v=6"></script>
     <script defer src="frontend/assets/js/shared/auth.js?v=6"></script>
+    <script defer src="frontend/assets/js/shared/legal-modals.js"></script>
 </head>
 
 <body>
@@ -42,12 +43,12 @@
                 <span>Aqua Monitor</span>
             </div>
             <div class="auth-side-content">
-                <h1>Safe Water for the School Campus.</h1>
+                <h1>Safe Water for OLFU Antipolo Campus.</h1>
                 <p>Access real-time water quality analytics and fountain status across the university facilities for the
                     engineering department maintenance team.</p>
             </div>
             <div class="auth-side-footer">
-                <p style="font-size: 0.8125rem; color: rgba(255,255,255,0.6);">© 2026 Aqua Monitor. All rights reserved.
+                <p style="font-size: 0.8125rem; color: rgba(255,255,255,0.6);">© 2026 Aqua Monitor (OLFU Antipolo Campus). All rights reserved.
                 </p>
             </div>
         </div>
@@ -118,9 +119,15 @@
                     <a href="index.html">Back to Home</a>
                 </div>
 
-                <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8125rem;">
+                <div style="margin-top: 1.25rem; text-align: center; font-size: 0.8125rem;">
                     <a href="frontend/admin/admin-login.html" style="color: #94A3B8; text-decoration: underline;">Are you an
                         Admin? Sign in here.</a>
+                </div>
+
+                <div style="margin-top: 1rem; text-align: center; font-size: 0.775rem; color: #64748B;">
+                    By signing in, you agree to our 
+                    <a href="javascript:void(0)" onclick="openPrivacyPolicyModal()" style="color: #0284C7; text-decoration: underline;">Privacy Policy</a> & 
+                    <a href="javascript:void(0)" onclick="openTermsModal()" style="color: #0284C7; text-decoration: underline;">Terms of Service</a>.
                 </div>
             </div>
         </div>

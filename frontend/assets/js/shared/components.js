@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const isInSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
     const pathPrefix = isInSubdir ? '../../' : '';
     
+    // Ensure legal modals script is loaded
+    if (!window.openPrivacyPolicyModal) {
+        const script = document.createElement('script');
+        script.src = pathPrefix + 'frontend/assets/js/shared/legal-modals.js';
+        document.head.appendChild(script);
+    }
+
     loadComponent('navbar-placeholder', pathPrefix + 'frontend/components/navbar.html', initNavbar);
     loadComponent('footer-placeholder', pathPrefix + 'frontend/components/footer.html', initFooter);
 });

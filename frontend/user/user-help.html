@@ -113,7 +113,7 @@
                     <details class="faq-item">
                         <summary>How do I update my profile or change my account password?</summary>
                         <div class="faq-content">
-                            <p>Go to <a href="user-settings.html"><strong>Account Settings</strong></a>. You can update your profile name, email, phone number, and Engineering Branch information, as well as change your account password under the Security section.</p>
+                            <p>Go to <a href="user-settings.html"><strong>Account Settings</strong></a>. You can update your profile name, email, phone number, and view your Engineering Branch assignment (OLFU Antipolo Campus), as well as change your account password under the Security section.</p>
                         </div>
                     </details>
                     <details class="faq-item">
@@ -122,11 +122,26 @@
                             <p>If a drinking fountain is flagged with a Warning or Offline status, automated alerts are dispatched to technical staff. If you notice physical water clarity issues, refrain from using the fountain and notify your campus site administrator or facilities office immediately.</p>
                         </div>
                     </details>
+                    <details class="faq-item">
+                        <summary>Where can I review the Privacy Policy and Terms of Service?</summary>
+                        <div class="faq-content">
+                            <p>Our Lady of Fatima University - Antipolo Campus is committed to protecting data privacy and ensuring safe system usage. You can view the full documents using the interactive popups below:</p>
+                            <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                                <button type="button" onclick="openPrivacyPolicyModal()" style="padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    🛡️ View Privacy Policy
+                                </button>
+                                <button type="button" onclick="openTermsModal()" style="padding: 8px 16px; background: #475569; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                    📜 View Terms of Service
+                                </button>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="../assets/js/shared/legal-modals.js"></script>
     <script src="../assets/js/user/user-shared.js"></script>
     <script>
         // Simple search filter simulation
