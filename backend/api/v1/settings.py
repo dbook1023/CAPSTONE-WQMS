@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import SessionLocal, SystemSetting
+from .common import token_required
 
 settings_bp = Blueprint('settings', __name__)
 
@@ -37,6 +38,7 @@ def get_settings():
         return jsonify({"error": str(e)}), 500
 
 @settings_bp.route('/update', methods=['PUT'])
+@token_required
 def update_setting():
     """Updates specific settings (thresholds or security toggles)"""
     try:

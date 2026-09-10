@@ -101,6 +101,9 @@ def login():
             db.commit()
             
             user_data = user.to_dict()
+            from .common import generate_auth_token
+            role_name = getattr(user, 'role_name', None) or (user.role.role_name if hasattr(user, 'role') and user.role else portal_type.capitalize())
+            user_data['token'] = generate_auth_token(user.id, role_name, portal_type)
             db.close()
             return api_success(user_data, 'Login successful')
 
@@ -161,6 +164,9 @@ def verify_2fa_login():
         db.commit()
 
         user_data = user.to_dict()
+        from .common import generate_auth_token
+        role_name = getattr(user, 'role_name', None) or (user.role.role_name if hasattr(user, 'role') and user.role else portal_type.capitalize())
+        user_data['token'] = generate_auth_token(user.id, role_name, portal_type)
         db.close()
 
         return api_success(user_data, '2FA verification successful. Welcome!')

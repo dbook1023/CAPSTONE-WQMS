@@ -1,4 +1,21 @@
 /**
+ * Production Console Sanitizer
+ * Mutes debug log dumps in browser DevTools in production environment
+ */
+(function setupProductionLogging() {
+    const isProduction = window.location.hostname.includes('wqms.tech') || 
+                         window.location.hostname.includes('onrender.com');
+
+    if (isProduction) {
+        const noop = function() {};
+        window.console.log = noop;
+        window.console.debug = noop;
+        window.console.dir = noop;
+        window.console.info = noop;
+    }
+})();
+
+/**
  * Form Sanitation Utilities
  * Prevents XSS and cleans user input
  */

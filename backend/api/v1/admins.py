@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from models import SessionLocal, Admin
-from .common import api_success, api_error
+from .common import api_success, api_error, token_required
 
 admins_bp = Blueprint('admins', __name__)
 
@@ -8,6 +8,7 @@ def get_db():
     return SessionLocal()
 
 @admins_bp.route('/', methods=['GET'])
+@token_required
 def index():
     """List all admins"""
     try:
@@ -20,6 +21,7 @@ def index():
         return api_error(str(e), 500)
 
 @admins_bp.route('/', methods=['POST'])
+@token_required
 def store():
     """Create a new admin"""
     try:
@@ -65,6 +67,7 @@ def store():
         return api_error(str(e), 500)
 
 @admins_bp.route('/<int:id>', methods=['GET'])
+@token_required
 def show(id):
     try:
         db = get_db()
@@ -79,6 +82,7 @@ def show(id):
         return api_error(str(e), 500)
 
 @admins_bp.route('/<int:id>', methods=['PUT'])
+@token_required
 def update(id):
     try:
         data = request.get_json()
@@ -120,6 +124,7 @@ def update(id):
         return api_error(str(e), 500)
 
 @admins_bp.route('/<int:id>', methods=['DELETE'])
+@token_required
 def destroy(id):
     try:
         db = get_db()

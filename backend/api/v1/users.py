@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from models import SessionLocal, User, Admin
 from datetime import datetime
-from .common import api_success, api_error
+from .common import api_success, api_error, token_required
 
 users_bp = Blueprint('users', __name__)
 
@@ -9,6 +9,7 @@ def get_db():
     return SessionLocal()
 
 @users_bp.route('/', methods=['GET'])
+@token_required
 def index():
     """List users; admins are returned separately via /admins."""
     try:
@@ -21,6 +22,7 @@ def index():
         return api_error(str(e), 500)
 
 @users_bp.route('/', methods=['POST'])
+@token_required
 def store():
     """2. STORE: Create a new user"""
     try:
@@ -70,6 +72,7 @@ def store():
         return api_error(str(e), 500)
 
 @users_bp.route('/<int:id>', methods=['GET'])
+@token_required
 def show(id):
     """3. SHOW: Get one specific user"""
     try:
@@ -87,6 +90,7 @@ def show(id):
         return api_error(str(e), 500)
 
 @users_bp.route('/<int:id>', methods=['PUT'])
+@token_required
 def update(id):
     """4. UPDATE: Update a user"""
     try:
@@ -132,6 +136,7 @@ def update(id):
         return api_error(str(e), 500)
 
 @users_bp.route('/<int:id>', methods=['DELETE'])
+@token_required
 def destroy(id):
     """5. DESTROY: Delete a user"""
     try:
@@ -149,8 +154,10 @@ def destroy(id):
         return api_success(None, 'User deleted successfully')
     except Exception as e:
         return api_error(str(e), 500)
+
 @users_bp.route('/activity', methods=['GET'])
-def get_activity():
+@token_required
+def get_user_activity():
     """6. ACTIVITY: Get recent system activity"""
     try:
         from models import AuditLog
@@ -163,7 +170,8 @@ def get_activity():
         return api_error(str(e), 500)
 
 @users_bp.route('/me', methods=['GET'])
-def get_me():
+@token_required
+def get_current_user_profile():
     """7. ME: Get current authenticated user"""
     # In a real app with proper sessions/JWT, you'd get the ID from the token/session
     # For now, we'll simulate it by returning the first user (usually the admin)
