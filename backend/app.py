@@ -181,12 +181,23 @@ def user_settings():
 def user_help():
     return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend', 'user'), 'user-help.html')
 
-# Static file catch-all (serves CSS, JS, images, and legacy .html URLs)
+"# Static file catch-all (serves CSS, JS, images, and legacy .html URLs)
 @app.route('/<path:path>')
 def serve_static(path):
+    # 1. Direct check in PROJECT_ROOT
     full_path = os.path.join(PROJECT_ROOT, path)
-    if os.path.exists(full_path):
+    if os.path.exists(full_path) and os.path.isfile(full_path):
         return send_from_directory(PROJECT_ROOT, path)
+    
+    # 2. Check inside frontend/ directory (e.g., assets, components)
+    frontend_path = os.path.join(PROJECT_ROOT, 'frontend', path)
+    if os.path.exists(frontend_path) and os.path.isfile(frontend_path):
+        return send_from_directory(os.path.join(PROJECT_ROOT, 'frontend'), path)
+        
+    # 3. If a missing CSS/JS/image asset is requested, return 404 instead of index.html
+    if path.startswith('assets/') or path.endswith(('.css', '.js', '.ico', '.png', '.jpg', '.jpeg', '.svg', '.gif', '.woff', '.woff2', '.ttf', '.map')):
+        return "Asset not found", 404
+
     return send_from_directory(PROJECT_ROOT, 'index.html')
 
 
