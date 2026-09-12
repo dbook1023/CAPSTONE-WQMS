@@ -659,3 +659,112 @@ select:disabled {
         font-size: 15px !important;
     }
 }
+
+/* ── SENSOR WAITING OVERLAY (RESPONSIVE) ── */
+.sensor-waiting-overlay {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 8px;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.sensor-waiting-card {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    padding: 56px 24px 44px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sensor-waiting-loader {
+    justify-content: center;
+    margin-bottom: 28px;
+    margin-top: 12px;
+}
+
+.sensor-waiting-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.sensor-waiting-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #64748b;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 8px;
+}
+
+/* Tablet Responsive Optimization (641px to 1023px) */
+@media (max-width: 1023px) {
+    .sensor-waiting-card {
+        padding: 48px 20px 38px;
+        border-radius: 18px;
+    }
+    .sensor-waiting-loader {
+        margin-bottom: 24px;
+        margin-top: 8px;
+    }
+    .sensor-waiting-title {
+        font-size: 1.1rem;
+    }
+    .sensor-waiting-text {
+        font-size: 0.85rem;
+        max-width: 360px;
+    }
+}
+
+/* Mobile Responsive Optimization (320px to 640px) */
+@media (max-width: 640px) {
+    .sensor-waiting-card {
+        padding: 38px 16px 30px;
+        border-radius: 16px;
+        border-width: 1.5px;
+    }
+    .sensor-waiting-loader {
+        margin-bottom: 20px;
+        margin-top: 6px;
+    }
+    .sensor-waiting-title {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+    .sensor-waiting-text {
+        font-size: 0.8rem;
+        max-width: 290px;
+        line-height: 1.45;
+    }
+}
+
+/* Small Mobile Screen Optimization (< 360px) */
+@media (max-width: 360px) {
+    .sensor-waiting-card {
+        padding: 30px 12px 24px;
+        border-radius: 12px;
+    }
+    .sensor-waiting-loader {
+        margin-bottom: 16px;
+        margin-top: 4px;
+    }
+    .sensor-waiting-title {
+        font-size: 0.92rem;
+    }
+    .sensor-waiting-text {
+        font-size: 0.75rem;
+        max-width: 240px;
+    }
+}

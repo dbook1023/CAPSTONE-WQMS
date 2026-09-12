@@ -317,17 +317,17 @@
             </div>
             
             <!-- Waiting for sensor data overlay (shown when reading starts, hidden on first live reading) -->
-            <div id="sensorWaitingOverlay" style="display: none; position: relative; grid-column: 1/-1;">
-                <div style="background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border: 2px dashed #cbd5e1; border-radius: 20px; padding: 60px 20px; text-align: center;">
-                    <div class="loader" style="justify-content: center; margin-bottom: 24px;">
+            <div id="sensorWaitingOverlay" class="sensor-waiting-overlay" style="display: none;">
+                <div class="sensor-waiting-card">
+                    <div class="loader sensor-waiting-loader">
                         <div class="dot"></div>
                         <div class="dot"></div>
                         <div class="dot"></div>
                         <div class="dot"></div>
                         <div class="dot"></div>
                     </div>
-                    <h3 style="font-family: 'Poppins'; font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0 0 8px;">Waiting for Sensor Data...</h3>
-                    <p style="font-size: 0.85rem; color: #64748b; max-width: 360px; margin: 0 auto;">Please ensure your ESP32 device is powered on and connected. Live readings will appear here automatically.</p>
+                    <h3 class="sensor-waiting-title">Waiting for Sensor Data...</h3>
+                    <p class="sensor-waiting-text">Please ensure your ESP32 device is powered on and connected. Live readings will appear here automatically.</p>
                 </div>
             </div>
 
