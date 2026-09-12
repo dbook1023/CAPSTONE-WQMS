@@ -1775,9 +1775,9 @@ function startReading() {
     // Start the ultra-smooth flowing animation loop every 1 second
     chartFlowInterval = setInterval(updateChartFlow, 1000);
 
-    // Fetch initial telemetry immediately (< 200ms) and start 2-second fast poll
+    // Fetch initial telemetry immediately (< 50ms) and start 5-second background poll
     pollLatestReading();
-    restPollInterval = setInterval(pollLatestReading, 2000);
+    restPollInterval = setInterval(pollLatestReading, 5000);
 }
 
 function stopReading() {
