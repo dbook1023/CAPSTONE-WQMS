@@ -85,28 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchFountains() {
     try {
-        const [data, latestSensors] = await Promise.all([
-            API.fountains.getAll(),
-            API.sensors.getLatest().catch(() => [])
-        ]);
+        const data = await API.fountains.getAll();
         fountains = data;
         updateFountainDropdown();
         renderFountainGrid(fountains);
-
-        // Populate metric cards with latest readings from sensors/reports
-        if (Array.isArray(latestSensors)) {
-            latestSensors.forEach(s => {
-                if (!s || !s.fountain_id) return;
-                sensorConfigs.forEach(cfg => {
-                    let key = cfg.id.replace('Chart', '').toLowerCase();
-                    if (key === 'temp') key = 'temperature';
-                    const val = parseFloat(s[key]);
-                    if (isNaN(val)) return;
-                    const domKey = cfg.id.replace('Chart', '').toLowerCase();
-                    updateSingleMetricCard(s.fountain_id, domKey, val, cfg.suffix);
-                });
-            });
-        }
     } catch (error) {
         console.error('Failed to fetch fountains:', error);
         showNotification('Failed to load fountains from server', 'error');
@@ -573,6 +555,17 @@ function setupEventListeners() {
             // Automatically download PDF certificate upon successful database submission
             triggerPdfDownload(savedReport);
             
+            // Clear session snapshots and counter badge cleanly
+            sessionSnapshots = [];
+            sessionReadingCount = 0;
+            updateComparisonTable();
+
+            const badge = document.getElementById('sessionCounterBadge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0 Snapshots';
+            }
+
             if (typeof showFeedbackModal === 'function') {
                 showFeedbackModal({
                     type: 'success',
