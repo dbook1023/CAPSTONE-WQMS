@@ -338,9 +338,9 @@ function processLiveReading(latest) {
 async function pollLatestReading() {
     if (!isReading || !selectedFountain) return;
 
-    // Only poll REST fallback if WebSocket has been silent for >15s
+    // Only bypass REST polling if WebSocket received a fresh packet within the last 2 seconds
     const idleSeconds = (Date.now() - lastProcessedTimeMs) / 1000;
-    if (socket && socket.connected && idleSeconds < 15) {
+    if (socket && socket.connected && idleSeconds < 2) {
         return;
     }
 
@@ -348,22 +348,22 @@ async function pollLatestReading() {
         const latestArr = await API.sensors.getLatest();
         if (!latestArr || latestArr.length === 0) return;
         // Find the entry matching our selected fountain
-        const match = latestArr.find(r => r.fountain_id == selectedFountain.id);
+        const match = latestArr.find(r => String(r.fountain_id) === String(selectedFountain.id));
         if (match && match.timestamp) {
             // Skip database records that are persisted snapshots
             if (match._persisted || match.source === 'user_snapshot' || match.persist === true || match.persist === 'true') {
                 return;
             }
             const readingTimeMs = new Date(match.timestamp).getTime();
-            // Only process polled reading if it is NEWER than maxLiveTimestampMs!
-            if (!isNaN(readingTimeMs) && readingTimeMs > maxLiveTimestampMs && readingTimeMs >= (sessionStartTimeMs - 5000)) {
-                console.log('[REST Fallback] Polled fresh reading for fountain', selectedFountain.id);
+            // Accept polled reading if timestamp is newer or equal to maxLiveTimestampMs within current session
+            if (!isNaN(readingTimeMs) && readingTimeMs >= maxLiveTimestampMs && readingTimeMs >= (sessionStartTimeMs - 5000)) {
+                console.log('[REST Fast Poll] Fresh reading for fountain', selectedFountain.id);
                 processLiveReading(match);
             }
         }
     } catch (err) {
-        // Silent fail — WebSocket may still be working fine
-        console.warn('[REST Fallback] Poll failed:', err.message);
+        // Silent fail — WebSocket or next poll will retry
+        console.warn('[REST Fast Poll] Poll warning:', err.message);
     }
 }
 
@@ -1308,7 +1308,7 @@ function updateSelectedFountainUI(f) {
  * Quick Select from Grid
  */
 window.quickSelectFountain = function(id) {
-    const f = fountains.find(item => item.id === id);
+    const f = fountains.find(item => item.id == id);
     if (f) {
         if (f.status === 'Offline') {
             showNotification(`${f.displayId} is currently Offline and cannot be monitored.`, 'warning');
@@ -1789,8 +1789,9 @@ function startReading() {
     // Start the ultra-smooth flowing animation loop every 1 second
     chartFlowInterval = setInterval(updateChartFlow, 1000);
 
-    // Start REST API polling fallback every 10 seconds
-    restPollInterval = setInterval(pollLatestReading, 10000);
+    // Fetch initial telemetry immediately (< 200ms) and start 2-second fast poll
+    pollLatestReading();
+    restPollInterval = setInterval(pollLatestReading, 2000);
 }
 
 function stopReading() {
