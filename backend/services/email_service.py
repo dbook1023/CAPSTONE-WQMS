@@ -254,19 +254,29 @@ def notify_admins_report_submitted_email(db, report, fountain, user):
     try:
         from models import Admin
         admins = db.query(Admin).all()
-        admin_emails = [a.email for a in admins if a.email]
+        admin_emails = [a.email for a in admins if a.email and a.email.strip()]
 
         if not admin_emails:
             logger.warning("No admin emails found to send report submission email notification.")
             return {'status': 'skipped', 'reason': 'No admin emails'}
 
-        fountain_name = fountain.name if fountain else f"Fountain #{report.fountain_id}"
+        fountain_name = fountain.name if fountain else f"Fountain #{getattr(report, 'fountain_id', 'Unknown')}"
         fountain_loc = fountain.location if fountain else "Main Campus"
-        user_name = user.name if user else f"User #{report.user_id}"
+        user_name = user.name if user else f"User #{getattr(report, 'generated_by', getattr(report, 'user_id', 'Unknown'))}"
 
-        status_color = "#14b8a6" if report.compliance_status in ["PASS", "Safe", "Compliant"] else "#dc2626"
+        status_text = getattr(report, 'overall_status', None) or getattr(report, 'compliance_status', 'Submitted')
+        status_color = "#14b8a6" if str(status_text).upper() in ["PASS", "SAFE", "COMPLIANT"] else "#dc2626"
 
-        subject = f"[WQMS Alert] New Compliance Report - {fountain_name} ({report.compliance_status})"
+        report_code = report.get_report_code() if hasattr(report, 'get_report_code') else (getattr(report, 'report_code', None) or f"REP-{report.id}")
+        ph_val = getattr(report, 'ph_avg', None) if getattr(report, 'ph_avg', None) is not None else getattr(report, 'ph_level', '--')
+        turb_val = getattr(report, 'turbidity_avg', None) if getattr(report, 'turbidity_avg', None) is not None else getattr(report, 'turbidity', '--')
+        temp_val = getattr(report, 'temperature_avg', None) if getattr(report, 'temperature_avg', None) is not None else getattr(report, 'temperature', '--')
+        tds_val = getattr(report, 'tds_avg', None) if getattr(report, 'tds_avg', None) is not None else getattr(report, 'tds_level', '--')
+
+        created_at = getattr(report, 'created_at', None)
+        date_str = created_at.strftime('%B %d, %Y at %I:%M %p') if created_at else datetime.utcnow().strftime('%B %d, %Y at %I:%M %p')
+
+        subject = f"[WQMS Alert] New Compliance Report - {fountain_name} ({status_text})"
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -274,13 +284,13 @@ def notify_admins_report_submitted_email(db, report, fountain, user):
             <meta charset="utf-8">
             <style>
                 body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }}
-                .container {{ max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }}
                 .header {{ border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; }}
                 .badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; color: white; font-weight: 700; font-size: 12px; background: {status_color}; }}
-                .metrics-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; background: #f8fafc; padding: 16px; border-radius: 12px; }}
+                .metrics-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }}
                 .metric-item {{ font-size: 13px; }}
-                .metric-label {{ color: #64748b; font-size: 11px; text-transform: uppercase; }}
-                .metric-val {{ font-weight: 700; color: #0f172a; font-size: 15px; }}
+                .metric-label {{ color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600; }}
+                .metric-val {{ font-weight: 700; color: #0f172a; font-size: 15px; margin-top: 2px; }}
                 .footer {{ font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 12px; text-align: center; }}
             </style>
         </head>
@@ -288,33 +298,33 @@ def notify_admins_report_submitted_email(db, report, fountain, user):
             <div class="container">
                 <div class="header">
                     <h2 style="color: #0f172a; margin: 0 0 6px;">💧 New Water Quality Compliance Report</h2>
-                    <span class="badge">{report.compliance_status}</span>
+                    <span class="badge">{status_text}</span>
                 </div>
                 <p>A new water quality monitoring compliance report has been submitted to the WQMS system.</p>
 
-                <div style="margin-bottom: 16px; font-size: 14px; line-height: 1.6;">
+                <div style="margin-bottom: 16px; font-size: 14px; line-height: 1.6; background: #fafafa; padding: 14px 16px; border-radius: 10px; border: 1px solid #f1f5f9;">
                     <strong>Fountain:</strong> {fountain_name} ({fountain_loc})<br>
                     <strong>Submitted By:</strong> {user_name}<br>
-                    <strong>Report Code:</strong> <code>{report.report_code or f"REP-{report.id}"}</code><br>
-                    <strong>Date & Time:</strong> {report.created_at.strftime('%B %d, %Y at %I:%M %p') if report.created_at else 'Just now'}
+                    <strong>Report Code:</strong> <code>{report_code}</code><br>
+                    <strong>Date & Time:</strong> {date_str}
                 </div>
 
                 <div class="metrics-grid">
                     <div class="metric-item">
                         <div class="metric-label">Average pH</div>
-                        <div class="metric-val">{report.ph_level or '--'}</div>
+                        <div class="metric-val">{ph_val}</div>
                     </div>
                     <div class="metric-item">
                         <div class="metric-label">Turbidity (NTU)</div>
-                        <div class="metric-val">{report.turbidity or '--'}</div>
+                        <div class="metric-val">{turb_val}</div>
                     </div>
                     <div class="metric-item">
                         <div class="metric-label">Temperature (&deg;C)</div>
-                        <div class="metric-val">{report.temperature or '--'}</div>
+                        <div class="metric-val">{temp_val}</div>
                     </div>
                     <div class="metric-item">
                         <div class="metric-label">TDS (ppm)</div>
-                        <div class="metric-val">{report.tds_level or '--'}</div>
+                        <div class="metric-val">{tds_val}</div>
                     </div>
                 </div>
 
