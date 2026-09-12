@@ -284,48 +284,57 @@ function processLiveReading(latest) {
         return;
     }
 
-    // 3. Track reading timestamp freshness:
+    // 3. Extract and check for valid numeric sensor measurements
+    const phVal = parseFloat(latest.ph);
+    const turbVal = parseFloat(latest.turbidity !== undefined && latest.turbidity !== null ? latest.turbidity : latest.ntu);
+    const tempVal = parseFloat(latest.temperature !== undefined && latest.temperature !== null ? latest.temperature : latest.temp);
+    const tdsVal = parseFloat(latest.tds);
+
+    const hasValidSensorData = !isNaN(phVal) || !isNaN(turbVal) || !isNaN(tempVal) || !isNaN(tdsVal);
+
+    // 4. Track reading timestamp freshness:
     if (!isNaN(readingTimeMs)) {
         maxLiveTimestampMs = Math.max(maxLiveTimestampMs, readingTimeMs);
     }
 
-    // 3. If this reading is from our selected fountain:
+    // 5. If this reading is from our selected fountain:
     if (selectedFountain && String(latest.fountain_id) === String(selectedFountain.id)) {
         // Reset watchdog timer immediately
         lastProcessedTimeMs = Date.now();
-        setConnectionStatus(true);
 
-        // Dismiss the "Waiting for Sensor Data" overlay on first live reading
-        const waitingOverlay = document.getElementById('sensorWaitingOverlay');
-        const chartsGrid = document.querySelector('.charts-grid');
-        if (waitingOverlay && waitingOverlay.style.display !== 'none') {
-            waitingOverlay.style.transition = 'opacity 0.4s ease';
-            waitingOverlay.style.opacity = '0';
-            setTimeout(() => { waitingOverlay.style.display = 'none'; waitingOverlay.style.opacity = '1'; }, 400);
-            if (chartsGrid) { chartsGrid.style.display = 'grid'; }
-        }
+        // Dismiss the "Waiting for Sensor Data" overlay ONLY when valid numeric sensor data arrives
+        if (hasValidSensorData) {
+            setConnectionStatus(true);
 
-        // Store latest telemetry values for our continuous smooth flowing chart
-        latestTelemetry.ph = parseFloat(latest.ph);
-        latestTelemetry.turbidity = parseFloat(latest.turbidity !== undefined && latest.turbidity !== null ? latest.turbidity : latest.ntu);
-        latestTelemetry.temperature = parseFloat(latest.temperature !== undefined && latest.temperature !== null ? latest.temperature : latest.temp);
-        latestTelemetry.tds = parseFloat(latest.tds);
+            const waitingOverlay = document.getElementById('sensorWaitingOverlay');
+            const chartsGrid = document.querySelector('.charts-grid');
+            if (waitingOverlay && waitingOverlay.style.display !== 'none') {
+                waitingOverlay.style.transition = 'opacity 0.4s ease';
+                waitingOverlay.style.opacity = '0';
+                setTimeout(() => { waitingOverlay.style.display = 'none'; waitingOverlay.style.opacity = '1'; }, 400);
+                if (chartsGrid) { chartsGrid.style.display = 'grid'; }
+            }
 
-        const timestampStr = latest.timestamp || new Date().toISOString();
-        if (lastProcessedTimestamp !== timestampStr) {
-            lastProcessedTimestamp = timestampStr;
-        }
-        // Update the detailed selected fountain card's metrics immediately
-        try {
-            updateFountainCardMetrics(latest);
-        } catch (e) {
-            // Fail silently - non-critical UI update
-            console.warn('Failed to update fountain card metrics:', e);
+            if (!isNaN(phVal)) latestTelemetry.ph = phVal;
+            if (!isNaN(turbVal)) latestTelemetry.turbidity = turbVal;
+            if (!isNaN(tempVal)) latestTelemetry.temperature = tempVal;
+            if (!isNaN(tdsVal)) latestTelemetry.tds = tdsVal;
+
+            const timestampStr = latest.timestamp || new Date().toISOString();
+            if (lastProcessedTimestamp !== timestampStr) {
+                lastProcessedTimestamp = timestampStr;
+            }
+            // Update the detailed selected fountain card's metrics immediately
+            try {
+                updateFountainCardMetrics(latest);
+            } catch (e) {
+                console.warn('Failed to update fountain card metrics:', e);
+            }
         }
     }
 
-    // 4. Always sync metrics on the grid cards dynamically for all active fountains!
-    if (latest && latest.fountain_id) {
+    // 6. Always sync metrics on the grid cards dynamically for all active fountains!
+    if (latest && latest.fountain_id && hasValidSensorData) {
         sensorConfigs.forEach(cfg => {
             let key = cfg.id.replace('Chart', '').toLowerCase();
             if (key === 'temp') key = 'temperature';
