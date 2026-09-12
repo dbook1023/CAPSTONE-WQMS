@@ -3,7 +3,7 @@ from models import SessionLocal, SensorLog, Fountain, Sensor, Report
 from datetime import datetime
 from sqlalchemy import func, select
 
-sensors_bp = Blueprint('sensors', __name__, strict_slashes=False)
+sensors_bp = Blueprint('sensors', __name__)
 
 def get_db():
     return SessionLocal()

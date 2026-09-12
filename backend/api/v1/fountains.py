@@ -3,7 +3,7 @@ from models import SessionLocal, Fountain, Department
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 
-fountains_bp = Blueprint('fountains', __name__, strict_slashes=False)
+fountains_bp = Blueprint('fountains', __name__)
 
 def get_db():
     return SessionLocal()

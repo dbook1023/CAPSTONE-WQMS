@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from models import SessionLocal, Admin
 from .common import api_success, api_error, admin_required
 
-admins_bp = Blueprint('admins', __name__, strict_slashes=False)
+admins_bp = Blueprint('admins', __name__)
 
 def get_db():
     return SessionLocal()

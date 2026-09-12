@@ -29,6 +29,7 @@ from api.v1.reports import reports_bp
 from api.v1.admins import admins_bp
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'wqms_secret_key_2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max payload for avatar uploads
 

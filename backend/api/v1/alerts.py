@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import SessionLocal, Alert, Fountain
 from datetime import datetime
 
-alerts_bp = Blueprint('alerts', __name__, strict_slashes=False)
+alerts_bp = Blueprint('alerts', __name__)
 
 def get_db():
     return SessionLocal()
