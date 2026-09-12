@@ -405,7 +405,7 @@ def reset_password():
 
 @auth_bp.route('/send-email-otp', methods=['POST'])
 def send_email_otp_route():
-    """Send an Email OTP verification code to a new email address before updating account email"""
+    """Send a Security Verification OTP code to the currently registered email address before updating account email"""
     try:
         data = request.get_json() or {}
         new_email = (data.get('new_email') or '').strip().lower()
@@ -421,7 +421,22 @@ def send_email_otp_route():
         db = get_db()
         from models import User, Admin
         
-        # Check if email is already taken by another user or admin
+        # 1. Fetch current registered account to retrieve registered email
+        if entity_type == 'admin':
+            account = db.query(Admin).filter(Admin.id == entity_id).first()
+        else:
+            account = db.query(User).filter(User.id == entity_id).first()
+
+        if not account or not account.email:
+            db.close()
+            return api_error('Account or registered email address not found.', 404)
+
+        registered_email = account.email.strip().lower()
+        if registered_email == new_email:
+            db.close()
+            return api_error('The new email address is identical to your current registered email address.', 400)
+
+        # 2. Check if new email is already taken by another user or admin
         user_exists = db.query(User).filter(User.email == new_email, User.id != (entity_id if entity_type == 'user' else 0)).first()
         admin_exists = db.query(Admin).filter(Admin.email == new_email, Admin.id != (entity_id if entity_type == 'admin' else 0)).first()
         db.close()
@@ -429,12 +444,18 @@ def send_email_otp_route():
         if user_exists or admin_exists:
             return api_error('This email address is already registered to another account.', 400)
 
+        # 3. Generate OTP and dispatch security verification email to the currently registered email
         from services.email_service import generate_email_change_otp, send_email_change_otp
         code = generate_email_change_otp(entity_type, entity_id, new_email)
-        res = send_email_change_otp(new_email, code)
+        res = send_email_change_otp(registered_email, new_email, code)
 
-        masked = new_email[:3] + '***@' + new_email.split('@')[-1] if '@' in new_email else new_email
-        return api_success(res, f"A 6-digit verification code has been sent to {masked}. Please check your email inbox.")
+        parts = registered_email.split('@')
+        u_part = parts[0]
+        d_part = parts[1] if len(parts) > 1 else ''
+        masked_u = u_part[:2] + '***' + (u_part[-1] if len(u_part) > 2 else '')
+        masked_email = f"{masked_u}@{d_part}"
+
+        return api_success(res, f"A 6-digit security verification code has been sent to your currently registered email ({masked_email}). Please check your inbox.")
     except Exception as e:
         return api_error(str(e), 500)
 

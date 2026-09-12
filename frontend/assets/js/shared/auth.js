@@ -617,7 +617,7 @@ function showEmailOtpModal(options) {
         }
         try {
             const res = await API.auth.sendEmailOtp({ new_email: newEmail, entity_type: entityType, entity_id: entityId });
-            if (subtitle) subtitle.textContent = `A 6-digit code was sent to ${newEmail}`;
+            if (subtitle) subtitle.textContent = res.message || 'A 6-digit verification code was sent to your registered email.';
             if (msg) {
                 msg.style.display = 'block';
                 msg.style.color = '#14b8a6';

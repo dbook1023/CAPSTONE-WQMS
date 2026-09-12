@@ -148,9 +148,9 @@ def verify_email_change_otp(entity_type, entity_id, new_email, code):
     return True, "Email verification successful."
 
 
-def send_email_change_otp(new_email, code):
-    """Send a stylized email change OTP verification email to the new email address"""
-    subject = "Aqua Monitor - Verify Your New Email Address"
+def send_email_change_otp(registered_email, new_email, code):
+    """Send a security verification email containing OTP code to the currently registered email address"""
+    subject = "Aqua Monitor - Account Email Change Security Verification"
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -170,15 +170,15 @@ def send_email_change_otp(new_email, code):
         <div class="container">
             <div class="header">
                 <h2 style="color: #14b8a6; margin:0;">💧 Aqua Monitor WQMS</h2>
-                <div class="title">Verify New Email Address</div>
+                <div class="title">Security Verification Code</div>
             </div>
-            <p>You requested to update your primary email address for your Aqua Monitor account to <strong>{new_email}</strong>.</p>
-            <p>Use the 6-digit verification code below to complete your email address update:</p>
+            <p>A request was submitted to update your primary account email address on Aqua Monitor to <strong>{new_email}</strong>.</p>
+            <p>To authorize this email change, please enter the 6-digit security verification code below on your settings page:</p>
             <div class="otp-box">
                 <div style="font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; font-weight: 600;">Verification Code</div>
                 <div class="otp-code">{code}</div>
             </div>
-            <p style="font-size: 13px; color: #64748b;">This code will expire in <strong>15 minutes</strong>. If you did not initiate this request, please secure your account immediately.</p>
+            <p style="font-size: 13px; color: #64748b;">This code will expire in <strong>15 minutes</strong>. If you did not initiate this email change request, please ignore this email and secure your account password immediately.</p>
             <div class="footer">
                 &copy; 2026 Aqua Monitor - Water Quality Monitoring System. All rights reserved.
             </div>
@@ -186,7 +186,7 @@ def send_email_change_otp(new_email, code):
     </body>
     </html>
     """
-    return send_email(new_email, subject, html_content)
+    return send_email(registered_email, subject, html_content)
 
 
 
