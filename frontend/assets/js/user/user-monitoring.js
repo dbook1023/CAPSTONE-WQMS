@@ -308,12 +308,11 @@ function processLiveReading(latest) {
 
             const waitingOverlay = document.getElementById('sensorWaitingOverlay');
             const chartsGrid = document.querySelector('.charts-grid');
-            if (waitingOverlay && waitingOverlay.style.display !== 'none') {
-                waitingOverlay.style.transition = 'opacity 0.4s ease';
-                waitingOverlay.style.opacity = '0';
-                setTimeout(() => { waitingOverlay.style.display = 'none'; waitingOverlay.style.opacity = '1'; }, 400);
-                if (chartsGrid) { chartsGrid.style.display = 'grid'; }
+            if (waitingOverlay) {
+                waitingOverlay.classList.remove('active');
+                setTimeout(() => { waitingOverlay.style.display = 'none'; }, 300);
             }
+            if (chartsGrid) { chartsGrid.style.display = 'grid'; }
 
             if (!isNaN(phVal)) latestTelemetry.ph = phVal;
             if (!isNaN(turbVal)) latestTelemetry.turbidity = turbVal;
@@ -1720,10 +1719,14 @@ function startReading() {
     // Reset latest telemetry
     latestTelemetry = { ph: null, turbidity: null, temperature: null, tds: null };
 
-    // Show "Waiting for Sensor Data" overlay and hide charts until first live reading arrives
+    // Show "Waiting for Sensor Data" popup modal and hide charts until first live reading arrives
     const waitingOverlay = document.getElementById('sensorWaitingOverlay');
     const chartsGrid = document.querySelector('.charts-grid');
-    if (waitingOverlay) { waitingOverlay.style.display = 'block'; waitingOverlay.style.opacity = '1'; }
+    if (waitingOverlay) {
+        waitingOverlay.style.display = 'flex';
+        void waitingOverlay.offsetWidth; // Force reflow
+        waitingOverlay.classList.add('active');
+    }
     if (chartsGrid) { chartsGrid.style.display = 'none'; }
 
     // Immediately update selected fountain card to reflect live session
@@ -1832,10 +1835,13 @@ function startReading() {
 function stopReading() {
     isReading = false;
 
-    // Hide waiting overlay and restore charts if still showing
+    // Hide waiting popup modal overlay and restore charts if still showing
     const waitingOverlay = document.getElementById('sensorWaitingOverlay');
     const chartsGrid = document.querySelector('.charts-grid');
-    if (waitingOverlay) { waitingOverlay.style.display = 'none'; }
+    if (waitingOverlay) {
+        waitingOverlay.classList.remove('active');
+        waitingOverlay.style.display = 'none';
+    }
     if (chartsGrid) { chartsGrid.style.display = 'grid'; }
     if (chartFlowInterval) {
         clearInterval(chartFlowInterval);

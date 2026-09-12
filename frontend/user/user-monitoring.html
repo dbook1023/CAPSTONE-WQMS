@@ -26,7 +26,7 @@
     <script defer src="../assets/js/shared/api.js?v=8"></script>
     <script defer src="../assets/js/shared/action-guidance.js?v=8"></script>
     <script defer src="../assets/js/user/user-shared.js?v=8"></script>
-    <script defer src="../assets/js/user/user-monitoring.js?v=10"></script>
+    <script defer src="../assets/js/user/user-monitoring.js?v=11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -316,18 +316,26 @@
                 </div>
             </div>
             
-            <!-- Waiting for sensor data overlay (shown when reading starts, hidden on first live reading) -->
-            <div id="sensorWaitingOverlay" class="sensor-waiting-overlay" style="display: none;">
-                <div class="sensor-waiting-card">
-                    <div class="loader sensor-waiting-loader">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
+            <!-- Waiting for sensor data modal overlay (shown when reading starts, hidden on first live reading) -->
+            <div id="sensorWaitingOverlay" class="sensor-waiting-modal-overlay" style="display: none;">
+                <div class="sensor-waiting-modal-card">
+                    <div class="sensor-waiting-icon-wrapper">
+                        <div class="loader sensor-waiting-loader">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
                     </div>
                     <h3 class="sensor-waiting-title">Waiting for Sensor Data...</h3>
                     <p class="sensor-waiting-text">Please ensure your ESP32 device is powered on and connected. Live readings will appear here automatically.</p>
+                    <div class="sensor-waiting-footer">
+                        <button class="btn btn-ghost sensor-cancel-btn" onclick="stopReading()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <span>Cancel Session</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
