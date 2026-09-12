@@ -277,19 +277,10 @@ function processLiveReading(latest) {
         return;
     }
 
-    // 2. Check reading timestamp freshness & enforce monotonic forward time progression:
+    // 2. Track reading timestamp freshness:
     const readingTimeMs = latest.timestamp ? new Date(latest.timestamp).getTime() : Date.now();
     if (!isNaN(readingTimeMs)) {
-        if (readingTimeMs < (sessionStartTimeMs - 5000)) {
-            console.log(`[Monitoring] Ignored reading from previous test session (Timestamp: ${latest.timestamp})`);
-            return;
-        }
-        // Never allow older database logs or delayed packets to roll back the live stream!
-        if (maxLiveTimestampMs > 0 && readingTimeMs < maxLiveTimestampMs) {
-            console.log(`[Monitoring] Ignored older reading (Timestamp: ${latest.timestamp} vs Max: ${new Date(maxLiveTimestampMs).toISOString()})`);
-            return;
-        }
-        maxLiveTimestampMs = readingTimeMs;
+        maxLiveTimestampMs = Math.max(maxLiveTimestampMs, readingTimeMs);
     }
 
     // 3. If this reading is from our selected fountain:
@@ -349,17 +340,12 @@ async function pollLatestReading() {
         if (!latestArr || latestArr.length === 0) return;
         // Find the entry matching our selected fountain
         const match = latestArr.find(r => String(r.fountain_id) === String(selectedFountain.id));
-        if (match && match.timestamp) {
+        if (match) {
             // Skip database records that are persisted snapshots
             if (match._persisted || match.source === 'user_snapshot' || match.persist === true || match.persist === 'true') {
                 return;
             }
-            const readingTimeMs = new Date(match.timestamp).getTime();
-            // Accept polled reading if timestamp is newer or equal to maxLiveTimestampMs within current session
-            if (!isNaN(readingTimeMs) && readingTimeMs >= maxLiveTimestampMs && readingTimeMs >= (sessionStartTimeMs - 5000)) {
-                console.log('[REST Fast Poll] Fresh reading for fountain', selectedFountain.id);
-                processLiveReading(match);
-            }
+            processLiveReading(match);
         }
     } catch (err) {
         // Silent fail — WebSocket or next poll will retry
