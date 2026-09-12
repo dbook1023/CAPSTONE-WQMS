@@ -271,14 +271,20 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
 function processLiveReading(latest) {
     if (!latest) return;
 
-    // 1. Ignore persisted database snapshots from overwriting active live telemetry!
-    if (latest._persisted || latest.source === 'user_snapshot' || latest.persist === true || latest.persist === 'true') {
-        console.log('[Monitoring] Ignored persisted database snapshot from overwriting live stream.');
+    // 1. Ignore persisted database snapshots and report-sourced data from overwriting active live telemetry!
+    if (latest._persisted || latest.source === 'user_snapshot' || latest.source === 'report' || latest.persist === true || latest.persist === 'true') {
+        console.log('[Monitoring] Ignored non-live data (source: ' + (latest.source || 'snapshot') + ') from overwriting live stream.');
         return;
     }
 
-    // 2. Track reading timestamp freshness:
+    // 2. Reject any reading from BEFORE this monitoring session started (old database records)
     const readingTimeMs = latest.timestamp ? new Date(latest.timestamp).getTime() : Date.now();
+    if (!isNaN(readingTimeMs) && readingTimeMs < sessionStartTimeMs) {
+        console.log('[Monitoring] Ignored reading from previous test session (Timestamp: ' + latest.timestamp + ')');
+        return;
+    }
+
+    // 3. Track reading timestamp freshness:
     if (!isNaN(readingTimeMs)) {
         maxLiveTimestampMs = Math.max(maxLiveTimestampMs, readingTimeMs);
     }
@@ -324,7 +330,9 @@ function processLiveReading(latest) {
 
 /**
  * REST API Polling Fallback
- * Only polls if WebSocket connection is silent for >15 seconds.
+ * Only polls if WebSocket connection is silent for >2 seconds.
+ * CRITICAL: Only accepts readings with timestamps AFTER the current session started,
+ * so old database records (sensor logs AND reports) never leak into the live view.
  */
 async function pollLatestReading() {
     if (!isReading || !selectedFountain) return;
@@ -341,10 +349,20 @@ async function pollLatestReading() {
         // Find the entry matching our selected fountain
         const match = latestArr.find(r => String(r.fountain_id) === String(selectedFountain.id));
         if (match) {
-            // Skip database records that are persisted snapshots
-            if (match._persisted || match.source === 'user_snapshot' || match.persist === true || match.persist === 'true') {
+            // GUARD: Only accept live ESP32 sensor data (source must be 'sensor' or undefined from WebSocket)
+            if (match.source === 'report' || match._persisted || match.source === 'user_snapshot' || match.persist === true || match.persist === 'true') {
+                console.log('[REST Poll] Skipped non-sensor data (source: ' + (match.source || 'snapshot') + ')');
                 return;
             }
+
+            // GUARD: Only accept readings that arrived AFTER this monitoring session started.
+            // This prevents old database sensor_log records from appearing as "live" data.
+            const readingTs = match.timestamp ? new Date(match.timestamp).getTime() : 0;
+            if (readingTs < sessionStartTimeMs) {
+                console.log('[REST Poll] Skipped old database record (reading: ' + match.timestamp + ', session started: ' + new Date(sessionStartTimeMs).toISOString() + ')');
+                return;
+            }
+
             processLiveReading(match);
         }
     } catch (err) {
@@ -359,8 +377,9 @@ function updateFountainDropdown() {
             fountains.map(f => {
                 const isOffline = f.status === 'Offline';
                 const noHardware = !f.sensor_count || f.sensor_count === 0;
-                const suffix = isOffline ? ' (Offline)' : (noHardware ? ' (Manual Telemetry)' : '');
-                return `<option value="${f.id}">${f.displayId || f.display_id || `F#${f.id}`} - ${f.name}${suffix}</option>`;
+                const isDisabled = isOffline || noHardware;
+                const suffix = isOffline ? ' (Offline)' : (noHardware ? ' (No Hardware)' : '');
+                return `<option value="${f.id}"${isDisabled ? ' disabled' : ''}>${f.displayId || f.display_id || `F#${f.id}`} - ${f.name}${suffix}</option>`;
             }).join('');
     }
 }
@@ -1351,10 +1370,14 @@ function renderFountainGrid(data) {
 
     fountainsGrid.innerHTML = data.map(f => {
         const isOffline = f.status === 'Offline';
+        const noHardware = !f.sensor_count || f.sensor_count === 0;
+        const isDisabled = isOffline || noHardware;
         const displayId = f.displayId || f.display_id || `F#${f.id}`;
+        const disabledStyle = isDisabled ? 'opacity: 0.5; filter: grayscale(0.8); pointer-events: none; cursor: not-allowed;' : 'cursor: pointer;';
+        const disabledLabel = isOffline ? '<div style="text-align:center;padding:6px 0;font-size:11px;color:#ef4444;font-weight:600;">⚠ Offline — Cannot Monitor</div>' : (noHardware ? '<div style="text-align:center;padding:6px 0;font-size:11px;color:#f59e0b;font-weight:600;">⚠ No Hardware Registered</div>' : '');
         
         return `
-        <div class="fountain-card" style="cursor: pointer;" data-name="${f.name}" data-location="${f.location}" data-id="${displayId}" onclick="quickSelectFountain(${f.id})">
+        <div class="fountain-card" style="${disabledStyle}" data-name="${f.name}" data-location="${f.location}" data-id="${displayId}" ${!isDisabled ? `onclick="quickSelectFountain(${f.id})"` : ''}>
             <div class="fc-top">
                 <span class="fc-id">${displayId}</span>
                 <div style="display: flex; gap: 8px; align-items: center;">
@@ -1371,6 +1394,7 @@ function renderFountainGrid(data) {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 ${f.location}
             </div>
+            ${disabledLabel}
             <div class="fc-metrics" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px;">
                 <div class="fc-metric" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding: 10px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; min-height: 85px;">
                     <div class="fc-metric-label" style="font-size: 11px; color: #64748b; font-weight: 500; margin-bottom: 4px;">pH Level</div>
