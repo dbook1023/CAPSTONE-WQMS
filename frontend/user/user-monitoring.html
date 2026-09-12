@@ -316,6 +316,21 @@
                 </div>
             </div>
             
+            <!-- Waiting for sensor data overlay (shown when reading starts, hidden on first live reading) -->
+            <div id="sensorWaitingOverlay" style="display: none; position: relative; grid-column: 1/-1;">
+                <div style="background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border: 2px dashed #cbd5e1; border-radius: 20px; padding: 60px 20px; text-align: center;">
+                    <div class="loader" style="justify-content: center; margin-bottom: 24px;">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <h3 style="font-family: 'Poppins'; font-size: 1.1rem; font-weight: 600; color: #1e293b; margin: 0 0 8px;">Waiting for Sensor Data...</h3>
+                    <p style="font-size: 0.85rem; color: #64748b; max-width: 360px; margin: 0 auto;">Please ensure your ESP32 device is powered on and connected. Live readings will appear here automatically.</p>
+                </div>
+            </div>
+
             <div class="charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
                 <!-- pH Level Chart -->
                 <div class="chart-card" style="background: white; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 32px;">
