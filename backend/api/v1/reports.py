@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, timezone
 from services.sms_service import notify_admins_report_submitted
 
-reports_bp = Blueprint('reports_bp', __name__)
+reports_bp = Blueprint('reports_bp', __name__, strict_slashes=False)
 
 
 def classify_water_reading(parameter, value):

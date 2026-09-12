@@ -3,7 +3,7 @@ from models import SessionLocal, User, Admin
 from datetime import datetime
 from .common import api_success, api_error, token_required, admin_required
 
-users_bp = Blueprint('users', __name__)
+users_bp = Blueprint('users', __name__, strict_slashes=False)
 
 def get_db():
     return SessionLocal()

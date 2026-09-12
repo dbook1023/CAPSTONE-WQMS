@@ -4,7 +4,7 @@ from models import SessionLocal, User
 from datetime import datetime
 from .common import api_success, api_error
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, strict_slashes=False)
 
 def get_db():
     return SessionLocal()

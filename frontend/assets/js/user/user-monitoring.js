@@ -373,9 +373,8 @@ function updateFountainDropdown() {
             fountains.map(f => {
                 const isOffline = f.status === 'Offline';
                 const noHardware = !f.sensor_count || f.sensor_count === 0;
-                const isDisabled = isOffline || noHardware;
-                const suffix = isOffline ? '(Offline)' : (noHardware ? '(No Hardware)' : '');
-                return `<option value="${f.id}" ${isDisabled ? 'disabled' : ''}>${f.displayId} - ${f.name} ${suffix}</option>`;
+                const suffix = isOffline ? ' (Offline)' : (noHardware ? ' (Manual Telemetry)' : '');
+                return `<option value="${f.id}">${f.displayId || f.display_id || `F#${f.id}`} - ${f.name}${suffix}</option>`;
             }).join('');
     }
 }
@@ -1366,14 +1365,12 @@ function renderFountainGrid(data) {
 
     fountainsGrid.innerHTML = data.map(f => {
         const isOffline = f.status === 'Offline';
-        const noHardware = !f.sensor_count || f.sensor_count === 0;
-        const isDisabled = isOffline || noHardware;
-        const disabledStyle = isDisabled ? 'opacity: 0.65; cursor: not-allowed; filter: grayscale(1);' : 'cursor: pointer;';
+        const displayId = f.displayId || f.display_id || `F#${f.id}`;
         
         return `
-        <div class="fountain-card" style="${disabledStyle}" data-name="${f.name}" data-location="${f.location}" data-id="${f.displayId}" onclick="${isDisabled ? '' : `quickSelectFountain(${f.id})`}">
+        <div class="fountain-card" style="cursor: pointer;" data-name="${f.name}" data-location="${f.location}" data-id="${displayId}" onclick="quickSelectFountain(${f.id})">
             <div class="fc-top">
-                <span class="fc-id">${f.displayId}</span>
+                <span class="fc-id">${displayId}</span>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="status-toggle-btn ${f.status.toLowerCase()}" onclick="toggleFountainStatus(${f.id}, event)" title="Click to toggle Online/Offline">
                         <span class="fc-badge ${f.status.toLowerCase()}">

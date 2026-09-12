@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import SessionLocal, SystemSetting
 from .common import token_required
 
-settings_bp = Blueprint('settings', __name__)
+settings_bp = Blueprint('settings', __name__, strict_slashes=False)
 
 def get_db():
     return SessionLocal()

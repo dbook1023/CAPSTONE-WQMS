@@ -83,7 +83,7 @@ def apply_security_headers(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), payment=()'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), payment=(), attribution-reporting=()'
     
     # Hardened Content Security Policy
     csp = (

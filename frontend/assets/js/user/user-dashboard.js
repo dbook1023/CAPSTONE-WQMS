@@ -9,6 +9,7 @@ let charts = {};
 let availableFountains = [];
 let selectedFountainIndex = 0; // Starts at 0 (First Fountain). Last index (N) is All Fountains (Average)
 let latestReadingsList = [];
+let userHasSwitched = false; // Flag to track if user manually cycled fountain scope
 
 // DOM Elements
 const metricCards = document.querySelectorAll('.metric-card');
@@ -48,23 +49,36 @@ async function fetchDashboardData() {
             API.sensors.getLatest()
         ]);
 
-        const dbFountains = fountainsRes.status === 'fulfilled' && Array.isArray(fountainsRes.value) ? fountainsRes.value : [];
+        let dbFountains = [];
+        if (fountainsRes.status === 'fulfilled') {
+            const val = fountainsRes.value;
+            if (Array.isArray(val)) {
+                dbFountains = val;
+            } else if (val && Array.isArray(val.fountains)) {
+                dbFountains = val.fountains;
+            } else if (val && Array.isArray(val.data)) {
+                dbFountains = val.data;
+            }
+        } else {
+            console.warn('API.fountains.getAll() was rejected:', fountainsRes.reason);
+        }
+
         latestReadingsList = latestRes.status === 'fulfilled' && Array.isArray(latestRes.value) ? latestRes.value : [];
 
         // Build comprehensive map of all database fountains + active telemetry sources
         const fountainMap = new Map();
 
         dbFountains.forEach(f => {
-            if (f && f.id) {
+            if (f && f.id !== undefined && f.id !== null) {
                 fountainMap.set(String(f.id), {
                     id: f.id,
-                    name: f.name || f.display_id || `Fountain #${f.id}`
+                    name: f.name || f.displayId || f.display_id || `Fountain #${f.id}`
                 });
             }
         });
 
         latestReadingsList.forEach(r => {
-            if (r && r.fountain_id && !fountainMap.has(String(r.fountain_id))) {
+            if (r && r.fountain_id !== undefined && r.fountain_id !== null && !fountainMap.has(String(r.fountain_id))) {
                 fountainMap.set(String(r.fountain_id), {
                     id: r.fountain_id,
                     name: r.fountain_name || `Fountain #${r.fountain_id}`
@@ -74,6 +88,29 @@ async function fetchDashboardData() {
 
         availableFountains = Array.from(fountainMap.values());
         availableFountains.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true, sensitivity: 'base' }));
+
+        // Default Selection: If user has NOT manually switched yet, select the first fountain with active readings
+        if (!userHasSwitched && availableFountains.length > 0) {
+            const activeIndex = availableFountains.findIndex(f => {
+                const reading = latestReadingsList.find(r => String(r.fountain_id) === String(f.id));
+                return reading && (reading.ph !== null || reading.turbidity !== null || reading.temperature !== null || reading.tds !== null);
+            });
+
+            if (activeIndex !== -1) {
+                selectedFountainIndex = activeIndex;
+            } else {
+                // If no individual fountain has readings, check if any readings exist for average view or default to 0
+                const validTelemetry = latestReadingsList.filter(r => r && (r.ph !== null || r.turbidity !== null || r.temperature !== null || r.tds !== null));
+                if (validTelemetry.length > 0) {
+                    selectedFountainIndex = availableFountains.length; // All Fountains Average View
+                } else {
+                    selectedFountainIndex = 0;
+                }
+            }
+        } else if (availableFountains.length > 0 && selectedFountainIndex > availableFountains.length) {
+            // Keep index bounded if fountains list changed dynamically
+            selectedFountainIndex = 0;
+        }
 
         await renderCurrentScope();
     } catch (error) {
@@ -87,6 +124,7 @@ function cycleFountainScope() {
         return;
     }
 
+    userHasSwitched = true;
     selectedFountainIndex++;
     // Sequence: 0..N-1 (individual fountains) -> N (All Fountains Average) -> 0 (loop back)
     if (selectedFountainIndex > availableFountains.length) {
