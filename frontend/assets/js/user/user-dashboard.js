@@ -99,16 +99,10 @@ async function fetchDashboardData() {
             if (activeIndex !== -1) {
                 selectedFountainIndex = activeIndex;
             } else {
-                // If no individual fountain has readings, check if any readings exist for average view or default to 0
-                const validTelemetry = latestReadingsList.filter(r => r && (r.ph !== null || r.turbidity !== null || r.temperature !== null || r.tds !== null));
-                if (validTelemetry.length > 0) {
-                    selectedFountainIndex = availableFountains.length; // All Fountains Average View
-                } else {
-                    selectedFountainIndex = 0;
-                }
+                selectedFountainIndex = 0;
             }
-        } else if (availableFountains.length > 0 && selectedFountainIndex > availableFountains.length) {
-            // Keep index bounded if fountains list changed dynamically
+        } else if (availableFountains.length > 0 && selectedFountainIndex >= availableFountains.length) {
+            // Keep index bounded to available fountains
             selectedFountainIndex = 0;
         }
 
@@ -126,8 +120,8 @@ function cycleFountainScope() {
 
     userHasSwitched = true;
     selectedFountainIndex++;
-    // Sequence: 0..N-1 (individual fountains) -> N (All Fountains Average) -> 0 (loop back)
-    if (selectedFountainIndex > availableFountains.length) {
+    // Sequence: 0..N-1 (cycles strictly through registered database fountains)
+    if (selectedFountainIndex >= availableFountains.length) {
         selectedFountainIndex = 0;
     }
 
@@ -143,101 +137,53 @@ async function renderCurrentScope() {
 
     const totalFountains = availableFountains.length;
 
-    // Check if selected index is N (the LAST option: All Fountains Average)
-    const isAllFountainsView = totalFountains > 0 && selectedFountainIndex === totalFountains;
+    if (totalFountains === 0) {
+        if (headerTitle) headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">No Fountains Available</span>`;
+        if (refreshBtnText) refreshBtnText.textContent = `Viewing: None`;
+        setEmptyState('No current readings from any campus fountains.');
+        return;
+    }
 
-    if (isAllFountainsView || totalFountains === 0) {
-        // --- ALL FOUNTAINS (AVERAGE) VIEW - LAST OPTION IN CYCLE ---
-        if (headerTitle) {
-            headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">All Fountains (Average)</span>`;
+    // --- INDIVIDUAL FOUNTAIN VIEW ---
+    const fountain = availableFountains[selectedFountainIndex] || availableFountains[0];
+    const fountainName = fountain ? (fountain.name || `Fountain #${fountain.id}`) : 'Selected Fountain';
+
+    if (headerTitle) {
+        headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${fountainName}</span>`;
+    }
+    if (refreshBtnText) {
+        refreshBtnText.textContent = `Viewing: ${fountainName}`;
+    }
+
+    const fountainData = fountain ? latestReadingsList.find(r => String(r.fountain_id) === String(fountain.id)) : null;
+
+    if (!fountainData || (fountainData.ph === null && fountainData.turbidity === null && fountainData.temperature === null && fountainData.tds === null)) {
+        updateMetrics({ ph: null, turbidity: null, temperature: null, tds: null, fountain_name: fountainName });
+        renderDashboardCharts([]);
+        updateTrendInsights([], fountainName);
+        if (lastUpdated) {
+            lastUpdated.textContent = `Viewing ${fountainName} • No current readings from this fountain`;
         }
-        if (refreshBtnText) {
-            refreshBtnText.textContent = `Viewing: All Fountains (Average)`;
-        }
+        return;
+    }
 
-        // Filter only telemetry from fountains that have actual valid readings
-        const validTelemetry = latestReadingsList.filter(r => r && (r.ph !== null || r.turbidity !== null || r.temperature !== null || r.tds !== null));
+    updateMetrics(fountainData);
 
-        if (validTelemetry.length === 0) {
-            setEmptyState('No current readings from any campus fountains.');
-            return;
-        }
-
-        const avgPh = calculateMean(validTelemetry, 'ph');
-        const avgTurb = calculateMean(validTelemetry, 'turbidity');
-        const avgTemp = calculateMean(validTelemetry, 'temperature');
-        const avgTds = calculateMean(validTelemetry, 'tds');
-
-        const aggregatedData = {
-            ph: avgPh,
-            turbidity: avgTurb,
-            temperature: avgTemp,
-            tds: avgTds,
-            fountain_name: 'All Fountains'
-        };
-
-        updateMetrics(aggregatedData);
-
-        const histories = await Promise.allSettled(
-            availableFountains.map(f => API.sensors.getHistory(f.id, 10))
-        );
-
-        const validHistories = histories
-            .filter(h => h.status === 'fulfilled' && Array.isArray(h.value) && h.value.length > 0)
-            .map(h => h.value);
-
-        if (validHistories.length > 0) {
-            const combinedHistory = buildAveragedHistory(validHistories);
-            renderDashboardCharts(combinedHistory);
-            updateTrendInsights(combinedHistory, 'All Fountains (Average)');
+    try {
+        const history = await API.sensors.getHistory(fountain.id, 10);
+        if (history && Array.isArray(history) && history.length > 0) {
+            renderDashboardCharts(history);
+            updateTrendInsights(history, fountainName);
         } else {
             renderDashboardCharts([]);
-            updateTrendInsights([], 'All Fountains (Average)');
+            updateTrendInsights([], fountainName);
         }
-
         if (lastUpdated) {
-            lastUpdated.textContent = `Average readings from ${validTelemetry.length} active fountain(s) • Last updated: ${new Date().toLocaleTimeString()}`;
+            lastUpdated.textContent = `Viewing ${fountainName} • Last updated: ${new Date().toLocaleTimeString()}`;
         }
-    } else {
-        // --- INDIVIDUAL FOUNTAIN VIEW ---
-        const fountain = availableFountains[selectedFountainIndex];
-        const fountainName = fountain ? (fountain.name || `Fountain #${fountain.id}`) : 'Selected Fountain';
-
-        if (headerTitle) {
-            headerTitle.innerHTML = `Monitoring: <span style="color: #14B8A6;">${fountainName}</span>`;
-        }
-        if (refreshBtnText) {
-            refreshBtnText.textContent = `Viewing: ${fountainName}`;
-        }
-
-        const fountainData = fountain ? latestReadingsList.find(r => r.fountain_id == fountain.id) : null;
-
-        if (!fountainData || (fountainData.ph === null && fountainData.turbidity === null && fountainData.temperature === null && fountainData.tds === null)) {
-            updateMetrics({ ph: null, turbidity: null, temperature: null, tds: null, fountain_name: fountainName });
-            renderDashboardCharts([]);
-            updateTrendInsights([], fountainName);
-            if (lastUpdated) {
-                lastUpdated.textContent = `No current readings from this fountain (${fountainName})`;
-            }
-            return;
-        }
-
-        updateMetrics(fountainData);
-
-        try {
-            const history = await API.sensors.getHistory(fountain.id, 10);
-            if (history && history.length > 0) {
-                renderDashboardCharts(history);
-                updateTrendInsights(history, fountainName);
-            } else {
-                renderDashboardCharts([]);
-                updateTrendInsights([], fountainName);
-            }
-        } catch (err) {
-            renderDashboardCharts([]);
-            updateTrendInsights([], fountainName);
-        }
-
+    } catch (err) {
+        renderDashboardCharts([]);
+        updateTrendInsights([], fountainName);
         if (lastUpdated) {
             lastUpdated.textContent = `Viewing ${fountainName} • Last updated: ${new Date().toLocaleTimeString()}`;
         }
@@ -498,8 +444,13 @@ function renderDashboardCharts(history) {
     configs.forEach(cfg => {
         const canvas = document.getElementById(cfg.id);
         if (canvas) {
-            if (charts[cfg.id]) charts[cfg.id].destroy();
+            if (charts[cfg.id]) {
+                charts[cfg.id].destroy();
+                charts[cfg.id] = null;
+            }
             const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             const grad = ctx.createLinearGradient(0, 0, 0, 180);
             grad.addColorStop(0, `${cfg.color}25`);
             grad.addColorStop(1, `${cfg.color}01`);
