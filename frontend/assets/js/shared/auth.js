@@ -575,8 +575,8 @@ function showEmailOtpModal(options) {
                     <div style="width: 48px; height: 48px; background: rgba(20, 184, 166, 0.1); color: #14b8a6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                     </div>
-                    <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 6px;">Verify New Email Address</h3>
-                    <p style="font-size: 13px; color: #64748b; margin: 0;" id="emailOtpSubtitle">Sending verification code...</p>
+                    <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 6px;">Email Change Verification</h3>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;" id="emailOtpSubtitle">Sending verification code to your registered email...</p>
                 </div>
 
                 <div style="margin-bottom: 16px;">
@@ -613,15 +613,19 @@ function showEmailOtpModal(options) {
         if (msg) {
             msg.style.display = 'block';
             msg.style.color = '#14b8a6';
-            msg.textContent = 'Sending verification code...';
+            msg.textContent = 'Sending verification code to your registered email...';
         }
         try {
             const res = await API.auth.sendEmailOtp({ new_email: newEmail, entity_type: entityType, entity_id: entityId });
-            if (subtitle) subtitle.textContent = res.message || 'A 6-digit verification code was sent to your registered email.';
+            const messageStr = (res && typeof res === 'object' && res.message) ? res.message : (typeof res === 'string' ? res : null);
+            const maskedStr = (res && typeof res === 'object' && res.masked_email) ? res.masked_email : null;
+            
+            const subtitleText = maskedStr ? `A 6-digit code was sent to your registered email (${maskedStr})` : (messageStr || 'A 6-digit verification code was sent to your registered email.');
+            if (subtitle) subtitle.textContent = subtitleText;
             if (msg) {
                 msg.style.display = 'block';
                 msg.style.color = '#14b8a6';
-                msg.textContent = res.message || 'Verification code sent to your inbox!';
+                msg.textContent = messageStr || subtitleText;
             }
         } catch (err) {
             if (msg) {

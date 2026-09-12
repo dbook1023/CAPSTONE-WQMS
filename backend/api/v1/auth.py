@@ -455,7 +455,13 @@ def send_email_otp_route():
         masked_u = u_part[:2] + '***' + (u_part[-1] if len(u_part) > 2 else '')
         masked_email = f"{masked_u}@{d_part}"
 
-        return api_success(res, f"A 6-digit security verification code has been sent to your currently registered email ({masked_email}). Please check your inbox.")
+        msg_text = f"A 6-digit security verification code has been sent to your currently registered email ({masked_email}). Please check your inbox."
+        if isinstance(res, dict):
+            res['message'] = msg_text
+            res['registered_email'] = registered_email
+            res['masked_email'] = masked_email
+
+        return api_success(res, msg_text)
     except Exception as e:
         return api_error(str(e), 500)
 
