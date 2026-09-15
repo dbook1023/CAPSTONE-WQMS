@@ -344,7 +344,7 @@ async function pollLatestReading() {
     }
 
     try {
-        const latestArr = await API.sensors.getLatest();
+        const latestArr = await API.sensors.getLatest({ live_only: true });
         if (!latestArr || latestArr.length === 0) return;
         // Find the entry matching our selected fountain
         const match = latestArr.find(r => String(r.fountain_id) === String(selectedFountain.id));
@@ -355,11 +355,16 @@ async function pollLatestReading() {
                 return;
             }
 
-            // GUARD: Only accept readings that arrived AFTER this monitoring session started.
+            // GUARD: Only accept readings that arrived AFTER this monitoring session started / report was submitted.
             // This prevents old database sensor_log records from appearing as "live" data.
             const readingTs = match.timestamp ? new Date(match.timestamp).getTime() : 0;
-            if (readingTs < sessionStartTimeMs) {
+            if (!isNaN(readingTs) && readingTs <= sessionStartTimeMs) {
                 console.log('[REST Poll] Skipped old database record (reading: ' + match.timestamp + ', session started: ' + new Date(sessionStartTimeMs).toISOString() + ')');
+                return;
+            }
+
+            // GUARD: If reading timestamp is not newer than our latest processed live timestamp, skip duplicate polling
+            if (!isNaN(readingTs) && readingTs <= maxLiveTimestampMs) {
                 return;
             }
 
@@ -555,9 +560,12 @@ function setupEventListeners() {
             // Automatically download PDF certificate upon successful database submission
             triggerPdfDownload(savedReport);
             
-            // Clear session snapshots and counter badge cleanly
+            // Clear session data, session snapshots, counter badge, and reset session start timestamps cleanly
+            sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
             sessionSnapshots = [];
             sessionReadingCount = 0;
+            sessionStartTimeMs = Date.now();
+            maxLiveTimestampMs = Date.now();
             updateComparisonTable();
 
             const badge = document.getElementById('sessionCounterBadge');
@@ -1700,6 +1708,7 @@ function startReading() {
     if (!selectedFountain) return;
 
     isReading = true;
+    sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
     sessionSnapshots = [];
     sessionReadingCount = 0;
     lastProcessedTimestamp = null;

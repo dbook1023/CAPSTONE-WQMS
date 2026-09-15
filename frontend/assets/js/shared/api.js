@@ -131,7 +131,10 @@ const API = {
     // Sensor Endpoints
     sensors: {
         getAll: () => API.request('/sensors/'),
-        getLatest: () => API.request('/sensors/latest'),
+        getLatest: (params = {}) => {
+            const query = (params && params.live_only) ? '?live_only=true' : '';
+            return API.request('/sensors/latest' + query);
+        },
         getHistory: (fountainId, limit = 50) => API.request(`/sensors/history?fountain_id=${fountainId}&limit=${limit}`),
         update: (data) => API.request('/sensors/update', {
             method: 'POST',

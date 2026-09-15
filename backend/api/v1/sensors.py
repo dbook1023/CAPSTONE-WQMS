@@ -87,8 +87,9 @@ def delete_sensor(id):
 def get_latest_data():
     """Returns the most recent sensor readings for all active fountains.
     Merges data from both sensor_logs (hardware) and reports (user-submitted).
-    For each fountain, the newer source wins."""
+    For each fountain, the newer source wins, unless live_only=true is requested."""
     try:
+        live_only = request.args.get('live_only', '').lower() in ('true', '1', 'yes')
         db = get_db()
         results_by_fountain = {}
 
@@ -101,36 +102,37 @@ def get_latest_data():
             log_dict['source'] = 'sensor'
             results_by_fountain[log.fountain_id] = log_dict
 
-        # 2. Latest submitted reports per fountain
-        report_sub = select(func.max(Report.id)).group_by(Report.fountain_id)
-        latest_reports = db.query(Report).filter(Report.id.in_(report_sub)).all()
-        for rpt in latest_reports:
-            rpt_ts = rpt.created_at
-            fid = rpt.fountain_id
+        # 2. Latest submitted reports per fountain (skipped if live_only is set)
+        if not live_only:
+            report_sub = select(func.max(Report.id)).group_by(Report.fountain_id)
+            latest_reports = db.query(Report).filter(Report.id.in_(report_sub)).all()
+            for rpt in latest_reports:
+                rpt_ts = rpt.created_at
+                fid = rpt.fountain_id
 
-            # Build a sensor-log-compatible dict from report averages
-            rpt_dict = {
-                'id': None,
-                'fountain_id': fid,
-                'ph': float(rpt.ph_avg) if rpt.ph_avg is not None else None,
-                'turbidity': float(rpt.turbidity_avg) if rpt.turbidity_avg is not None else None,
-                'temperature': float(rpt.temperature_avg) if rpt.temperature_avg is not None else None,
-                'tds': float(rpt.tds_avg) if rpt.tds_avg is not None else None,
-                'overall_status': rpt.overall_status,
-                'timestamp': (rpt_ts.isoformat() + 'Z') if rpt_ts else None,
-                'fountain_name': rpt.fountain.name if rpt.fountain else 'Unknown',
-                'source': 'report'
-            }
+                # Build a sensor-log-compatible dict from report averages
+                rpt_dict = {
+                    'id': None,
+                    'fountain_id': fid,
+                    'ph': float(rpt.ph_avg) if rpt.ph_avg is not None else None,
+                    'turbidity': float(rpt.turbidity_avg) if rpt.turbidity_avg is not None else None,
+                    'temperature': float(rpt.temperature_avg) if rpt.temperature_avg is not None else None,
+                    'tds': float(rpt.tds_avg) if rpt.tds_avg is not None else None,
+                    'overall_status': rpt.overall_status,
+                    'timestamp': (rpt_ts.isoformat() + 'Z') if rpt_ts else None,
+                    'fountain_name': rpt.fountain.name if rpt.fountain else 'Unknown',
+                    'source': 'report'
+                }
 
-            existing = results_by_fountain.get(fid)
-            if existing:
-                # Compare timestamps — keep whichever is newer
-                existing_ts = existing.get('timestamp', '')
-                rpt_ts_iso = rpt_dict.get('timestamp', '')
-                if rpt_ts_iso and rpt_ts_iso > (existing_ts or ''):
+                existing = results_by_fountain.get(fid)
+                if existing:
+                    # Compare timestamps — keep whichever is newer
+                    existing_ts = existing.get('timestamp', '')
+                    rpt_ts_iso = rpt_dict.get('timestamp', '')
+                    if rpt_ts_iso and rpt_ts_iso > (existing_ts or ''):
+                        results_by_fountain[fid] = rpt_dict
+                else:
                     results_by_fountain[fid] = rpt_dict
-            else:
-                results_by_fountain[fid] = rpt_dict
 
         db.close()
         return jsonify(list(results_by_fountain.values()) if results_by_fountain else [])
