@@ -560,19 +560,8 @@ function setupEventListeners() {
             // Automatically download PDF certificate upon successful database submission
             triggerPdfDownload(savedReport);
             
-            // Clear session data, session snapshots, counter badge, and reset session start timestamps cleanly
-            sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
-            sessionSnapshots = [];
-            sessionReadingCount = 0;
-            sessionStartTimeMs = Date.now();
-            maxLiveTimestampMs = Date.now();
-            updateComparisonTable();
-
-            const badge = document.getElementById('sessionCounterBadge');
-            if (badge) {
-                badge.style.display = 'none';
-                badge.textContent = '0 Snapshots';
-            }
+            // Fully reset live view UI session state upon report submission
+            resetLiveViewSession();
 
             if (typeof showFeedbackModal === 'function') {
                 showFeedbackModal({
@@ -1704,9 +1693,7 @@ function updateFountainCardMetrics(latest) {
     }
 }
 
-function startReading() {
-    if (!selectedFountain) return;
-
+function resetLiveViewSession() {
     isReading = true;
     sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
     sessionSnapshots = [];
@@ -1715,13 +1702,23 @@ function startReading() {
     lastProcessedTimeMs = Date.now();
     sessionStartTimeMs = Date.now();
     currentVirtualTimeMs = Date.now();
-    maxLiveTimestampMs = 0;
-    updateComparisonTable();
-
-    // Reset latest telemetry
+    maxLiveTimestampMs = Date.now();
     latestTelemetry = { ph: null, turbidity: null, temperature: null, tds: null };
 
-    // Show "Waiting for Sensor Data" popup modal and hide charts until first live reading arrives
+    updateComparisonTable();
+
+    const badge = document.getElementById('sessionCounterBadge');
+    if (badge) {
+        badge.style.display = 'none';
+        badge.textContent = '0 Snapshots';
+    }
+
+    const generateReportBtn = document.getElementById('generateReportBtn');
+    if (generateReportBtn) generateReportBtn.disabled = true;
+    const generateReportBtnMobile = document.getElementById('generateReportBtnMobile');
+    if (generateReportBtnMobile) generateReportBtnMobile.disabled = true;
+
+    // Show "Waiting for Sensor Data" popup modal and hide charts until first new live ESP32 reading arrives
     const waitingOverlay = document.getElementById('sensorWaitingOverlay');
     const chartsGrid = document.querySelector('.charts-grid');
     if (waitingOverlay) {
@@ -1731,43 +1728,58 @@ function startReading() {
     }
     if (chartsGrid) { chartsGrid.style.display = 'none'; }
 
-    // Immediately update selected fountain card to reflect live session
-    try {
-        const cardElement = document.querySelector(`.fountain-card[data-name="${selectedFountain.name}"]`);
-        if (cardElement) {
-            sensorConfigs.forEach(cfg => {
-                let domKey = cfg.id.replace('Chart', '').toLowerCase();
-                if (domKey === 'temp') domKey = 'temp'; // Just to be safe, matches the id val-temp-
-                
-                const valEl = cardElement.querySelector(`#val-${domKey}-${selectedFountain.id}`);
-                if (valEl) valEl.textContent = '--';
-                
-                const statusEl = cardElement.querySelector(`#status-${domKey}-${selectedFountain.id}`);
-                if (statusEl) {
-                    statusEl.innerHTML = 'Pending';
-                    statusEl.style.color = '#64748b';
-                }
-                
-                const parent = valEl ? valEl.closest('.fc-metric') : null;
-                if (parent) {
-                    parent.style.background = '#f8fafc';
-                    parent.style.borderColor = '#e2e8f0';
-                    parent.style.color = 'inherit';
-                    if (valEl) valEl.style.color = '#1e293b';
+    // Reset metric cards on fountain UI to '--' / Pending
+    if (selectedFountain) {
+        try {
+            const cardElement = document.querySelector(`.fountain-card[data-name="${selectedFountain.name}"]`);
+            if (cardElement) {
+                sensorConfigs.forEach(cfg => {
+                    let domKey = cfg.id.replace('Chart', '').toLowerCase();
+                    if (domKey === 'temp') domKey = 'temp';
                     
-                    const labelEl = parent.querySelector('.fc-metric-label');
-                    if (labelEl) labelEl.style.color = '#64748b';
-                }
-            });
+                    const valEl = cardElement.querySelector(`#val-${domKey}-${selectedFountain.id}`);
+                    if (valEl) valEl.textContent = '--';
+                    
+                    const statusEl = cardElement.querySelector(`#status-${domKey}-${selectedFountain.id}`);
+                    if (statusEl) {
+                        statusEl.innerHTML = 'Pending';
+                        statusEl.style.color = '#64748b';
+                    }
+                    
+                    const parent = valEl ? valEl.closest('.fc-metric') : null;
+                    if (parent) {
+                        parent.style.background = '#f8fafc';
+                        parent.style.borderColor = '#e2e8f0';
+                        parent.style.color = 'inherit';
+                        if (valEl) valEl.style.color = '#1e293b';
+                        
+                        const labelEl = parent.querySelector('.fc-metric-label');
+                        if (labelEl) labelEl.style.color = '#64748b';
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Failed to reset fountain card metrics:', e);
         }
-    } catch (e) { /* ignore */ }
-
-    const badge = document.getElementById('sessionCounterBadge');
-    if (badge) {
-        badge.style.display = 'none'; // Only show when snapshots exist
     }
 
-    sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
+    // Clear active charts so old readings completely vanish from screen
+    Object.keys(activeCharts).forEach(key => {
+        const chart = activeCharts[key];
+        if (chart && chart.data && chart.data.datasets) {
+            chart.data.datasets.forEach(ds => {
+                ds.data = [];
+            });
+            chart.update();
+        }
+    });
+}
+
+function startReading() {
+    if (!selectedFountain) return;
+
+    resetLiveViewSession();
+
     startReadingBtn.classList.add('btn-danger');
     startReadingBtn.classList.remove('btn-primary');
     startReadingBtn.innerHTML = `
@@ -1775,7 +1787,6 @@ function startReading() {
         <span>Stop Reading</span>
     `;
 
-    if (generateReportBtn) generateReportBtn.disabled = true; // Wait for at least one snapshot
     if (saveReadingBtn) {
         saveReadingBtn.style.display = 'inline-flex';
         saveReadingBtn.disabled = false;
