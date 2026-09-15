@@ -550,7 +550,10 @@ function initStandardsModal() {
             footerEl.innerHTML = `
                 <button class="btn btn-primary" id="feedbackOkBtn" style="min-width: 120px; background: ${cfg.color};">OK</button>
             `;
-            document.getElementById('feedbackOkBtn').onclick = closeModal;
+            document.getElementById('feedbackOkBtn').onclick = () => {
+                closeModal();
+                if (typeof opts.onClose === 'function') opts.onClose();
+            };
         }
 
         modal.classList.add('open');
@@ -560,6 +563,7 @@ function initStandardsModal() {
             if (e.target === modal) {
                 closeModal();
                 if (opts.type === 'confirm' && opts.onCancel) opts.onCancel();
+                else if (typeof opts.onClose === 'function') opts.onClose();
             }
         };
     };

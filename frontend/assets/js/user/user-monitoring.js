@@ -559,20 +559,31 @@ function setupEventListeners() {
             
             // Automatically download PDF certificate upon successful database submission
             triggerPdfDownload(savedReport);
-            
-            // Fully reset live view UI session state upon report submission
-            resetLiveViewSession();
+            closeReportModal();
 
             if (typeof showFeedbackModal === 'function') {
                 showFeedbackModal({
                     type: 'success',
-                    title: 'Reports Submitted Successfully!',
-                    message: `${actionPlan ? actionPlan.headline : 'The compliance report has been saved to the database.'} Your PDF certificate is now downloading.`,
+                    title: 'Report Submitted Successfully!',
+                    message: `${actionPlan ? actionPlan.headline : 'Your official compliance report has been saved to the database and your PDF certificate is downloading.'}\n\nClick OK to reset the live view for your next test session.`,
+                    onClose: () => {
+                        updateWaitingOverlayText(
+                            'Monitoring Session Reset — Waiting for ESP32 Data...',
+                            'Your report was saved successfully. The live view has been reset and is now waiting for fresh incoming telemetry from your ESP32 device.'
+                        );
+                        resetLiveViewSession();
+                    }
                 });
             } else {
                 showNotification('Official compliance report saved and PDF certificate generated!', 'success');
+                setTimeout(() => {
+                    updateWaitingOverlayText(
+                        'Monitoring Session Reset — Waiting for ESP32 Data...',
+                        'Your report was saved successfully. The live view has been reset and is now waiting for fresh incoming telemetry from your ESP32 device.'
+                    );
+                    resetLiveViewSession();
+                }, 2000);
             }
-            closeReportModal();
         } catch (err) {
             console.error("Failed to save report to database:", err);
             showNotification(err?.message || 'Error saving report to database.', 'error');
@@ -1775,8 +1786,20 @@ function resetLiveViewSession() {
     });
 }
 
+function updateWaitingOverlayText(title, text) {
+    const titleEl = document.querySelector('#sensorWaitingOverlay .sensor-waiting-title');
+    const textEl = document.querySelector('#sensorWaitingOverlay .sensor-waiting-text');
+    if (titleEl && title) titleEl.textContent = title;
+    if (textEl && text) textEl.textContent = text;
+}
+
 function startReading() {
     if (!selectedFountain) return;
+
+    updateWaitingOverlayText(
+        'Waiting for Sensor Data...',
+        'Please ensure your ESP32 device is powered on and connected. Live readings will appear here automatically.'
+    );
 
     resetLiveViewSession();
 
