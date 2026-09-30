@@ -302,42 +302,45 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const htmlContent = `
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
                 @page { size: 210mm 297mm; margin: 0 !important; }
                 html, body {
                     margin: 0 !important;
                     padding: 0 !important;
-                    width: 210mm !important;
-                    height: 297mm !important;
-                    background: #ffffff;
+                    width: 794px !important;
+                    height: 1123px !important;
+                    background: #ffffff !important;
+                    overflow: hidden !important;
                 }
                 * { box-sizing: border-box !important; }
                 .certificate-container {
+                    width: 794px !important;
+                    height: 1123px !important;
+                    max-height: 1123px !important;
                     border: 3px double #cbd5e1;
-                    padding: 20px 24px;
+                    padding: 24px 32px;
                     border-radius: 0 !important;
                     background: #ffffff;
-                    font-family: 'Inter', sans-serif;
+                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
                     color: #1e293b;
                     box-sizing: border-box !important;
-                    width: 210mm !important;
-                    height: 297mm !important;
-                    min-height: 297mm !important;
-                    margin: 0 !important;
-                    page-break-inside: avoid;
+                    margin: 0 auto !important;
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
+                    overflow: hidden !important;
+                    page-break-inside: avoid !important;
+                    page-break-before: avoid !important;
+                    page-break-after: avoid !important;
                 }
                 .header {
                     text-align: center;
                     border-bottom: 2px solid #e2e8f0;
-                    padding-bottom: 10px;
-                    margin-bottom: 12px;
+                    padding-bottom: 8px;
+                    margin-bottom: 8px;
                 }
                 .header h1 {
                     font-family: 'Poppins', sans-serif;
-                    font-size: 16px;
+                    font-size: 15px;
                     font-weight: 700;
                     color: #0f172a;
                     margin: 0 0 2px 0;
@@ -345,21 +348,27 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     text-transform: uppercase;
                 }
                 .header p {
-                    font-size: 9.5px;
+                    font-size: 9px;
                     color: #64748b;
                     margin: 0;
                     font-weight: 600;
                     letter-spacing: 0.08em;
                     text-transform: uppercase;
                 }
+                .content-body {
+                    flex: 1 1 auto;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-evenly;
+                }
                 .meta-grid {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
-                    gap: 8px 12px;
-                    margin-bottom: 12px;
+                    gap: 4px 10px;
+                    margin-bottom: 8px;
                     background: #f8fafc;
-                    padding: 12px;
-                    border-radius: 8px;
+                    padding: 8px 12px;
+                    border-radius: 6px;
                     border: 1px solid #e2e8f0;
                 }
                 .meta-item {
@@ -367,15 +376,15 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     flex-direction: column;
                 }
                 .meta-label {
-                    font-size: 8.5px;
+                    font-size: 7.5px;
                     font-weight: 700;
                     color: #64748b;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: 2px;
+                    margin-bottom: 1px;
                 }
                 .meta-value {
-                    font-size: 11.5px;
+                    font-size: 10.5px;
                     font-weight: 600;
                     color: #0f172a;
                 }
@@ -383,139 +392,143 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     background: ${overallColor}10;
                     border: 1.5px solid ${overallColor};
                     color: ${overallColor};
-                    padding: 10px;
-                    border-radius: 8px;
+                    padding: 6px 10px;
+                    border-radius: 6px;
                     text-align: center;
-                    font-size: 14px;
+                    font-size: 12px;
                     font-weight: 800;
                     letter-spacing: 0.05em;
-                    margin-bottom: 12px;
+                    margin-bottom: 8px;
                     text-transform: uppercase;
                 }
                 .section-title {
                     font-family: 'Poppins', sans-serif;
-                    font-size: 12px;
-                    font-weight: 700;
-                    color: #0f172a;
-                    margin-bottom: 8px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-                .action-plan {
-                    margin-bottom: 12px;
-                    border: 1.5px solid #cbd5e1;
-                    border-radius: 8px;
-                    background: #f8fafc;
-                    padding: 10px 12px;
-                }
-                .action-plan-title {
-                    font-family: 'Poppins', sans-serif;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 700;
                     color: #0f172a;
                     margin-bottom: 4px;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                 }
-                .action-plan-headline {
-                    font-size: 11px;
-                    font-weight: 700;
-                    margin-bottom: 6px;
-                }
-                .action-plan-list {
-                    display: grid;
-                    gap: 6px;
-                }
-                .action-plan-item {
-                    background: white;
-                    border: 1px solid #e2e8f0;
-                    border-radius: 6px;
-                    padding: 6px 10px;
-                    font-size: 10px;
-                    line-height: 1.35;
-                    color: #334155;
-                }
                 .cert-table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin-bottom: 12px;
+                    margin-bottom: 8px;
                     background: transparent;
                 }
                 .cert-table th {
                     background: #f1f5f9;
                     color: #475569;
                     font-weight: 700;
-                    font-size: 9.5px;
+                    font-size: 8.5px;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                     text-align: left;
-                    padding: 6px 8px;
+                    padding: 4px 6px;
                     border: 1px solid #e2e8f0;
                 }
                 .cert-table td {
-                    padding: 5px 8px;
-                    font-size: 10.5px;
+                    padding: 4px 6px;
+                    font-size: 9.5px;
                     border: 1px solid #e2e8f0;
                     color: #1e293b;
                     text-align: left;
                 }
+                .action-plan {
+                    margin-bottom: 8px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 6px;
+                    background: #f8fafc;
+                    padding: 6px 10px;
+                }
+                .action-plan-title {
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 9.5px;
+                    font-weight: 700;
+                    color: #0f172a;
+                    margin-bottom: 2px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .action-plan-headline {
+                    font-size: 9.5px;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                }
+                .action-plan-list {
+                    display: grid;
+                    gap: 3px;
+                }
+                .action-plan-item {
+                    background: white;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 4px;
+                    padding: 3px 8px;
+                    font-size: 8.5px;
+                    line-height: 1.25;
+                    color: #334155;
+                }
                 .status-badge {
                     display: inline-block;
-                    padding: 2px 8px;
+                    padding: 1px 6px;
                     border-radius: 4px;
-                    font-size: 9.5px;
+                    font-size: 8.5px;
                     font-weight: 700;
                     text-transform: uppercase;
                 }
-                .status-pass { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
-                .status-warn { background: rgba(217, 119, 6, 0.1); color: #d97706; }
-                .status-fail { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
-                .content-body {
-                    flex: 1 1 auto;
-                    display: flex;
-                    flex-direction: column;
+                .status-pass {
+                    background: rgba(20, 184, 166, 0.1);
+                    color: #14b8a6;
+                }
+                .status-warn {
+                    background: rgba(217, 119, 6, 0.1);
+                    color: #d97706;
+                }
+                .status-fail {
+                    background: rgba(220, 38, 38, 0.1);
+                    color: #dc2626;
                 }
                 .findings-grid {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 6px;
-                    margin-bottom: 10px;
+                    gap: 4px 8px;
+                    margin-bottom: 8px;
                 }
                 .finding-card {
                     background: #f8fafc;
                     border: 1px solid #e2e8f0;
                     border-radius: 6px;
-                    padding: 8px 10px;
+                    padding: 5px 8px;
                 }
                 .finding-card-label {
-                    font-size: 8px;
+                    font-size: 7.5px;
                     font-weight: 700;
                     color: #64748b;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: 2px;
+                    margin-bottom: 1px;
                 }
                 .finding-card-value {
-                    font-size: 10px;
+                    font-size: 9px;
                     font-weight: 600;
-                    line-height: 1.4;
+                    line-height: 1.25;
                 }
                 .reviewer-section {
                     background: #f8fafc;
                     border: 1px solid #e2e8f0;
-                    border-radius: 8px;
-                    padding: 10px 12px;
-                    margin-bottom: 10px;
+                    border-radius: 6px;
+                    padding: 6px 10px;
+                    margin-bottom: 8px;
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 6px 12px;
+                    gap: 4px 10px;
                 }
                 .reviewer-item {
                     display: flex;
                     flex-direction: column;
                 }
                 .reviewer-label {
-                    font-size: 8px;
+                    font-size: 7.5px;
                     font-weight: 700;
                     color: #64748b;
                     text-transform: uppercase;
@@ -523,47 +536,48 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     margin-bottom: 1px;
                 }
                 .reviewer-value {
-                    font-size: 10.5px;
+                    font-size: 9.5px;
                     font-weight: 600;
                     color: #0f172a;
                 }
                 .disclaimer-box {
                     border: 1px dashed #cbd5e1;
-                    padding: 10px;
+                    padding: 6px 10px;
                     border-radius: 6px;
-                    margin-bottom: 10px;
-                    font-size: 9px;
+                    margin-bottom: 8px;
+                    font-size: 8px;
                     color: #64748b;
-                    line-height: 1.5;
+                    line-height: 1.3;
+                    background: #fafafa;
                 }
                 .footer {
                     margin-top: auto;
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-end;
-                    font-size: 9px;
+                    font-size: 8px;
                     color: #64748b;
                     border-top: 1.5px solid #e2e8f0;
-                    padding-top: 10px;
+                    padding-top: 8px;
                 }
                 .signature-block {
                     text-align: center;
                 }
                 .signature-line {
-                    width: 160px;
+                    width: 140px;
                     border-top: 1.5px solid #94a3b8;
-                    margin-top: 14px;
+                    margin-top: 10px;
                     text-align: center;
-                    padding-top: 4px;
+                    padding-top: 2px;
                     font-weight: 600;
-                    font-size: 9px;
+                    font-size: 8px;
                 }
             </style>
             <div class="certificate-container">
                 <div class="header">
-                    <div style="margin-bottom: 16px;">
-                        <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University - Antipolo Campus</div>
-                        <div style="font-size: 10px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University - Antipolo Campus</div>
+                        <div style="font-size: 9px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
                     </div>
                     <h1>Water Quality Compliance Certificate</h1>
                     <p>AquaMonitor WQMS Real-time Certification Platform</p>
@@ -645,19 +659,19 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     <div class="findings-grid">
                         <div class="finding-card">
                             <div class="finding-card-label">pH Level Assessment</div>
-                            <div class="finding-card-value" style="color: ${phColor};">${phStatus === 'CRITICAL' ? (avgPhRaw < 6.5 ? 'Acidic — below acceptable threshold. Immediate corrective action required.' : 'Alkaline — exceeds upper limit. Source water chemistry review needed.') : (phStatus === 'WARNING' ? (avgPhRaw < 7.0 ? 'Mildly acidic — within marginal tolerance. Monitor closely.' : 'Mildly alkaline — approaching upper limit. Retest recommended.') : 'Optimal — within DOH PNSDW acceptable range. No action needed.')}</div>
+                            <div class="finding-card-value" style="color: ${phColor};">${phStatus === 'CRITICAL' ? (avgPhRaw < 6.5 ? 'Acidic — below threshold. Action required.' : 'Alkaline — exceeds limit. Review chemistry.') : (phStatus === 'WARNING' ? (avgPhRaw < 7.0 ? 'Mildly acidic — marginal. Monitor.' : 'Mildly alkaline — approaching limit.') : 'Optimal — within DOH PNSDW acceptable range.')}</div>
                         </div>
                         <div class="finding-card">
                             <div class="finding-card-label">Turbidity Assessment</div>
-                            <div class="finding-card-value" style="color: ${turbColor};">${turbStatus === 'CRITICAL' ? 'Turbid — water clarity severely compromised. Suspend dispensing and inspect filters.' : (turbStatus === 'WARNING' ? 'Slightly cloudy — filter inspection recommended. Flush fountain line.' : 'Clear — excellent water clarity. Meets all standards.')}</div>
+                            <div class="finding-card-value" style="color: ${turbColor};">${turbStatus === 'CRITICAL' ? 'Turbid — clarity compromised. Suspend & inspect.' : (turbStatus === 'WARNING' ? 'Slightly cloudy — filter check recommended.' : 'Clear — excellent water clarity. Meets standards.')}</div>
                         </div>
                         <div class="finding-card">
                             <div class="finding-card-label">Temperature Assessment</div>
-                            <div class="finding-card-value" style="color: ${tempColor};">${tempStatus === 'CRITICAL' ? (avgTempRaw > 33 ? 'Overheated — exceeds safe consumption temperature. Check cooling system.' : 'Overcooled — below acceptable range. Verify storage conditions.') : (tempStatus === 'WARNING' ? (avgTempRaw < 15 ? 'Cool — marginally low. Verify ambient conditions.' : 'Warm — approaching upper limit. Monitor temperature trend.') : 'Optimal — comfortable and safe drinking temperature.')}</div>
+                            <div class="finding-card-value" style="color: ${tempColor};">${tempStatus === 'CRITICAL' ? (avgTempRaw > 33 ? 'Overheated — exceeds safe limit. Check cooling.' : 'Overcooled — below range.') : (tempStatus === 'WARNING' ? (avgTempRaw < 15 ? 'Cool — marginally low.' : 'Warm — approaching limit.') : 'Optimal — comfortable safe drinking temperature.')}</div>
                         </div>
                         <div class="finding-card">
                             <div class="finding-card-label">TDS Assessment</div>
-                            <div class="finding-card-value" style="color: ${tdsColor};">${!hasTds ? 'No TDS data available for this report period.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — dissolved solids exceed safe limit. Inspect filtration system.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold. Check filter saturation.' : 'Pure — mineral content within healthy range. No concerns.'))}</div>
+                            <div class="finding-card-value" style="color: ${tdsColor};">${!hasTds ? 'No TDS data available for this report period.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — exceeds safe limit. Check filter.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold.' : 'Pure — mineral content within healthy range.'))}</div>
                         </div>
                     </div>
 
@@ -682,8 +696,8 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     </div>
 
                     <div class="disclaimer-box">
-                        <strong>Compliance Note:</strong> This certificate guarantees that the drinking water fountain was continuously analyzed under the WQMS automated sensor telemetry stream. Parameter criteria references the DOH Philippine National Standards for Drinking Water (PNSDW) Administrative Order No. 2017-0010.<br><br>
-                        <strong>Disclaimer:</strong> This report is generated automatically by the AquaMonitor Water Quality Monitoring System. Results are based on real-time IoT sensor data and should be supplemented with periodic laboratory testing for full regulatory compliance. This document is valid only when accompanied by the official WQMS report code.
+                        <strong>Compliance Note:</strong> Continuous automated telemetry analysis per DOH PNSDW Administrative Order No. 2017-0010.<br>
+                        <strong>Disclaimer:</strong> Generated automatically by AquaMonitor WQMS. Results based on real-time IoT sensor data. Supplementary lab testing recommended for official compliance.
                     </div>
                 </div>
 
@@ -704,17 +718,18 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
+        tempDiv.style.left = '0';
         tempDiv.style.width = '794px';
         tempDiv.style.height = '1123px';
         tempDiv.style.margin = '0';
         tempDiv.style.padding = '0';
         tempDiv.style.boxSizing = 'border-box';
-        tempDiv.style.zIndex = '99999';
+        tempDiv.style.zIndex = '-99999';
         tempDiv.style.opacity = '1';
         tempDiv.style.pointerEvents = 'none';
         tempDiv.style.background = '#ffffff';
+        tempDiv.style.overflow = 'hidden';
 
         tempDiv.innerHTML = htmlContent;
         document.body.appendChild(tempDiv);
@@ -729,6 +744,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 scale: 2,
                 useCORS: true,
                 logging: false,
+                scrollX: 0,
                 scrollY: 0,
                 width: 794,
                 height: 1123,
