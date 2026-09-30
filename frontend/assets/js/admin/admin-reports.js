@@ -813,7 +813,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute';
+        tempDiv.style.position = 'fixed';
         tempDiv.style.top = '0';
         tempDiv.style.left = '0';
         tempDiv.style.width = '210mm';
@@ -834,10 +834,14 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0
+                scrollY: 0,
+                width: 794,
+                height: 1123,
+                windowWidth: 794,
+                windowHeight: 1123
             },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: 'avoid-all' }
+            jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(container).save().then(() => {
@@ -1027,16 +1031,14 @@ function setupFiltersAndGenerate() {
 function generateSummaryPdf(data, range, fountainVal) {
     const tempDiv = document.createElement('div');
     tempDiv.style.position = 'fixed';
-    tempDiv.style.left = '-9999px';
+    tempDiv.style.left = '0';
     tempDiv.style.top = '0';
-    tempDiv.style.width = '794px';
-    tempDiv.style.height = '1123px';
+    tempDiv.style.width = '210mm';
+    tempDiv.style.height = '297mm';
     tempDiv.style.margin = '0';
     tempDiv.style.padding = '0';
     tempDiv.style.boxSizing = 'border-box';
-    tempDiv.style.zIndex = '99999';
-    tempDiv.style.opacity = '1';
-    tempDiv.style.pointerEvents = 'none';
+    tempDiv.style.zIndex = '-99999';
     tempDiv.style.background = '#ffffff';
 
     const rangeLabel = range.charAt(0).toUpperCase() + range.slice(1);
