@@ -381,26 +381,31 @@ function getCertificateHTML(report) {
     return `
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
-            @page { size: A4; margin: 0; }
+            @page { size: 210mm 297mm; margin: 0 !important; }
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
+                width: 210mm !important;
+                height: 297mm !important;
                 background: #ffffff;
             }
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box !important; }
             .certificate-container {
                 border: 3px double #cbd5e1;
-                padding: 16px 18px;
-                border-radius: 10px;
+                padding: 20px 24px;
+                border-radius: 0 !important;
                 background: #ffffff;
                 font-family: 'Inter', sans-serif;
                 color: #1e293b;
-                box-sizing: border-box;
-                width: 100%;
+                box-sizing: border-box !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
                 margin: 0 !important;
                 page-break-inside: avoid;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
             }
             @media (max-width: 640px) {
                 .certificate-container {
@@ -713,6 +718,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
         tempDiv.style.width = '794px';
+        tempDiv.style.height = '1123px';
         tempDiv.style.margin = '0';
         tempDiv.style.padding = '0';
         tempDiv.style.boxSizing = 'border-box';
@@ -727,11 +733,20 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const reportCode = report.report_code || formatReportId(report.id, report.created_at);
         const opt = {
-            margin:       0,
+            margin:       [0, 0, 0, 0],
             filename:     `${reportCode}_${report.fountain_name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            html2canvas:  {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollY: 0,
+                width: 794,
+                height: 1123,
+                windowWidth: 794,
+                windowHeight: 1123
+            },
+            jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
@@ -925,6 +940,7 @@ function generateSummaryPdf(data, range, fountainVal) {
     tempDiv.style.left = '-9999px';
     tempDiv.style.top = '0';
     tempDiv.style.width = '794px';
+    tempDiv.style.height = '1123px';
     tempDiv.style.margin = '0';
     tempDiv.style.padding = '0';
     tempDiv.style.boxSizing = 'border-box';
@@ -1050,17 +1066,33 @@ function generateSummaryPdf(data, range, fountainVal) {
 
     const htmlContent = `
         <style>
-            @page { size: A4; margin: 0; }
+            @page { size: 210mm 297mm; margin: 0 !important; }
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
+                width: 210mm !important;
+                height: 297mm !important;
                 background: #ffffff;
             }
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box !important; }
+            .summary-pdf-root {
+                border: 2px solid #94a3b8;
+                padding: 24px;
+                border-radius: 0 !important;
+                background: white;
+                font-family: 'Inter', Arial, sans-serif;
+                color: #1e293b;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
         </style>
-        <div class="summary-pdf-root" style="border: 2px solid #94a3b8; padding: 24px; border-radius: 10px; background: white; font-family: 'Inter', Arial, sans-serif; color: #1e293b; width: 100%; margin: 0 !important; box-sizing: border-box;">
+        <div class="summary-pdf-root">
             <div style="text-align: center; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
                 <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">Our Lady of Fatima University - Antipolo Campus</div>
                 <div style="font-size: 9px; color: #64748b; margin-bottom: 6px;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
@@ -1156,11 +1188,20 @@ function generateSummaryPdf(data, range, fountainVal) {
     const pxH = (container.offsetHeight || 900) + 20;
 
     const opt = {
-        margin:       0,
+        margin:       [0, 0, 0, 0],
         filename:     `WQMS-${rangeLabel}_Summary_Report-${Date.now().toString().slice(-6)}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        html2canvas:  {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            scrollY: 0,
+            width: 794,
+            height: 1123,
+            windowWidth: 794,
+            windowHeight: 1123
+        },
+        jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
         pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 

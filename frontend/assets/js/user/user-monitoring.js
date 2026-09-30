@@ -647,6 +647,7 @@ function setupEventListeners() {
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
         tempDiv.style.width = '794px';
+        tempDiv.style.height = '1123px';
         tempDiv.style.margin = '0';
         tempDiv.style.padding = '0';
         tempDiv.style.boxSizing = 'border-box';
@@ -657,26 +658,31 @@ function setupEventListeners() {
 
         const htmlContent = `
             <style>
-                @page { size: A4; margin: 0; }
+                @page { size: 210mm 297mm; margin: 0 !important; }
                 html, body {
                     margin: 0 !important;
                     padding: 0 !important;
-                    width: 100% !important;
-                    height: 100% !important;
+                    width: 210mm !important;
+                    height: 297mm !important;
                     background: #ffffff;
                 }
-                * { box-sizing: border-box; }
+                * { box-sizing: border-box !important; }
                 .certificate-container {
                     border: 3px double #cbd5e1;
-                    padding: 16px 18px;
-                    border-radius: 10px;
+                    padding: 20px 24px;
+                    border-radius: 0 !important;
                     background: #ffffff;
                     font-family: 'Inter', sans-serif;
                     color: #1e293b;
-                    box-sizing: border-box;
-                    width: 100%;
+                    box-sizing: border-box !important;
+                    width: 210mm !important;
+                    height: 297mm !important;
+                    min-height: 297mm !important;
                     margin: 0 !important;
                     page-break-inside: avoid;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
                 }
                 @media (max-width: 640px) {
                     .certificate-container {
@@ -969,11 +975,20 @@ function setupEventListeners() {
 
         const reportCode = savedReport?.report_code || formatReportId(savedReport?.id || selectedFountain.id, savedReport?.created_at || new Date());
         const opt = {
-            margin:       0,
+            margin:       [0, 0, 0, 0],
             filename:     `${reportCode}_${selectedFountain.name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            html2canvas:  {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollY: 0,
+                width: 794,
+                height: 1123,
+                windowWidth: 794,
+                windowHeight: 1123
+            },
+            jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
