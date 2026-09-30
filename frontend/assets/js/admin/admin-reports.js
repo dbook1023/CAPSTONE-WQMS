@@ -381,6 +381,15 @@ function getCertificateHTML(report) {
     return `
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
+            @page { size: A4; margin: 0; }
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: #ffffff;
+            }
+            * { box-sizing: border-box; }
             .certificate-container {
                 border: 3px double #cbd5e1;
                 padding: 16px 18px;
@@ -389,7 +398,8 @@ function getCertificateHTML(report) {
                 font-family: 'Inter', sans-serif;
                 color: #1e293b;
                 box-sizing: border-box;
-                width: 680px;
+                width: 100%;
+                margin: 0 !important;
                 page-break-inside: avoid;
             }
             @media (max-width: 640px) {
@@ -702,7 +712,10 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         tempDiv.style.position = 'fixed';
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
-        tempDiv.style.width = '680px';
+        tempDiv.style.width = '794px';
+        tempDiv.style.margin = '0';
+        tempDiv.style.padding = '0';
+        tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.zIndex = '99999';
         tempDiv.style.opacity = '1';
         tempDiv.style.pointerEvents = 'none';
@@ -714,11 +727,11 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const reportCode = report.report_code || formatReportId(report.id, report.created_at);
         const opt = {
-            margin:       [6, 8, 6, 8],
+            margin:       0,
             filename:     `${reportCode}_${report.fountain_name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
@@ -909,12 +922,16 @@ function setupFiltersAndGenerate() {
 function generateSummaryPdf(data, range, fountainVal) {
     const tempDiv = document.createElement('div');
     tempDiv.style.position = 'fixed';
-    tempDiv.style.left = '0';
+    tempDiv.style.left = '-9999px';
     tempDiv.style.top = '0';
-    tempDiv.style.width = '680px';
-    tempDiv.style.zIndex = '-99999';
-    tempDiv.style.opacity = '0.01';
+    tempDiv.style.width = '794px';
+    tempDiv.style.margin = '0';
+    tempDiv.style.padding = '0';
+    tempDiv.style.boxSizing = 'border-box';
+    tempDiv.style.zIndex = '99999';
+    tempDiv.style.opacity = '1';
     tempDiv.style.pointerEvents = 'none';
+    tempDiv.style.background = '#ffffff';
 
     const rangeLabel = range.charAt(0).toUpperCase() + range.slice(1);
     const scopeLabel = fountainVal === 'all' ? 'All Campus Fountains' : (data[0]?.fountain_name || 'Selected Fountain');
@@ -1032,7 +1049,18 @@ function generateSummaryPdf(data, range, fountainVal) {
     const recommendationsHTML = recommendations.map(rec => `<li style="margin-bottom: 5px; line-height: 1.3;">${rec}</li>`).join('');
 
     const htmlContent = `
-        <div class="summary-pdf-root" style="border: 2px solid #94a3b8; padding: 24px; border-radius: 10px; background: white; font-family: 'Inter', Arial, sans-serif; color: #1e293b; width: 680px; box-sizing: border-box;">
+        <style>
+            @page { size: A4; margin: 0; }
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: #ffffff;
+            }
+            * { box-sizing: border-box; }
+        </style>
+        <div class="summary-pdf-root" style="border: 2px solid #94a3b8; padding: 24px; border-radius: 10px; background: white; font-family: 'Inter', Arial, sans-serif; color: #1e293b; width: 100%; margin: 0 !important; box-sizing: border-box;">
             <div style="text-align: center; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
                 <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">Our Lady of Fatima University - Antipolo Campus</div>
                 <div style="font-size: 9px; color: #64748b; margin-bottom: 6px;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
@@ -1128,11 +1156,11 @@ function generateSummaryPdf(data, range, fountainVal) {
     const pxH = (container.offsetHeight || 900) + 20;
 
     const opt = {
-        margin:       [6, 8, 6, 8],
+        margin:       0,
         filename:     `WQMS-${rangeLabel}_Summary_Report-${Date.now().toString().slice(-6)}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-        jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 

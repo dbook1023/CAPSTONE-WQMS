@@ -303,7 +303,15 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         const htmlContent = `
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
-                * { box-sizing: border-box; margin: 0; padding: 0; }
+                @page { size: A4; margin: 0; }
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    background: #ffffff;
+                }
+                * { box-sizing: border-box; }
                 .certificate-container {
                     border: 3px double #cbd5e1;
                     padding: 16px 18px;
@@ -312,8 +320,8 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     font-family: 'Inter', sans-serif;
                     color: #1e293b;
                     box-sizing: border-box;
-                    width: 680px;
-                    margin: 0 auto;
+                    width: 100%;
+                    margin: 0 !important;
                     page-break-inside: avoid;
                 }
                 .header {
@@ -572,12 +580,14 @@ window.triggerReportDownload = async function(reportId, checkbox) {
             </div>
         `;
 
-        // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'fixed';
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
-        tempDiv.style.width = '680px';
+        tempDiv.style.width = '794px';
+        tempDiv.style.margin = '0';
+        tempDiv.style.padding = '0';
+        tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.zIndex = '99999';
         tempDiv.style.opacity = '1';
         tempDiv.style.pointerEvents = 'none';
@@ -589,11 +599,11 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const reportCode = report.report_code || formatReportId(report.id, report.created_at);
         const opt = {
-            margin:       [6, 8, 6, 8],
+            margin:       0,
             filename:     `${reportCode}_${report.fountain_name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
