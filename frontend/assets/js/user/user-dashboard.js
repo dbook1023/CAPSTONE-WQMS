@@ -307,7 +307,7 @@ function updateBadge(card, value, min, max) {
             card.style.background = '#14b8a6';
             card.style.borderColor = '#0d9488';
             badge.style.background = 'rgba(255,255,255,0.2)';
-            badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Safe`;
+            badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Drinkable`;
         } else if (status === 'warning') {
             card.style.background = '#f59e0b';
             card.style.borderColor = '#d97706';
@@ -317,7 +317,7 @@ function updateBadge(card, value, min, max) {
             card.style.background = '#dc2626';
             card.style.borderColor = '#b91c1c';
             badge.style.background = 'rgba(255,255,255,0.2)';
-            badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Unsafe`;
+            badge.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Undrinkable`;
         }
     }
 
@@ -335,21 +335,21 @@ function updateBadge(card, value, min, max) {
             else if (val > 8.5) finding = 'Alkaline (Danger)';
             else if (val < 6.8) finding = 'Mildly Acidic';
             else if (val > 7.6) finding = 'Mildly Alkaline';
-            else finding = 'Optimal pH (Safe)';
+            else finding = 'Optimal pH (Drinkable)';
         } else if (paramName === 'turb') {
             if (val > 5.0) finding = 'Turbid (Danger)';
             else if (val > 3.5) finding = 'Cloudy (Warning)';
-            else finding = 'Clear (Safe)';
+            else finding = 'Clear (Drinkable)';
         } else if (paramName === 'temp') {
             if (val < 19.8) finding = 'Overcooled Chiller';
             else if (val > 30.8) finding = 'Overheated';
-            else if (val < 22.0) finding = 'Cool (Safe)';
-            else if (val > 28.0) finding = 'Warm (Safe)';
-            else finding = 'Optimal Temp (Safe)';
+            else if (val < 22.0) finding = 'Cool (Drinkable)';
+            else if (val > 28.0) finding = 'Warm (Drinkable)';
+            else finding = 'Optimal Temp (Drinkable)';
         } else if (paramName === 'tds') {
             if (val > 500) finding = 'Contaminated (Danger)';
             else if (val > 150) finding = 'Elevated Minerals';
-            else finding = 'Pure Water (Safe)';
+            else finding = 'Pure Water (Drinkable)';
         }
 
         trendEl.innerHTML = `
@@ -381,7 +381,7 @@ function updateTrendInsights(history, fountainName = '') {
 
     if (trendInsights.status) {
         const isSafe = latest.ph >= 6.5 && latest.ph <= 8.5 && latest.turbidity <= 5;
-        trendInsights.status.textContent = isSafe ? 'Highly Safe' : 'Maintenance Needed';
+        trendInsights.status.textContent = isSafe ? 'Highly Drinkable' : 'Maintenance Needed';
         if (trendInsights.statusDesc) {
             trendInsights.statusDesc.textContent = isSafe ? 
                 'All parameters are within PNSDW safe ranges.' : 
@@ -401,11 +401,11 @@ function updateTrendInsights(history, fountainName = '') {
 
     if (trendInsights.health) {
         const isOptimal = latest.tds < 300 && latest.ph >= 7.0 && latest.ph <= 7.5;
-        trendInsights.health.textContent = isOptimal ? 'Optimal' : 'Safe';
+        trendInsights.health.textContent = isOptimal ? 'Optimal' : 'Drinkable';
         if (trendInsights.healthDesc) {
             trendInsights.healthDesc.textContent = isOptimal ? 
                 'Ideal mineral balance for hydration.' : 
-                'Water is safe for consumption.';
+                'Water is drinkable for consumption.';
         }
     }
 }

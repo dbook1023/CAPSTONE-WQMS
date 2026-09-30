@@ -65,7 +65,7 @@
         }
 
         if (numericValue >= standard.idealMin && numericValue <= standard.idealMax) {
-            return { status: 'IDEAL', label: 'Safe', value: numericValue };
+            return { status: 'IDEAL', label: 'Drinkable', value: numericValue };
         }
 
         if (numericValue >= standard.warningMin && numericValue <= standard.warningMax) {

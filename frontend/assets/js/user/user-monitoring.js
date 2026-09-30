@@ -202,20 +202,20 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
             } else if (safety === 'WARNING') {
                 finding = newVal < 7.0 ? 'Mildly Acidic' : 'Mildly Alkaline';
             } else {
-                finding = 'Optimal pH (Safe)';
+                finding = 'Optimal pH (Drinkable)';
             }
         } else if (domKey === 'turbidity') {
             if (safety === 'CRITICAL') finding = 'Turbid (Danger)';
             else if (safety === 'WARNING') finding = newVal > 3.5 ? 'Cloudy (Warning)' : 'Slightly Cloudy';
-            else finding = 'Clear (Safe)';
+            else finding = 'Clear (Drinkable)';
         } else if (domKey === 'temp') {
             if (safety === 'CRITICAL') finding = newVal > 33 ? 'Overheated' : 'Overcooled';
             else if (safety === 'WARNING') finding = newVal < 15 ? 'Cool (Warning)' : 'Warm (Warning)';
-            else finding = 'Optimal Temp (Safe)';
+            else finding = 'Optimal Temp (Drinkable)';
         } else if (domKey === 'tds') {
             if (safety === 'CRITICAL') finding = 'Contaminated (Danger)';
             else if (safety === 'WARNING') finding = 'Elevated Minerals';
-            else finding = 'Pure Water (Safe)';
+            else finding = 'Pure Water (Drinkable)';
         }
 
         if (safety === 'WARNING') {
@@ -227,10 +227,10 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
             bg = '#dc2626';
             border = '#b91c1c';
             badgeIcon = critIcon;
-            badgeLabel = 'Unsafe';
+            badgeLabel = 'Undrinkable';
         } else {
             badgeIcon = safeIcon;
-            badgeLabel = 'Safe';
+            badgeLabel = 'Drinkable';
         }
 
         // Update the status element with badge icon + label (admin style)
@@ -1283,7 +1283,7 @@ function updateComparisonTable() {
         
         const hasCrit = phSafety === 'CRITICAL' || turbSafety === 'CRITICAL' || tempSafety === 'CRITICAL' || tdsSafety === 'CRITICAL';
         const hasWarn = phSafety === 'WARNING' || turbSafety === 'WARNING' || tempSafety === 'WARNING' || tdsSafety === 'WARNING';
-        let diagnosis = hasCrit ? 'Danger (Critical)' : (hasWarn ? 'Warning (Follow-up)' : 'Safe (Optimal)');
+        let diagnosis = hasCrit ? 'Danger (Critical)' : (hasWarn ? 'Warning (Follow-up)' : 'Drinkable (Optimal)');
         let diagnosisColor = hasCrit ? '#dc2626' : (hasWarn ? '#d97706' : '#14b8a6');
 
         return `
@@ -1986,9 +1986,9 @@ function applyStatusBadge(element, status) {
 
     const normalized = String(status || '').toUpperCase();
     const labelMap = {
-        PASS: 'SAFE (PASS)',
+        PASS: 'DRINKABLE (PASS)',
         WARNING: 'WARNING',
-        FAIL: 'CRITICAL (FAIL)'
+        FAIL: 'UNDRINKABLE (FAIL)'
     };
     const colorMap = {
         PASS: { bg: 'rgba(20, 184, 166, 0.1)', fg: '#14b8a6', border: 'rgba(20, 184, 166, 0.2)' },
@@ -2050,7 +2050,7 @@ function openReportModal() {
     const isOverallSafe = count > 0 && !hasCritical && !hasWarning;
     const statusEl = document.getElementById('reportStatus');
     if (statusEl) {
-        statusEl.textContent = isOverallSafe ? 'SAFE (PASS)' : hasWarning ? 'WARNING' : 'CRITICAL (FAIL)';
+        statusEl.textContent = isOverallSafe ? 'DRINKABLE (PASS)' : hasWarning ? 'WARNING' : 'UNDRINKABLE (FAIL)';
         statusEl.className = 'status-badge';
         statusEl.style.fontSize = '10px';
         statusEl.style.padding = '4px 10px';
