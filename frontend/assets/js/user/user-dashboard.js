@@ -349,7 +349,7 @@ function updateBadge(card, value, min, max) {
         } else if (paramName === 'tds') {
             if (val > 500) finding = 'Contaminated (Danger)';
             else if (val > 150) finding = 'Elevated Minerals';
-            else finding = 'Pure Water (Drinkable)';
+            else finding = 'Optimal (Drinkable)';
         }
 
         trendEl.innerHTML = `

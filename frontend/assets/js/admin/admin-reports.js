@@ -380,28 +380,25 @@ function getCertificateHTML(report) {
 
     return `
         <style>
-            @page { size: 210mm 297mm; margin: 0 !important; }
+            @page { size: A4 portrait; margin: 0 !important; }
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 794px !important;
-                height: 1123px !important;
                 background: #ffffff !important;
-                overflow: hidden !important;
             }
             * { box-sizing: border-box !important; }
             .certificate-container {
-                width: 794px !important;
-                height: 1123px !important;
-                max-height: 1123px !important;
+                width: 210mm !important;
+                height: 296mm !important;
+                max-height: 296mm !important;
                 border: 3px double #cbd5e1;
-                padding: 24px 32px;
+                padding: 10mm 12mm;
                 border-radius: 0 !important;
                 background: #ffffff;
                 font-family: 'Inter', system-ui, -apple-system, sans-serif;
                 color: #1e293b;
                 box-sizing: border-box !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -413,8 +410,8 @@ function getCertificateHTML(report) {
             .header {
                 text-align: center;
                 border-bottom: 2px solid #e2e8f0;
-                padding-bottom: 8px;
-                margin-bottom: 8px;
+                padding-bottom: 6px;
+                margin-bottom: 6px;
             }
             .header h1 {
                 font-family: 'Poppins', sans-serif;
@@ -443,9 +440,9 @@ function getCertificateHTML(report) {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 4px 10px;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 background: #f8fafc;
-                padding: 8px 12px;
+                padding: 6px 10px;
                 border-radius: 6px;
                 border: 1px solid #e2e8f0;
             }
@@ -476,7 +473,7 @@ function getCertificateHTML(report) {
                 font-size: 12px;
                 font-weight: 800;
                 letter-spacing: 0.05em;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 text-transform: uppercase;
             }
             .section-title {
@@ -484,14 +481,14 @@ function getCertificateHTML(report) {
                 font-size: 10px;
                 font-weight: 700;
                 color: #0f172a;
-                margin-bottom: 4px;
+                margin-bottom: 3px;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
             .cert-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 background: transparent;
             }
             .cert-table th {
@@ -513,15 +510,15 @@ function getCertificateHTML(report) {
                 text-align: left;
             }
             .action-plan {
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 border: 1px solid #cbd5e1;
                 border-radius: 6px;
                 background: #f8fafc;
-                padding: 6px 10px;
+                padding: 5px 8px;
             }
             .action-plan-title {
                 font-family: 'Poppins', sans-serif;
-                font-size: 9.5px;
+                font-size: 9px;
                 font-weight: 700;
                 color: #0f172a;
                 margin-bottom: 2px;
@@ -529,9 +526,9 @@ function getCertificateHTML(report) {
                 letter-spacing: 0.05em;
             }
             .action-plan-headline {
-                font-size: 9.5px;
+                font-size: 9px;
                 font-weight: 700;
-                margin-bottom: 4px;
+                margin-bottom: 3px;
             }
             .action-plan-list {
                 display: grid;
@@ -541,7 +538,7 @@ function getCertificateHTML(report) {
                 background: white;
                 border: 1px solid #e2e8f0;
                 border-radius: 4px;
-                padding: 3px 8px;
+                padding: 3px 6px;
                 font-size: 8.5px;
                 line-height: 1.25;
                 color: #334155;
@@ -570,7 +567,7 @@ function getCertificateHTML(report) {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 4px 8px;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
             .finding-card {
                 background: #f8fafc;
@@ -595,8 +592,8 @@ function getCertificateHTML(report) {
                 background: #f8fafc;
                 border: 1px solid #e2e8f0;
                 border-radius: 6px;
-                padding: 6px 10px;
-                margin-bottom: 8px;
+                padding: 5px 8px;
+                margin-bottom: 6px;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 4px 10px;
@@ -620,9 +617,9 @@ function getCertificateHTML(report) {
             }
             .disclaimer-box {
                 border: 1px dashed #cbd5e1;
-                padding: 6px 10px;
+                padding: 5px 8px;
                 border-radius: 6px;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 font-size: 8px;
                 color: #64748b;
                 line-height: 1.3;
@@ -636,7 +633,7 @@ function getCertificateHTML(report) {
                 font-size: 8px;
                 color: #64748b;
                 border-top: 1.5px solid #e2e8f0;
-                padding-top: 8px;
+                padding-top: 6px;
             }
             .signature-block {
                 text-align: center;
@@ -644,7 +641,7 @@ function getCertificateHTML(report) {
             .signature-line {
                 width: 140px;
                 border-top: 1.5px solid #94a3b8;
-                margin-top: 10px;
+                margin-top: 8px;
                 text-align: center;
                 padding-top: 2px;
                 font-weight: 600;
@@ -653,7 +650,7 @@ function getCertificateHTML(report) {
         </style>
         <div class="certificate-container">
             <div class="header">
-                <div style="margin-bottom: 10px;">
+                <div style="margin-bottom: 8px;">
                     <div style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University - Antipolo Campus</div>
                     <div style="font-size: 9px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
                 </div>
@@ -757,7 +754,7 @@ function getCertificateHTML(report) {
                     </div>
                     <div class="finding-card">
                         <div class="finding-card-label">TDS Assessment</div>
-                        <div class="finding-card-value" style="color: ${tdsColor};">${!hasTds ? 'No TDS data available for this report period.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — exceeds safe limit. Check filter.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold.' : 'Pure — mineral content within healthy range.'))}</div>
+                        <div class="finding-card-value" style="color: ${tdsColor};">${!hasTds ? 'No TDS data available for this report period.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — exceeds safe limit. Check filter.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold.' : 'Optimal — mineral content within acceptable range.'))}</div>
                     </div>
                 </div>
 
@@ -816,19 +813,12 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         // Create temporary off-screen container for PDF rendering
         const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'fixed';
+        tempDiv.style.position = 'absolute';
         tempDiv.style.top = '0';
         tempDiv.style.left = '0';
-        tempDiv.style.width = '794px';
-        tempDiv.style.height = '1123px';
-        tempDiv.style.margin = '0';
-        tempDiv.style.padding = '0';
-        tempDiv.style.boxSizing = 'border-box';
-        tempDiv.style.zIndex = '-99999';
-        tempDiv.style.opacity = '1';
-        tempDiv.style.pointerEvents = 'none';
+        tempDiv.style.width = '210mm';
         tempDiv.style.background = '#ffffff';
-        tempDiv.style.overflow = 'hidden';
+        tempDiv.style.zIndex = '-99999';
 
         tempDiv.innerHTML = getCertificateHTML(report);
         document.body.appendChild(tempDiv);
@@ -836,7 +826,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
         const reportCode = report.report_code || formatReportId(report.id, report.created_at);
         const opt = {
-            margin:       [0, 0, 0, 0],
+            margin:       0,
             filename:     `${reportCode}_${report.fountain_name.replace(/\s+/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  {
@@ -844,14 +834,10 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0,
-                width: 794,
-                height: 1123,
-                windowWidth: 794,
-                windowHeight: 1123
+                scrollY: 0
             },
-            jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: 'avoid-all' }
         };
 
         html2pdf().set(opt).from(container).save().then(() => {
