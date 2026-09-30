@@ -470,14 +470,84 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 .status-pass { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
                 .status-warn { background: rgba(217, 119, 6, 0.1); color: #d97706; }
                 .status-fail { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
+                .content-body {
+                    flex: 1 1 auto;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .findings-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 6px;
+                    margin-bottom: 10px;
+                }
+                .finding-card {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    padding: 8px 10px;
+                }
+                .finding-card-label {
+                    font-size: 8px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    margin-bottom: 2px;
+                }
+                .finding-card-value {
+                    font-size: 10px;
+                    font-weight: 600;
+                    line-height: 1.4;
+                }
+                .reviewer-section {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 10px 12px;
+                    margin-bottom: 10px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 6px 12px;
+                }
+                .reviewer-item {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .reviewer-label {
+                    font-size: 8px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    margin-bottom: 1px;
+                }
+                .reviewer-value {
+                    font-size: 10.5px;
+                    font-weight: 600;
+                    color: #0f172a;
+                }
+                .disclaimer-box {
+                    border: 1px dashed #cbd5e1;
+                    padding: 10px;
+                    border-radius: 6px;
+                    margin-bottom: 10px;
+                    font-size: 9px;
+                    color: #64748b;
+                    line-height: 1.5;
+                }
                 .footer {
-                    margin-top: 14px;
+                    margin-top: auto;
                     display: flex;
                     justify-content: space-between;
-                    font-size: 9.5px;
+                    align-items: flex-end;
+                    font-size: 9px;
                     color: #64748b;
-                    border-top: 1px solid #e2e8f0;
+                    border-top: 1.5px solid #e2e8f0;
                     padding-top: 10px;
+                }
+                .signature-block {
+                    text-align: center;
                 }
                 .signature-line {
                     width: 160px;
@@ -486,6 +556,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     text-align: center;
                     padding-top: 4px;
                     font-weight: 600;
+                    font-size: 9px;
                 }
             </style>
             <div class="certificate-container">
@@ -498,88 +569,134 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                     <p>AquaMonitor WQMS Real-time Certification Platform</p>
                 </div>
 
-                <div class="meta-grid">
-                    <div class="meta-item">
-                        <span class="meta-label">Facility Selected</span>
-                        <span class="meta-value">${report.fountain_name} (ID: ${report.fountain_id})</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Fountain Location</span>
-                        <span class="meta-value">${report.location}</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Certification Date</span>
-                        <span class="meta-value">${parseBackendDate(report.created_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })}</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Samples Logged</span>
-                        <span class="meta-value">${report.readings_count} Telemetry Snapshots</span>
-                    </div>
-                </div>
-
-                <div class="compliance-banner">
-                    Overall Safety Class: ${overallCompliance}
-                </div>
-
-                ${actionPlan ? `
-                    <div class="action-plan">
-                        <div class="action-plan-title">Recommended Action Plan</div>
-                        <div class="action-plan-headline" style="color: ${actionPlan.severity === 'critical' ? '#dc2626' : actionPlan.severity === 'warning' ? '#d97706' : '#14b8a6'};">${actionPlan.headline}</div>
-                        <div class="action-plan-list">
-                            ${actionPlan.actions.map(action => `<div class="action-plan-item">${action}</div>`).join('')}
+                <div class="content-body">
+                    <div class="meta-grid">
+                        <div class="meta-item">
+                            <span class="meta-label">Facility Selected</span>
+                            <span class="meta-value">${report.fountain_name} (ID: ${report.fountain_id})</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Fountain Location</span>
+                            <span class="meta-value">${report.location}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Certification Date</span>
+                            <span class="meta-value">${parseBackendDate(report.created_at).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Samples Logged</span>
+                            <span class="meta-value">${report.readings_count} Telemetry Snapshots</span>
                         </div>
                     </div>
-                ` : ''}
 
-                <div class="section-title">Telemetry Parameter Analytics</div>
-                <table class="cert-table">
-                    <thead>
-                        <tr>
-                            <th>Parameter</th>
-                            <th>Calculated Average</th>
-                            <th>Standard Range (DOH)</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="font-weight: 600;">pH Level</td>
-                            <td style="font-weight: 700; color: ${phColor};">${avgPh}</td>
-                            <td>6.5 - 8.5 pH</td>
-                            <td><span class="status-badge ${phStatus === 'CRITICAL' ? 'status-fail' : (phStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${phStatus === 'CRITICAL' ? 'FAIL' : (phStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Turbidity</td>
-                            <td style="font-weight: 700; color: ${turbColor};">${avgTurb} NTU</td>
-                            <td>0.0 - 5.0 NTU</td>
-                            <td><span class="status-badge ${turbStatus === 'CRITICAL' ? 'status-fail' : (turbStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${turbStatus === 'CRITICAL' ? 'FAIL' : (turbStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">Temperature</td>
-                            <td style="font-weight: 700; color: ${tempColor};">${avgTemp}&deg;C</td>
-                            <td>15.0 - 30.0&deg;C</td>
-                            <td><span class="status-badge ${tempStatus === 'CRITICAL' ? 'status-fail' : (tempStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${tempStatus === 'CRITICAL' ? 'FAIL' : (tempStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 600;">TDS</td>
-                            <td style="font-weight: 700; color: ${tdsColor};">${avgTdsText}${hasTds ? ' ppm' : ''}</td>
-                            <td>0.0 - 500.0 ppm</td>
-                            <td><span class="status-badge ${!hasTds ? 'status-fail' : (tdsStatus === 'CRITICAL' ? 'status-fail' : (tdsStatus === 'WARNING' ? 'status-warn' : 'status-pass'))}">${!hasTds ? 'N/A' : (tdsStatus === 'CRITICAL' ? 'FAIL' : (tdsStatus === 'WARNING' ? 'WARNING' : 'PASS'))}</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <div class="compliance-banner">
+                        Overall Safety Class: ${overallCompliance}
+                    </div>
 
-                <div style="font-size: 10px; color: #64748b; line-height: 1.6; margin-bottom: 20px; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 6px;">
-                    <strong>Compliance Note:</strong> This certificate guarantees that the drinking water fountain was continuously analyzed under the WQMS automated sensor telemetry stream. Parameter criteria references the DOH Philippine National Standards for Drinking Water (PNSDW) Administrative Order No. 2017-0010.
+                    ${actionPlan ? `
+                        <div class="action-plan">
+                            <div class="action-plan-title">Recommended Action Plan</div>
+                            <div class="action-plan-headline" style="color: ${actionPlan.severity === 'critical' ? '#dc2626' : actionPlan.severity === 'warning' ? '#d97706' : '#14b8a6'};">${actionPlan.headline}</div>
+                            <div class="action-plan-list">
+                                ${actionPlan.actions.map(action => `<div class="action-plan-item">${action}</div>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="section-title">Telemetry Parameter Analytics</div>
+                    <table class="cert-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Calculated Average</th>
+                                <th>Standard Range (DOH)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 600;">pH Level</td>
+                                <td style="font-weight: 700; color: ${phColor};">${avgPh}</td>
+                                <td>6.5 - 8.5 pH</td>
+                                <td><span class="status-badge ${phStatus === 'CRITICAL' ? 'status-fail' : (phStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${phStatus === 'CRITICAL' ? 'FAIL' : (phStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Turbidity</td>
+                                <td style="font-weight: 700; color: ${turbColor};">${avgTurb} NTU</td>
+                                <td>0.0 - 5.0 NTU</td>
+                                <td><span class="status-badge ${turbStatus === 'CRITICAL' ? 'status-fail' : (turbStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${turbStatus === 'CRITICAL' ? 'FAIL' : (turbStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Temperature</td>
+                                <td style="font-weight: 700; color: ${tempColor};">${avgTemp}&deg;C</td>
+                                <td>15.0 - 30.0&deg;C</td>
+                                <td><span class="status-badge ${tempStatus === 'CRITICAL' ? 'status-fail' : (tempStatus === 'WARNING' ? 'status-warn' : 'status-pass')}">${tempStatus === 'CRITICAL' ? 'FAIL' : (tempStatus === 'WARNING' ? 'WARNING' : 'PASS')}</span></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">TDS</td>
+                                <td style="font-weight: 700; color: ${tdsColor};">${avgTdsText}${hasTds ? ' ppm' : ''}</td>
+                                <td>0.0 - 500.0 ppm</td>
+                                <td><span class="status-badge ${!hasTds ? 'status-fail' : (tdsStatus === 'CRITICAL' ? 'status-fail' : (tdsStatus === 'WARNING' ? 'status-warn' : 'status-pass'))}">${!hasTds ? 'N/A' : (tdsStatus === 'CRITICAL' ? 'FAIL' : (tdsStatus === 'WARNING' ? 'WARNING' : 'PASS'))}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="section-title">Parameter Findings Summary</div>
+                    <div class="findings-grid">
+                        <div class="finding-card">
+                            <div class="finding-card-label">pH Level Assessment</div>
+                            <div class="finding-card-value" style="color: ${phColor};">${phStatus === 'CRITICAL' ? (avgPhRaw < 6.5 ? 'Acidic — below acceptable threshold. Immediate corrective action required.' : 'Alkaline — exceeds upper limit. Source water chemistry review needed.') : (phStatus === 'WARNING' ? (avgPhRaw < 7.0 ? 'Mildly acidic — within marginal tolerance. Monitor closely.' : 'Mildly alkaline — approaching upper limit. Retest recommended.') : 'Optimal — within DOH PNSDW acceptable range. No action needed.')}</div>
+                        </div>
+                        <div class="finding-card">
+                            <div class="finding-card-label">Turbidity Assessment</div>
+                            <div class="finding-card-value" style="color: ${turbColor};">${turbStatus === 'CRITICAL' ? 'Turbid — water clarity severely compromised. Suspend dispensing and inspect filters.' : (turbStatus === 'WARNING' ? 'Slightly cloudy — filter inspection recommended. Flush fountain line.' : 'Clear — excellent water clarity. Meets all standards.')}</div>
+                        </div>
+                        <div class="finding-card">
+                            <div class="finding-card-label">Temperature Assessment</div>
+                            <div class="finding-card-value" style="color: ${tempColor};">${tempStatus === 'CRITICAL' ? (avgTempRaw > 33 ? 'Overheated — exceeds safe consumption temperature. Check cooling system.' : 'Overcooled — below acceptable range. Verify storage conditions.') : (tempStatus === 'WARNING' ? (avgTempRaw < 15 ? 'Cool — marginally low. Verify ambient conditions.' : 'Warm — approaching upper limit. Monitor temperature trend.') : 'Optimal — comfortable and safe drinking temperature.')}</div>
+                        </div>
+                        <div class="finding-card">
+                            <div class="finding-card-label">TDS Assessment</div>
+                            <div class="finding-card-value" style="color: ${tdsColor};">${!hasTds ? 'No TDS data available for this report period.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — dissolved solids exceed safe limit. Inspect filtration system.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold. Check filter saturation.' : 'Pure — mineral content within healthy range. No concerns.'))}</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Report Generation Details</div>
+                    <div class="reviewer-section">
+                        <div class="reviewer-item">
+                            <span class="reviewer-label">Generated By</span>
+                            <span class="reviewer-value">${report.generated_by_name || 'System (Automated)'}</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <span class="reviewer-label">Downloaded By</span>
+                            <span class="reviewer-value">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_user_session') || '{}'); return s.name || 'Unknown User'; } catch(e) { return 'Unknown User'; } })()}</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <span class="reviewer-label">User Email</span>
+                            <span class="reviewer-value">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_user_session') || '{}'); return s.email || '—'; } catch(e) { return '—'; } })()}</span>
+                        </div>
+                        <div class="reviewer-item">
+                            <span class="reviewer-label">Download Timestamp</span>
+                            <span class="reviewer-value">${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                        </div>
+                    </div>
+
+                    <div class="disclaimer-box">
+                        <strong>Compliance Note:</strong> This certificate guarantees that the drinking water fountain was continuously analyzed under the WQMS automated sensor telemetry stream. Parameter criteria references the DOH Philippine National Standards for Drinking Water (PNSDW) Administrative Order No. 2017-0010.<br><br>
+                        <strong>Disclaimer:</strong> This report is generated automatically by the AquaMonitor Water Quality Monitoring System. Results are based on real-time IoT sensor data and should be supplemented with periodic laboratory testing for full regulatory compliance. This document is valid only when accompanied by the official WQMS report code.
+                    </div>
                 </div>
 
                 <div class="footer">
                     <div>
                         <strong>Report ID:</strong> ${report.report_code || `WQMS-${report.id}-${Date.now().toString().slice(-6)}`}<br>
+                        <strong>Facility:</strong> ${report.fountain_name} — ${report.location}<br>
                         Generated Autonomously by AquaMonitor WQMS
                     </div>
-                    <div class="signature-line">
-                        Authorized WQMS Signature
+                    <div class="signature-block">
+                        <div class="signature-line">
+                            Authorized WQMS Signature
+                        </div>
                     </div>
                 </div>
             </div>
