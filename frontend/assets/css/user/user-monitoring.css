@@ -790,3 +790,204 @@ select:disabled {
         margin-bottom: 24px;
     }
 }
+
+/* ── CRITICAL SOUND ALERT BANNER ────────────────────── */
+.critical-alert-banner {
+    position: relative;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.96), rgba(153, 27, 27, 0.98));
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(254, 202, 202, 0.35);
+    box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.35), 0 0 0 1px rgba(220, 38, 38, 0.2);
+    color: #ffffff;
+    padding: 14px 18px;
+    z-index: 100;
+    animation: criticalAlertSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s ease;
+}
+
+@keyframes criticalAlertSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.critical-alert-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.critical-alert-icon-pulse {
+    position: relative;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+.critical-alert-icon-pulse .pulsing-halo {
+    position: absolute;
+    inset: -4px;
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    animation: pulseGlow 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        transform: scale(0.96);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.12);
+        opacity: 0.2;
+    }
+    100% {
+        transform: scale(0.96);
+        opacity: 0.8;
+    }
+}
+
+.critical-alert-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.critical-alert-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.badge-critical-pulse {
+    background: #ffffff;
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.critical-fountain-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+}
+
+.critical-sound-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.audio-wave-icon {
+    animation: waveBounce 1.2s ease-in-out infinite;
+}
+
+@keyframes waveBounce {
+    0%, 100% { opacity: 0.7; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+.critical-alert-message {
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.critical-alert-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-silence-alert,
+.btn-enable-sound {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-silence-alert:hover,
+.btn-enable-sound:hover {
+    background: rgba(255, 255, 255, 0.32);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+.btn-silence-alert:active,
+.btn-enable-sound:active {
+    transform: translateY(0);
+}
+
+.btn-close-alert {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-close-alert:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .critical-alert-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .critical-alert-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .btn-silence-alert {
+        flex: 1;
+        justify-content: center;
+    }
+}

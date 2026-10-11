@@ -22,13 +22,123 @@ async function fetchAlerts() {
         alerts = Array.isArray(data) ? data : [];
         renderAlerts();
         updateStats();
+        evaluateAdminAudioAlerts();
     } catch (error) {
         console.error('Failed to fetch alerts:', error);
         _notify('Failed to load alerts from server', 'error');
     }
 }
 
+// ── AUDIO ALERT MANAGEMENT ─────────────────────────────────
+function evaluateAdminAudioAlerts() {
+    const activeCritical = alerts.filter(a => getAlertCategory(a) === 'critical' && (a.status || '').toLowerCase() === 'active');
+
+    const bar = document.getElementById('adminCriticalAudioBar');
+    const countText = document.getElementById('adminCriticalCountText');
+    const subText = document.getElementById('adminCriticalSubText');
+
+    if (activeCritical.length > 0) {
+        if (bar) bar.style.display = 'block';
+        if (countText) countText.textContent = `${activeCritical.length} Active Critical Alert${activeCritical.length > 1 ? 's' : ''} Detected`;
+        if (subText) {
+            const fountains = [...new Set(activeCritical.map(a => a.fountain_name || 'System'))].join(', ');
+            subText.textContent = `Immediate inspection required for: ${fountains}. Water quality exceeds PNSDW safety limits.`;
+        }
+
+        if (window.WQMSAlertSound) {
+            window.WQMSAlertSound.startLoop('admin-critical', {
+                count: activeCritical.length,
+                fountains: activeCritical.map(a => a.fountain_name)
+            });
+        }
+    } else {
+        if (bar) bar.style.display = 'none';
+        if (window.WQMSAlertSound) {
+            window.WQMSAlertSound.stopLoop('admin-critical');
+        }
+    }
+
+    updateAdminSoundUI();
+}
+
+function updateAdminSoundUI() {
+    if (!window.WQMSAlertSound) return;
+    const toggleBtn = document.getElementById('adminSoundToggleBtn');
+    const soundLabel = document.getElementById('adminSoundLabel');
+    const enableBtn = document.getElementById('adminEnableSoundBtn');
+    const state = window.WQMSAlertSound.getState();
+
+    if (toggleBtn && soundLabel) {
+        if (state.muted) {
+            soundLabel.textContent = 'Sound: Muted';
+            toggleBtn.style.background = 'rgba(100, 116, 139, 0.1)';
+            toggleBtn.style.color = '#64748b';
+            toggleBtn.style.borderColor = 'rgba(100, 116, 139, 0.3)';
+        } else {
+            soundLabel.textContent = state.isLooping ? 'Alarm Sounding' : (state.isSilenced ? 'Sound: Snoozed' : 'Sound: On');
+            toggleBtn.style.background = state.isLooping ? 'rgba(220, 38, 38, 0.15)' : 'rgba(20, 184, 166, 0.08)';
+            toggleBtn.style.color = state.isLooping ? '#dc2626' : '#14b8a6';
+            toggleBtn.style.borderColor = state.isLooping ? 'rgba(220, 38, 38, 0.3)' : 'rgba(20, 184, 166, 0.2)';
+        }
+    }
+
+    if (enableBtn) {
+        enableBtn.style.display = (!state.unlocked && !state.muted && !state.isSilenced && state.activeSource === 'admin-critical') ? 'inline-flex' : 'none';
+    }
+}
+
+function setupAdminAudioControls() {
+    const toggleBtn = document.getElementById('adminSoundToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            if (window.WQMSAlertSound) {
+                const muted = window.WQMSAlertSound.toggleMute();
+                _notify(muted ? 'Alert alarm sound muted.' : 'Alert alarm sound enabled.', 'info');
+            }
+            updateAdminSoundUI();
+        });
+    }
+
+    const silenceBtn = document.getElementById('adminSilenceSoundBtn');
+    if (silenceBtn) {
+        silenceBtn.addEventListener('click', () => {
+            if (window.WQMSAlertSound) {
+                window.WQMSAlertSound.silence(60000);
+            }
+            _notify('Alert alarm sound silenced for 60 seconds.', 'info');
+            updateAdminSoundUI();
+        });
+    }
+
+    const enableBtn = document.getElementById('adminEnableSoundBtn');
+    if (enableBtn) {
+        enableBtn.addEventListener('click', async () => {
+            if (window.WQMSAlertSound) {
+                await window.WQMSAlertSound.unlock();
+                evaluateAdminAudioAlerts();
+            }
+            updateAdminSoundUI();
+        });
+    }
+
+    // Keyboard shortcut: Esc silences alarm
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && window.WQMSAlertSound && window.WQMSAlertSound.getState().isLooping) {
+            window.WQMSAlertSound.silence(60000);
+            updateAdminSoundUI();
+        }
+    });
+
+    if (window.WQMSAlertSound) {
+        window.WQMSAlertSound.onStateChange(() => {
+            updateAdminSoundUI();
+        });
+    }
+}
+
 function setupEventListeners() {
+    setupAdminAudioControls();
+
     const searchInput = document.getElementById('searchInput');
     const alertsFilterBtn = document.getElementById('alertsFilterBtn');
     const alertsExportBtn = document.getElementById('alertsExportBtn');

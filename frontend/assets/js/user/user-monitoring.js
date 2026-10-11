@@ -250,6 +250,160 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
     }
 }
 
+// ── AUDIO ALERT & CRITICAL BANNER HELPERS ──────────────────────
+function evaluateLiveAlertStatus(latest) {
+    if (!selectedFountain || !isReading) return;
+    if (String(latest.fountain_id) !== String(selectedFountain.id)) return;
+
+    const phVal = parseFloat(latest.ph);
+    const turbVal = parseFloat(latest.turbidity !== undefined && latest.turbidity !== null ? latest.turbidity : latest.ntu);
+    const tempVal = parseFloat(latest.temperature !== undefined && latest.temperature !== null ? latest.temperature : latest.temp);
+    const tdsVal = parseFloat(latest.tds);
+
+    const criticalItems = [];
+
+    if (!isNaN(phVal) && getParameterSafetyStatus('ph', phVal) === 'CRITICAL') {
+        const desc = phVal < 6.5 ? 'Severe Acidity' : 'Severe Alkalinity';
+        criticalItems.push(`pH: ${phVal.toFixed(2)} (${desc})`);
+    }
+    if (!isNaN(turbVal) && getParameterSafetyStatus('turbidity', turbVal) === 'CRITICAL') {
+        criticalItems.push(`Turbidity: ${turbVal.toFixed(1)} NTU (Excessive Turbidity)`);
+    }
+    if (!isNaN(tdsVal) && getParameterSafetyStatus('tds', tdsVal) === 'CRITICAL') {
+        criticalItems.push(`TDS: ${Math.round(tdsVal)} ppm (High Contaminant Load)`);
+    }
+    if (!isNaN(tempVal) && getParameterSafetyStatus('temperature', tempVal) === 'CRITICAL') {
+        const desc = tempVal < 15.0 ? 'Overcooled' : 'Overheated';
+        criticalItems.push(`Temp: ${tempVal.toFixed(1)}°C (${desc})`);
+    }
+
+    if (criticalItems.length > 0) {
+        showCriticalAlertBanner(selectedFountain.name, criticalItems);
+        if (window.WQMSAlertSound) {
+            window.WQMSAlertSound.startLoop('user-monitoring', {
+                fountain: selectedFountain.name,
+                items: criticalItems
+            });
+        }
+    } else {
+        // Safe or warning bounds: clear active audio alert & hide banner
+        hideCriticalAlertBanner();
+        if (window.WQMSAlertSound) {
+            window.WQMSAlertSound.stopLoop('user-monitoring');
+        }
+    }
+}
+
+function showCriticalAlertBanner(fountainName, items) {
+    const banner = document.getElementById('criticalSoundAlertBanner');
+    if (!banner) return;
+
+    const nameEl = document.getElementById('criticalAlertFountainName');
+    if (nameEl) nameEl.textContent = fountainName || 'Monitored Fountain';
+
+    const msgEl = document.getElementById('criticalAlertMessage');
+    if (msgEl) {
+        msgEl.innerHTML = `<strong>Immediate Action Required:</strong> ${items.join(' • ')} outside PNSDW drinkability standards.`;
+    }
+
+    banner.style.display = 'block';
+    updateAlertSoundBadgeUI();
+}
+
+function hideCriticalAlertBanner() {
+    const banner = document.getElementById('criticalSoundAlertBanner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+}
+
+function updateAlertSoundBadgeUI() {
+    if (!window.WQMSAlertSound) return;
+    const badge = document.getElementById('criticalSoundStatusBadge');
+    const enableBtn = document.getElementById('enableSoundBtn');
+    const state = window.WQMSAlertSound.getState();
+
+    if (enableBtn) {
+        // Show enable button if sound tried to play but was blocked by browser autoplay policy
+        enableBtn.style.display = (!state.unlocked && !state.muted && !state.isSilenced) ? 'inline-flex' : 'none';
+    }
+
+    if (badge) {
+        if (state.isSilenced) {
+            badge.innerHTML = `<span>🔇 Silenced (1m snooze)</span>`;
+            badge.style.background = 'rgba(0, 0, 0, 0.35)';
+        } else if (state.muted) {
+            badge.innerHTML = `<span>🔇 Sound Muted</span>`;
+            badge.style.background = 'rgba(0, 0, 0, 0.35)';
+        } else if (state.isLooping) {
+            badge.innerHTML = `
+                <svg class="audio-wave-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                </svg>
+                <span>Alarm Sounding</span>
+            `;
+            badge.style.background = 'rgba(0, 0, 0, 0.2)';
+        } else {
+            badge.innerHTML = `<span>⚠️ Critical Alert</span>`;
+            badge.style.background = 'rgba(0, 0, 0, 0.2)';
+        }
+    }
+}
+
+function setupAudioAlertControls() {
+    const silenceBtn = document.getElementById('silenceAlertBtn');
+    if (silenceBtn) {
+        silenceBtn.addEventListener('click', () => {
+            if (window.WQMSAlertSound) {
+                window.WQMSAlertSound.silence(60000);
+            }
+            updateAlertSoundBadgeUI();
+            if (typeof showNotification === 'function') {
+                showNotification('Critical alarm sound silenced for 60 seconds.', 'info');
+            }
+        });
+    }
+
+    const closeBtn = document.getElementById('closeAlertBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            if (window.WQMSAlertSound) {
+                window.WQMSAlertSound.silence(60000);
+            }
+            hideCriticalAlertBanner();
+        });
+    }
+
+    const enableBtn = document.getElementById('enableSoundBtn');
+    if (enableBtn) {
+        enableBtn.addEventListener('click', async () => {
+            if (window.WQMSAlertSound) {
+                await window.WQMSAlertSound.unlock();
+                if (selectedFountain && isReading) {
+                    window.WQMSAlertSound.startLoop('user-monitoring');
+                }
+            }
+            updateAlertSoundBadgeUI();
+        });
+    }
+
+    // Keyboard shortcut: Esc silences alarm
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && window.WQMSAlertSound && window.WQMSAlertSound.getState().isLooping) {
+            window.WQMSAlertSound.silence(60000);
+            updateAlertSoundBadgeUI();
+        }
+    });
+
+    if (window.WQMSAlertSound) {
+        window.WQMSAlertSound.onStateChange(() => {
+            updateAlertSoundBadgeUI();
+        });
+    }
+}
+
 function processLiveReading(latest) {
     if (!latest) return;
 
@@ -310,6 +464,13 @@ function processLiveReading(latest) {
                 updateFountainCardMetrics(latest);
             } catch (e) {
                 console.warn('Failed to update fountain card metrics:', e);
+            }
+
+            // Evaluate live safety status for looping sound alert & banner
+            try {
+                evaluateLiveAlertStatus(latest);
+            } catch (e) {
+                console.warn('Failed to evaluate live alert status:', e);
             }
         }
     }
@@ -390,6 +551,8 @@ function updateFountainDropdown() {
 }
 
 function setupEventListeners() {
+    setupAudioAlertControls();
+
     // Search functionality for the main grid
     if (searchInput) {
         searchInput.addEventListener('input', function () {
@@ -406,6 +569,9 @@ function setupEventListeners() {
     // Start Reading / Selection Modal
     if (startReadingBtn) {
         startReadingBtn.addEventListener('click', () => {
+            if (window.WQMSAlertSound) {
+                window.WQMSAlertSound.unlock();
+            }
             if (isReading) {
                 if (typeof showFeedbackModal === 'function') {
                     showFeedbackModal({
@@ -1824,6 +1990,11 @@ function updateFountainCardMetrics(latest) {
 }
 
 function resetLiveViewSession() {
+    hideCriticalAlertBanner();
+    if (window.WQMSAlertSound) {
+        window.WQMSAlertSound.stopLoop('user-monitoring');
+    }
+
     isReading = true;
     sessionData = { ph: [], turbidity: [], temperature: [], tds: [] };
     sessionSnapshots = [];
@@ -1989,6 +2160,11 @@ function startReading() {
 
 function stopReading() {
     isReading = false;
+
+    hideCriticalAlertBanner();
+    if (window.WQMSAlertSound) {
+        window.WQMSAlertSound.stopLoop('user-monitoring');
+    }
 
     // Hide waiting popup modal overlay and restore charts if still showing
     const waitingOverlay = document.getElementById('sensorWaitingOverlay');

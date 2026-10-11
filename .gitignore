@@ -27,3 +27,9 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Scratch and Temporary Test Files
+scratch/
+backend/scratch/
+html2pdf_source.js
+

@@ -25,6 +25,7 @@
     <!-- Scripts -->
     <script defer src="../assets/js/shared/api.js?v=8"></script>
     <script defer src="../assets/js/shared/action-guidance.js?v=8"></script>
+    <script defer src="../assets/js/shared/alert-sound.js?v=1"></script>
     <script defer src="../assets/js/user/user-shared.js?v=8"></script>
     <script defer src="../assets/js/user/user-monitoring.js?v=12"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -213,6 +214,52 @@
 
 <!-- MAIN CONTENT -->
 <main class="main-content" id="mainContent">
+
+    <!-- CRITICAL SOUND ALERT BANNER -->
+    <div id="criticalSoundAlertBanner" class="critical-alert-banner" style="display: none;" role="alert">
+        <div class="critical-alert-content">
+            <div class="critical-alert-icon-pulse">
+                <span class="pulsing-halo"></span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div class="critical-alert-details">
+                <div class="critical-alert-title-row">
+                    <span class="badge-critical-pulse">CRITICAL ALERT</span>
+                    <span id="criticalAlertFountainName" class="critical-fountain-name">Selected Fountain</span>
+                    <span id="criticalSoundStatusBadge" class="critical-sound-badge">
+                        <svg class="audio-wave-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        </svg>
+                        <span>Alarm Sounding</span>
+                    </span>
+                </div>
+                <div class="critical-alert-message" id="criticalAlertMessage">
+                    Dangerous water quality readings detected outside PNSDW safety thresholds.
+                </div>
+            </div>
+            <div class="critical-alert-actions">
+                <button id="enableSoundBtn" class="btn-enable-sound" style="display: none;" title="Browser blocked audio autoplay. Click to unmute alarm.">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    <span>Enable Sound</span>
+                </button>
+                <button id="silenceAlertBtn" class="btn-silence-alert" title="Mute sound alarm for 60 seconds">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                        <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+                        <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/>
+                    </svg>
+                    <span>Silence Alarm</span>
+                </button>
+                <button id="closeAlertBtn" class="btn-close-alert" title="Dismiss Alert">&times;</button>
+            </div>
+        </div>
+    </div>
 
     <!-- TOP HEADER -->
     <div class="top-header">
