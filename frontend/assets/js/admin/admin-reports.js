@@ -380,17 +380,9 @@ function getCertificateHTML(report) {
 
     return `
         <style>
-            @page { size: A4 portrait; margin: 0 !important; }
-            html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #ffffff !important;
-            }
-            * { box-sizing: border-box !important; }
             .certificate-container {
                 width: 210mm !important;
-                height: 296mm !important;
-                max-height: 296mm !important;
+                max-width: 210mm !important;
                 border: 3px double #cbd5e1;
                 padding: 10mm 12mm;
                 border-radius: 0 !important;
@@ -398,14 +390,10 @@ function getCertificateHTML(report) {
                 font-family: 'Inter', system-ui, -apple-system, sans-serif;
                 color: #1e293b;
                 box-sizing: border-box !important;
-                margin: 0 !important;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                overflow: hidden !important;
-                page-break-inside: avoid !important;
-                page-break-before: avoid !important;
-                page-break-after: avoid !important;
+                margin: 0 auto !important;
+            }
+            .certificate-container * {
+                box-sizing: border-box !important;
             }
             .header {
                 text-align: center;
@@ -626,7 +614,7 @@ function getCertificateHTML(report) {
                 background: #fafafa;
             }
             .footer {
-                margin-top: auto;
+                margin-top: 10px;
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-end;
@@ -799,6 +787,7 @@ function getCertificateHTML(report) {
         </div>
     `;
 }
+window.getCertificateHTML = getCertificateHTML;
 
 window.triggerReportDownload = async function(reportId, checkbox) {
     if (!checkbox.checked) return;
@@ -834,14 +823,10 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0,
-                width: 794,
-                height: 1123,
-                windowWidth: 794,
-                windowHeight: 1123
+                scrollY: 0
             },
-            jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(container).save().then(() => {
@@ -1034,7 +1019,6 @@ function generateSummaryPdf(data, range, fountainVal) {
     tempDiv.style.left = '0';
     tempDiv.style.top = '0';
     tempDiv.style.width = '210mm';
-    tempDiv.style.height = '297mm';
     tempDiv.style.margin = '0';
     tempDiv.style.padding = '0';
     tempDiv.style.boxSizing = 'border-box';
@@ -1158,30 +1142,23 @@ function generateSummaryPdf(data, range, fountainVal) {
 
     const htmlContent = `
         <style>
-            @page { size: 210mm 297mm; margin: 0 !important; }
-            html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 210mm !important;
-                height: 297mm !important;
-                background: #ffffff;
-            }
-            * { box-sizing: border-box !important; }
             .summary-pdf-root {
+                width: 210mm !important;
+                max-width: 210mm !important;
+                box-sizing: border-box !important;
                 border: 2px solid #94a3b8;
-                padding: 24px;
-                border-radius: 0 !important;
-                background: white;
+                padding: 14mm 12mm;
+                background: #ffffff;
                 font-family: 'Inter', Arial, sans-serif;
                 color: #1e293b;
-                width: 210mm !important;
-                height: 297mm !important;
-                min-height: 297mm !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
+            }
+            .summary-pdf-root * {
                 box-sizing: border-box !important;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
+            }
+            .summary-pdf-root tr,
+            .summary-pdf-root .summary-block {
+                page-break-inside: avoid !important;
             }
         </style>
         <div class="summary-pdf-root">
@@ -1276,25 +1253,20 @@ function generateSummaryPdf(data, range, fountainVal) {
     tempDiv.innerHTML = htmlContent;
     document.body.appendChild(tempDiv);
     const container = tempDiv.querySelector('.summary-pdf-root');
-    const pxW = container.offsetWidth || 680;
-    const pxH = (container.offsetHeight || 900) + 20;
 
     const opt = {
-        margin:       [0, 0, 0, 0],
+        margin:       0,
         filename:     `WQMS-${rangeLabel}_Summary_Report-${Date.now().toString().slice(-6)}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  {
             scale: 2,
             useCORS: true,
             logging: false,
-            scrollY: 0,
-            width: 794,
-            height: 1123,
-            windowWidth: 794,
-            windowHeight: 1123
+            scrollX: 0,
+            scrollY: 0
         },
-        jsPDF:        { unit: 'mm', format: [210, 297], orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(container).save().then(() => {
@@ -1310,6 +1282,7 @@ function generateSummaryPdf(data, range, fountainVal) {
         }
     });
 }
+window.generateSummaryPdf = generateSummaryPdf;
 
 function generateSummaryCsv(data, range, fountainVal) {
     const rangeLabel = range.charAt(0).toUpperCase() + range.slice(1);
