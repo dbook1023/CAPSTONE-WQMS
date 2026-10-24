@@ -273,6 +273,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         const turbStatus = avgTurbRaw >= 0.0 && avgTurbRaw <= 5.0 ? 'IDEAL' : (avgTurbRaw > 5.0 && avgTurbRaw <= 5.5 ? 'WARNING' : 'CRITICAL');
         const tempStatus = avgTempRaw >= 15.0 && avgTempRaw <= 30.0 ? 'IDEAL' : (((avgTempRaw >= 13.5 && avgTempRaw < 15.0) || (avgTempRaw > 30.0 && avgTempRaw <= 33.0)) ? 'WARNING' : 'CRITICAL');
         const tdsStatus = hasTds ? (avgTdsRaw >= 0.0 && avgTdsRaw <= 500.0 ? 'IDEAL' : (avgTdsRaw > 500.0 && avgTdsRaw <= 550.0 ? 'WARNING' : 'CRITICAL')) : 'MISSING';
+        const displayStatus = status => status === 'IDEAL' ? 'PASS' : (status === 'MISSING' ? 'NO DATA' : status);
 
         const isPhSafe = phStatus !== 'CRITICAL';
         const isTurbSafe = turbStatus !== 'CRITICAL';
@@ -597,14 +598,14 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                         <div class="reviewer-item"><span class="reviewer-label">Download Timestamp</span><span class="reviewer-value">${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span></div>
                     </div>
 
-                    <div class="section-title">Monitoring Session Data Statistics</div>
+                    <div class="section-title">Monitoring Session Summary</div>
                     <table class="stats-table">
-                        <thead><tr><th>Parameter</th><th>Minimum</th><th>Maximum</th><th>Average</th><th>Unit</th><th>Snapshots</th></tr></thead>
+                        <thead><tr><th>Parameter</th><th>Average Reading</th><th>Unit</th><th>Snapshots</th><th>Result</th></tr></thead>
                         <tbody>
-                            <tr><td>pH Level</td><td>${report.min_ph!==undefined&&report.min_ph!==null?Number(report.min_ph).toFixed(2):'—'}</td><td>${report.max_ph!==undefined&&report.max_ph!==null?Number(report.max_ph).toFixed(2):'—'}</td><td>${avgPh}</td><td>pH</td><td>${report.readings_count||'—'}</td></tr>
-                            <tr><td>Turbidity</td><td>${report.min_turbidity!==undefined&&report.min_turbidity!==null?Number(report.min_turbidity).toFixed(2):'—'}</td><td>${report.max_turbidity!==undefined&&report.max_turbidity!==null?Number(report.max_turbidity).toFixed(2):'—'}</td><td>${avgTurb} NTU</td><td>NTU</td><td>${report.readings_count||'—'}</td></tr>
-                            <tr><td>Temperature</td><td>${report.min_temperature!==undefined&&report.min_temperature!==null?Number(report.min_temperature).toFixed(1):'—'}</td><td>${report.max_temperature!==undefined&&report.max_temperature!==null?Number(report.max_temperature).toFixed(1):'—'}</td><td>${avgTemp}&deg;C</td><td>&deg;C</td><td>${report.readings_count||'—'}</td></tr>
-                            <tr><td>Total Dissolved Solids</td><td>${report.min_tds!==undefined&&report.min_tds!==null?Number(report.min_tds).toFixed(0):'N/A'}</td><td>${report.max_tds!==undefined&&report.max_tds!==null?Number(report.max_tds).toFixed(0):'N/A'}</td><td>${avgTdsText}${hasTds?' ppm':''}</td><td>ppm</td><td>${report.readings_count||'—'}</td></tr>
+                            <tr><td>pH Level</td><td>${avgPh}</td><td>pH</td><td>${report.readings_count || 0}</td><td>${displayStatus(phStatus)}</td></tr>
+                            <tr><td>Turbidity</td><td>${avgTurb}</td><td>NTU</td><td>${report.readings_count || 0}</td><td>${displayStatus(turbStatus)}</td></tr>
+                            <tr><td>Temperature</td><td>${avgTemp}</td><td>&deg;C</td><td>${report.readings_count || 0}</td><td>${displayStatus(tempStatus)}</td></tr>
+                            <tr><td>Total Dissolved Solids</td><td>${avgTdsText}</td><td>ppm</td><td>${report.readings_count || 0}</td><td>${displayStatus(tdsStatus)}</td></tr>
                         </tbody>
                     </table>
 
