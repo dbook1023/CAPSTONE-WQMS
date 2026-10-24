@@ -202,7 +202,7 @@ function renderAlerts() {
         return;
     }
 
-    alertsList.innerHTML = pageItems.map(a => {
+    alertsList.innerHTML = pageItems.map((a, idx) => {
         const category = getAlertCategory(a);
         const canResolve = category === 'critical' || category === 'warning';
         const esc = (s) => (s !== undefined && s !== null)
@@ -210,7 +210,7 @@ function renderAlerts() {
             : '';
 
         return `
-        <div class="alert-card ${getAlertCssClass(a)}" data-status="${esc(a.status)}">
+        <div class="alert-card ${getAlertCssClass(a)}" data-status="${esc(a.status)}" data-alert-id="${a.id}" style="cursor:pointer;" onclick="_onAlertCardClick(event, ${a.id})">
             <div class="alert-icon-wrap ${getAlertCssClass(a)}">
                 ${getAlertIcon(category)}
             </div>
@@ -243,13 +243,17 @@ function renderAlerts() {
             ${canResolve ? `
                 <button class="resolve-btn ${a.status === 'Resolved' ? 'resolved-state' : ''}" 
                         ${a.status === 'Resolved' ? 'disabled' : ''} 
-                        onclick="handleResolve(${a.id})">
+                        onclick="event.stopPropagation(); handleResolve(${a.id})">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     ${a.status === 'Resolved' ? 'Resolved' : 'Resolve'}
                 </button>
             ` : ''}
         </div>
     `}).join('');
+
+    // Store alert data map for card clicks
+    window._alertDataMap = {};
+    pageItems.forEach(a => { window._alertDataMap[a.id] = a; });
 
     renderPaginationControls(startIndex + 1, endIndex, totalItems, totalPages);
 }
@@ -562,6 +566,126 @@ function _notify(message, type = 'info') {
     }
 }
 
+// Helper to open modal from card click
+window._onAlertCardClick = function(event, alertId) {
+    const alertData = window._alertDataMap && window._alertDataMap[alertId];
+    if (alertData) openAlertDetailModal(alertData);
+};
+
 // Expose functions to global window for inline onclick handlers
 window.handleResolve = handleResolve;
 window.fetchAlerts = fetchAlerts;
+window.closeAlertDetailModal = closeAlertDetailModal;
+
+// ── ALERT DETAIL MODAL ──────────────────────────────────────
+function openAlertDetailModal(alert) {
+    const category = getAlertCategory(alert);
+    const isResolved = (alert.status || '').toLowerCase() === 'resolved';
+    const canResolve = (category === 'critical' || category === 'warning') && !isResolved;
+
+    const esc = (s) => (s !== undefined && s !== null)
+        ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        : '—';
+
+    // Icon
+    const iconEl = document.getElementById('alertModalIcon');
+    if (iconEl) {
+        iconEl.className = `alert-modal-icon-wrap ${category}`;
+        iconEl.innerHTML = getAlertIcon(category);
+    }
+
+    // Title
+    const titleEl = document.getElementById('alertModalTitle');
+    if (titleEl) titleEl.textContent = `${esc(alert.parameter)} Alert — #${alert.id}`;
+
+    // Badges
+    const badgesEl = document.getElementById('alertModalBadges');
+    if (badgesEl) {
+        const resolvedBadge = isResolved
+            ? `<span class="badge resolved" style="display:inline-flex;align-items:center;gap:4px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Resolved
+              </span>`
+            : '';
+        badgesEl.innerHTML = `
+            <span class="badge ${category}">${getAlertLabel(alert)}</span>
+            <span class="badge" style="background:#f1f5f9;color:#475569;">${esc(alert.status || 'Active')}</span>
+            ${resolvedBadge}
+        `;
+    }
+
+    // Body
+    const recommendation = getAlertRecommendation(alert);
+    const ts = alert.timestamp ? new Date(alert.timestamp).toLocaleString('en-PH', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '—';
+
+    const bodyEl = document.getElementById('alertModalBody');
+    if (bodyEl) {
+        bodyEl.innerHTML = `
+            <p class="alert-modal-desc">${esc(alert.message)}</p>
+            <div class="alert-modal-action-box">
+                <div class="alert-modal-action-label">Recommended Action</div>
+                <div class="alert-modal-action-content">${recommendation}</div>
+            </div>
+            <div class="alert-modal-meta-grid">
+                <div class="alert-modal-meta-item">
+                    <div class="alert-modal-meta-label">Fountain</div>
+                    <div class="alert-modal-meta-value">${esc(alert.fountain_name || 'System')}</div>
+                </div>
+                <div class="alert-modal-meta-item">
+                    <div class="alert-modal-meta-label">Sensor Reading</div>
+                    <div class="alert-modal-meta-value">${esc(alert.value)}</div>
+                </div>
+                <div class="alert-modal-meta-item">
+                    <div class="alert-modal-meta-label">Alert ID</div>
+                    <div class="alert-modal-meta-value">#${alert.id}</div>
+                </div>
+                <div class="alert-modal-meta-item">
+                    <div class="alert-modal-meta-label">Timestamp</div>
+                    <div class="alert-modal-meta-value">${ts}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Footer
+    const footerEl = document.getElementById('alertModalFooter');
+    if (footerEl) {
+        footerEl.innerHTML = `
+            <button class="modal-btn-cancel" onclick="closeAlertDetailModal()">Close</button>
+            ${canResolve ? `
+                <button class="modal-btn-resolve" onclick="handleResolve(${alert.id}); closeAlertDetailModal();">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Mark as Resolved
+                </button>
+            ` : isResolved ? `
+                <button class="modal-btn-resolve" disabled>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Already Resolved
+                </button>
+            ` : ''}
+        `;
+    }
+
+    // Open modal
+    const modal = document.getElementById('alertDetailModal');
+    if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeAlertDetailModal(event) {
+    // If called from overlay click, only close if clicking the overlay itself
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById('alertDetailModal');
+    if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+}
+
+// Close on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAlertDetailModal();
+});
+
