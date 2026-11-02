@@ -1127,128 +1127,217 @@ function generateSummaryPdf(data, range, fountainVal) {
             .summary-pdf-root {
                 width: 210mm !important;
                 max-width: 210mm !important;
+                height: 296mm !important;
+                max-height: 296mm !important;
                 box-sizing: border-box !important;
-                border: 2px solid #94a3b8;
-                padding: 14mm 12mm;
+                border: 3px double #cbd5e1;
+                padding: 9mm 12mm;
+                border-radius: 0 !important;
                 background: #ffffff;
-                font-family: 'Inter', Arial, sans-serif;
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
                 color: #1e293b;
-                margin: 0 auto !important;
+                margin: 0 !important;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
             }
             .summary-pdf-root * {
                 box-sizing: border-box !important;
             }
-            .summary-pdf-root tr,
-            .summary-pdf-root .summary-block {
-                page-break-inside: avoid !important;
+            .summary-header {
+                text-align: center;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 5px;
+                margin-bottom: 6px;
+            }
+            .summary-header h1 {
+                font-family: 'Poppins', sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                color: #0f172a;
+                margin: 0 0 1px 0;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .summary-header p {
+                font-size: 8.5px;
+                color: #64748b;
+                margin: 0;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            .summary-content {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+            }
+            .summary-section-title {
+                font-family: 'Poppins', sans-serif;
+                font-size: 9px;
+                font-weight: 700;
+                color: #0f172a;
+                margin-top: 5px;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                border-left: 3px solid #3b82f6;
+                padding-left: 6px;
+            }
+            .summary-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 6px;
+                background: transparent;
+            }
+            .summary-table th {
+                background: #f1f5f9;
+                color: #475569;
+                font-weight: 700;
+                font-size: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                padding: 4px 6px;
+                border: 1px solid #e2e8f0;
+            }
+            .summary-table td {
+                padding: 4px 6px;
+                font-size: 9px;
+                border: 1px solid #e2e8f0;
+                color: #1e293b;
+            }
+            .summary-footer {
+                margin-top: auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                font-size: 7.5px;
+                color: #64748b;
+                border-top: 1.5px solid #e2e8f0;
+                padding-top: 5px;
             }
         </style>
         <div class="summary-pdf-root">
-            <div style="text-align: center; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-                <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">Our Lady of Fatima University - Antipolo Campus</div>
-                <div style="font-size: 9px; color: #64748b; margin-bottom: 6px;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
-                <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin: 6px 0 0 0;">Water Quality Operations Summary</div>
-                <div style="font-size: 10px; color: #475569; margin: 3px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">${rangeLabel} Performance Audit Certificate</div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
-                <tr>
-                    <td style="padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; width: 50%;">
-                        <div style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Scope of Audit</div>
-                        <div style="font-size: 10px; font-weight: 600; color: #0f172a;">${scopeLabel}</div>
-                    </td>
-                    <td style="padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; width: 50%;">
-                        <div style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Audit Date</div>
-                        <div style="font-size: 10px; font-weight: 600; color: #0f172a;">${new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })}</div>
-                    </td>
-                </tr>
-            </table>
-
-            <div style="border: 1px solid ${overallColor}; background: ${overallColor}10; color: ${overallColor}; padding: 8px; border-radius: 6px; text-align: center; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 14px; letter-spacing: 0.04em;">
-                Overall Campus Water Safety: ${overallStatusText} (${complianceRate}%)
-            </div>
-
-            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 6px; text-transform: uppercase;">Facility Telemetry Analytics</div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
-                <thead>
-                    <tr style="background: #f1f5f9; text-transform: uppercase; font-size: 8px; font-weight: 700; color: #475569;">
-                        <th style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: left;">Fountain</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">N</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">pH</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">NTU</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">Temp</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">TDS</th>
-                        <th style="padding: 6px 4px; border: 1px solid #cbd5e1; text-align: center;">Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHTML}
-                </tbody>
-            </table>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; background: #f8fafc; border: 1px solid #cbd5e1;">
-                <tr><td colspan="4" style="padding: 6px 8px 3px; font-family: 'Poppins', Arial, sans-serif; font-size: 9px; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Summary Statistics</td></tr>
-                <tr style="text-align: center;">
-                    <td style="padding: 6px 4px;"><div style="color: #64748b; font-size: 8px; text-transform: uppercase; font-weight: 600;">Total Fountains</div><div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 2px;">${totalFountains}</div></td>
-                    <td style="padding: 6px 4px;"><div style="color: #64748b; font-size: 8px; text-transform: uppercase; font-weight: 600;">Logged Samples</div><div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 2px;">${totalSamples}</div></td>
-                    <td style="padding: 6px 4px;"><div style="color: #64748b; font-size: 8px; text-transform: uppercase; font-weight: 600;">Compliant Units</div><div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 2px;">${compliantCount}</div></td>
-                    <td style="padding: 6px 4px;"><div style="color: #64748b; font-size: 8px; text-transform: uppercase; font-weight: 600;">Compliance Rate</div><div style="font-size: 12px; font-weight: 700; color: ${overallColor}; margin-top: 2px;">${complianceRate}%</div></td>
-                </tr>
-            </table>
-
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 9px; font-weight: 700; color: #1e293b; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px;">
-                    Trend Analysis & System Insights
+            <div class="summary-header">
+                <div style="margin-bottom: 4px;">
+                    <div style="font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
+                    <div style="font-size: 8px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
                 </div>
-                <ul style="margin: 0; padding-left: 14px; font-size: 8px; color: #475569;">
-                    ${trendInsightsHTML}
-                </ul>
+                <h1>Water Quality Operations Summary</h1>
+                <p>AquaMonitor WQMS &middot; ${rangeLabel} Performance Audit Certificate &middot; DOH PNSDW A.O. No. 2017-0010</p>
             </div>
 
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-                <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 9px; font-weight: 700; color: #1e293b; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px;">
-                    Suggestions & Operational Recommendations
+            <div class="summary-content">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 10px; margin-bottom: 7px; background: #f8fafc; padding: 7px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Scope of Audit</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #0f172a;">${scopeLabel}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Audit Date &amp; Period</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #0f172a;">${new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' })} (${rangeLabel})</span>
+                    </div>
                 </div>
-                <ul style="margin: 0; padding-left: 14px; font-size: 8px; color: #475569;">
-                    ${recommendationsHTML}
-                </ul>
+
+                <div style="background: ${overallColor}10; border: 1.5px solid ${overallColor}; color: ${overallColor}; padding: 7px 10px; border-radius: 5px; text-align: center; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 7px; text-transform: uppercase;">
+                    Overall Campus Water Safety: ${overallStatusText} (${complianceRate}%)
+                </div>
+
+                <div class="summary-section-title">Facility Telemetry Analytics</div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: left;">Fountain</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">Snapshots</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">pH Level</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">Turbidity</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">Temperature</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">TDS</th>
+                            <th style="padding: 4px 6px; border: 1px solid #e2e8f0; text-align: center;">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHTML}
+                    </tbody>
+                </table>
+
+                <div class="summary-section-title">Summary Statistics</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 7px 10px; margin-bottom: 6px; text-align: center;">
+                    <div>
+                        <div style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Total Fountains</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">${totalFountains}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Logged Samples</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">${totalSamples}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Compliant Units</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #16a34a;">${compliantCount}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Compliance Rate</div>
+                        <div style="font-size: 13px; font-weight: 700; color: ${overallColor};">${complianceRate}%</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin-bottom: 6px;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px 9px;">
+                        <div style="font-family: 'Poppins', sans-serif; font-size: 7.5px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                            Trend Analysis &amp; System Insights
+                        </div>
+                        <ul style="margin: 0; padding-left: 12px; font-size: 7.5px; color: #334155; line-height: 1.35;">
+                            ${trendInsightsHTML}
+                        </ul>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px 9px;">
+                        <div style="font-family: 'Poppins', sans-serif; font-size: 7.5px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px;">
+                            Suggestions &amp; Operational Recommendations
+                        </div>
+                        <ul style="margin: 0; padding-left: 12px; font-size: 7.5px; color: #334155; line-height: 1.35;">
+                            ${recommendationsHTML}
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="border: 1px dashed #cbd5e1; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; font-size: 7px; color: #64748b; line-height: 1.4; background: #fafafa;">
+                    <strong>Compliance Note:</strong> This operations summary report aggregates water quality measurements logged autonomously from active sensor streams. Reference values comply with the DOH Philippine National Standards for Drinking Water (PNSDW) Administrative Order No. 2017-0010. Machine-generated telemetry data for administrative auditing.
+                </div>
+
+                <div class="summary-section-title">Report Generation Details</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 7px 10px; margin-bottom: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px 8px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Generated By</span>
+                        <span style="font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_admin_session') || '{}'); return s.name || 'Admin User'; } catch(e) { return 'Admin User'; } })()}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Admin Email</span>
+                        <span style="font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_admin_session') || '{}'); return s.email || '—'; } catch(e) { return '—'; } })()}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Report ID</span>
+                        <span style="font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">WQMS-SUMM-${range.toUpperCase()}-${Date.now().toString().slice(-6)}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Download Timestamp</span>
+                        <span style="font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                    </div>
+                </div>
             </div>
 
-            <div style="font-size: 8px; color: #64748b; line-height: 1.4; margin-bottom: 14px; border: 1px dashed #cbd5e1; padding: 6px; border-radius: 4px;">
-                <strong>Compliance Note:</strong> This operations summary report aggregates water quality measurements logged autonomously from active sensor streams. Reference values comply with the DOH Philippine National Standards for Drinking Water (PNSDW) Administrative Order No. 2017-0010.
+            <div class="summary-footer">
+                <div>
+                    <strong>Platform ID:</strong> WQMS-SUMM-${range.toUpperCase()}-${Date.now().toString().slice(-6)}&nbsp;&nbsp;
+                    <strong>Scope:</strong> ${scopeLabel}<br>
+                    Generated Autonomously &middot; AquaMonitor WQMS &middot; OLFU Antipolo Campus Water Quality Monitoring System
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 130px; border-top: 1.5px solid #94a3b8; margin-top: 6px; text-align: center; padding-top: 2px; font-weight: 600; font-size: 7.5px;">Authorized WQMS Signature</div>
+                </div>
             </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; background: #f8fafc; border: 1px solid #e2e8f0;">
-                <tr><td colspan="4" style="padding: 5px 8px 3px; font-family: 'Poppins', Arial, sans-serif; font-size: 9px; font-weight: 700; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Report Generation Details</td></tr>
-                <tr>
-                    <td style="padding: 5px 8px;">
-                        <div style="color: #64748b; font-size: 7.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 1px;">Generated By</div>
-                        <div style="font-size: 9.5px; font-weight: 600; color: #0f172a;">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_admin_session') || '{}'); return s.name || 'Admin User'; } catch(e) { return 'Admin User'; } })()}</div>
-                    </td>
-                    <td style="padding: 5px 8px;">
-                        <div style="color: #64748b; font-size: 7.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 1px;">Admin Email</div>
-                        <div style="font-size: 9.5px; font-weight: 600; color: #0f172a;">${(() => { try { const s = JSON.parse(localStorage.getItem('aqua_monitor_admin_session') || '{}'); return s.email || '—'; } catch(e) { return '—'; } })()}</div>
-                    </td>
-                    <td style="padding: 5px 8px;">
-                        <div style="color: #64748b; font-size: 7.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 1px;">Report ID</div>
-                        <div style="font-size: 9.5px; font-weight: 600; color: #0f172a;">WQMS-SUMM-${range.toUpperCase()}-${Date.now().toString().slice(-6)}</div>
-                    </td>
-                    <td style="padding: 5px 8px;">
-                        <div style="color: #64748b; font-size: 7.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 1px;">Download Timestamp</div>
-                        <div style="font-size: 9.5px; font-weight: 600; color: #0f172a;">${new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                    </td>
-                </tr>
-            </table>
-            <table style="width: 100%; font-size: 8px; color: #64748b; border-top: 1px solid #e2e8f0;">
-                <tr>
-                    <td style="padding-top: 8px; vertical-align: top;">
-                        Generated Autonomously by AquaMonitor WQMS Platform
-                    </td>
-                    <td style="padding-top: 8px; vertical-align: bottom; text-align: center; width: 150px;">
-                        <div style="border-top: 1.5px solid #94a3b8; padding-top: 3px; font-weight: 600; margin-top: 10px;">Authorized WQMS Signature</div>
-                    </td>
-                </tr>
-            </table>
         </div>
     `;
 
@@ -1265,11 +1354,10 @@ function generateSummaryPdf(data, range, fountainVal) {
             useCORS: true,
             logging: false,
             scrollX: 0,
-            scrollY: 0,
-            windowWidth: 794
+            scrollY: 0
         },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all'] }
+        pagebreak:    { mode: ['css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(container).save().then(() => {

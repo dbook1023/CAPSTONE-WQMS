@@ -245,6 +245,432 @@ function getReportStatusColor(status) {
     if (status === 'WARNING') return '#d97706';
     return '#dc2626';
 }
+function getCertificateHTML(report) {
+    const formatVal = (val, decimals) => (val !== null && val !== undefined && !Number.isNaN(Number(val))) ? Number(val).toFixed(decimals) : '--';
+
+    const avgPhRaw = report.ph_avg;
+    const avgTurbRaw = report.turbidity_avg;
+    const avgTempRaw = report.temperature_avg;
+    const avgTdsRaw = report.tds_avg;
+    
+    const avgPh = formatVal(avgPhRaw, 2);
+    const avgTurb = formatVal(avgTurbRaw, 1);
+    const avgTemp = formatVal(avgTempRaw, 1);
+    const hasTds = avgTdsRaw !== null && avgTdsRaw !== undefined && !Number.isNaN(Number(avgTdsRaw));
+    const avgTdsText = hasTds ? Number(avgTdsRaw).toFixed(0) : 'N/A';
+
+    // Match the dashboard color bands: ideal = teal, warning = amber, critical = red
+    // Treat pH up to 9.0 as WARNING (not CRITICAL)
+    const phStatus = avgPhRaw >= 6.5 && avgPhRaw <= 8.5 ? 'IDEAL' : ((avgPhRaw >= 6.35 && avgPhRaw < 6.5) || (avgPhRaw > 8.5 && avgPhRaw <= 9.0) ? 'WARNING' : 'CRITICAL');
+    const turbStatus = avgTurbRaw >= 0.0 && avgTurbRaw <= 5.0 ? 'IDEAL' : (avgTurbRaw > 5.0 && avgTurbRaw <= 5.5 ? 'WARNING' : 'CRITICAL');
+    const tempStatus = avgTempRaw >= 15.0 && avgTempRaw <= 30.0 ? 'IDEAL' : (((avgTempRaw >= 13.5 && avgTempRaw < 15.0) || (avgTempRaw > 30.0 && avgTempRaw <= 33.0)) ? 'WARNING' : 'CRITICAL');
+    const tdsStatus = hasTds ? (avgTdsRaw >= 0.0 && avgTdsRaw <= 500.0 ? 'IDEAL' : (avgTdsRaw > 500.0 && avgTdsRaw <= 550.0 ? 'WARNING' : 'CRITICAL')) : 'MISSING';
+    const displayStatus = status => status === 'IDEAL' ? 'PASS' : (status === 'MISSING' ? 'NO DATA' : status);
+
+    // Color helper: green=safe, orange=warning, red=fail
+    const phColor = phStatus === 'IDEAL' ? '#14b8a6' : (phStatus === 'WARNING' ? '#d97706' : '#dc2626');
+    const turbColor = turbStatus === 'IDEAL' ? '#14b8a6' : (turbStatus === 'WARNING' ? '#d97706' : '#dc2626');
+    const tempColor = tempStatus === 'IDEAL' ? '#14b8a6' : (tempStatus === 'WARNING' ? '#d97706' : '#dc2626');
+    const tdsColor = !hasTds ? '#64748b' : (tdsStatus === 'IDEAL' ? '#14b8a6' : (tdsStatus === 'WARNING' ? '#d97706' : '#dc2626'));
+
+    const hasCritical = phStatus === 'CRITICAL' || turbStatus === 'CRITICAL' || tempStatus === 'CRITICAL' || tdsStatus === 'CRITICAL';
+    const hasWarning = phStatus === 'WARNING' || turbStatus === 'WARNING' || tempStatus === 'WARNING' || tdsStatus === 'WARNING';
+    const overallCompliance = hasCritical ? 'NON-COMPLIANT (CRITICAL)' : (hasWarning ? 'COMPLIANT WITH WARNINGS' : 'COMPLIANT (PASS)');
+    const overallColor = hasCritical ? '#dc2626' : (hasWarning ? '#d97706' : '#14b8a6');
+    const actionPlan = window.WQMSActionGuidance?.buildReportActionPlan?.({
+        ph: avgPhRaw,
+        turbidity: avgTurbRaw,
+        temperature: avgTempRaw,
+        tds: avgTdsRaw
+    });
+
+    return `
+        <style>
+            .certificate-container {
+                width: 210mm !important;
+                max-width: 210mm !important;
+                height: 296mm !important;
+                max-height: 296mm !important;
+                border: 3px double #cbd5e1;
+                padding: 9mm 12mm;
+                border-radius: 0 !important;
+                background: #ffffff;
+                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                color: #1e293b;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+            }
+            .certificate-container * {
+                box-sizing: border-box !important;
+            }
+            .header {
+                text-align: center;
+                border-bottom: 2px solid #e2e8f0;
+                padding-bottom: 5px;
+                margin-bottom: 6px;
+            }
+            .header h1 {
+                font-family: 'Poppins', sans-serif;
+                font-size: 14px;
+                font-weight: 700;
+                color: #0f172a;
+                margin: 0 0 1px 0;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .header p {
+                font-size: 8.5px;
+                color: #64748b;
+                margin: 0;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            .content-body {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+            }
+            .meta-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px 10px;
+                margin-bottom: 7px;
+                background: #f8fafc;
+                padding: 7px 10px;
+                border-radius: 5px;
+                border: 1px solid #e2e8f0;
+            }
+            .meta-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .meta-label {
+                font-size: 8px;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 2px;
+            }
+            .meta-value {
+                font-size: 11px;
+                font-weight: 600;
+                color: #0f172a;
+            }
+            .compliance-banner {
+                background: ${overallColor}10;
+                border: 1.5px solid ${overallColor};
+                color: ${overallColor};
+                padding: 7px 10px;
+                border-radius: 5px;
+                text-align: center;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+                margin-bottom: 7px;
+                text-transform: uppercase;
+            }
+            .section-title {
+                font-family: 'Poppins', sans-serif;
+                font-size: 9px;
+                font-weight: 700;
+                color: #0f172a;
+                margin-top: 5px;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                border-left: 3px solid #3b82f6;
+                padding-left: 6px;
+            }
+            .cert-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 6px;
+                background: transparent;
+            }
+            .cert-table th {
+                background: #f1f5f9;
+                color: #475569;
+                font-weight: 700;
+                font-size: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                text-align: left;
+                padding: 4px 6px;
+                border: 1px solid #e2e8f0;
+            }
+            .cert-table td {
+                padding: 4px 6px;
+                font-size: 9px;
+                border: 1px solid #e2e8f0;
+                color: #1e293b;
+                text-align: left;
+            }
+            .action-plan {
+                margin-bottom: 6px;
+                border: 1px solid #fde68a;
+                border-radius: 5px;
+                background: #fffbeb;
+                padding: 6px 9px;
+            }
+            .action-plan-title {
+                font-family: 'Poppins', sans-serif;
+                font-size: 7.5px;
+                font-weight: 700;
+                color: #92400e;
+                margin-bottom: 1px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .action-plan-headline {
+                font-size: 8px;
+                font-weight: 700;
+                margin-bottom: 2px;
+            }
+            .action-plan-list {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .action-plan-item {
+                background: white;
+                border: 1px solid #fde68a;
+                border-radius: 3px;
+                padding: 2px 5px;
+                font-size: 7.5px;
+                line-height: 1.3;
+                color: #334155;
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 1px 5px;
+                border-radius: 3px;
+                font-size: 7.5px;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+            .status-pass {
+                background: rgba(20, 184, 166, 0.1);
+                color: #14b8a6;
+            }
+            .status-warn {
+                background: rgba(217, 119, 6, 0.1);
+                color: #d97706;
+            }
+            .status-fail {
+                background: rgba(220, 38, 38, 0.1);
+                color: #dc2626;
+            }
+            .findings-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 5px 8px;
+                margin-bottom: 6px;
+            }
+            .finding-card {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 5px;
+                padding: 6px 9px;
+            }
+            .finding-card-label {
+                font-size: 7.5px;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 2px;
+            }
+            .finding-card-value {
+                font-size: 8.5px;
+                font-weight: 600;
+                line-height: 1.35;
+            }
+            .reviewer-section {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 5px;
+                padding: 7px 10px;
+                margin-bottom: 6px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px 10px;
+            }
+            .reviewer-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .reviewer-label {
+                font-size: 7.5px;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 2px;
+            }
+            .reviewer-value {
+                font-size: 9px;
+                font-weight: 600;
+                color: #0f172a;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .standards-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+            .standards-table th { background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 7px; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 5px; border: 1px solid #bfdbfe; text-align: center; }
+            .standards-table td { padding: 2px 5px; font-size: 7.5px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
+            .standards-table td:first-child { text-align: left; font-weight: 600; }
+            .sensor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px 8px; margin-bottom: 5px; }
+            .sensor-item { display: flex; flex-direction: column; }
+            .sensor-label { font-size: 6.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px; }
+            .sensor-value { font-size: 8px; font-weight: 600; color: #0f172a; }
+            .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+            .stats-table th { background: #f1f5f9; color: #475569; font-weight: 700; font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 5px; border: 1px solid #e2e8f0; text-align: center; }
+            .stats-table th:first-child { text-align: left; }
+            .stats-table td { padding: 3px 5px; font-size: 8px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
+            .stats-table td:first-child { text-align: left; font-weight: 600; color: #1e293b; }
+            .cert-statement { border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; padding: 6px 10px; margin-bottom: 5px; }
+            .cert-statement-title { font-family: 'Poppins', sans-serif; font-size: 7.5px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+            .cert-statement-body { font-size: 7.5px; color: #334155; line-height: 1.5; }
+            .disclaimer-box { border: 1px dashed #cbd5e1; padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; font-size: 7px; color: #64748b; line-height: 1.4; background: #fafafa; }
+            .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7.5px; color: #64748b; border-top: 1.5px solid #e2e8f0; padding-top: 5px; }
+            .signature-line { width: 130px; border-top: 1.5px solid #94a3b8; margin-top: 6px; text-align: center; padding-top: 2px; font-weight: 600; font-size: 7.5px; }
+        </style>
+        <div class="certificate-container">
+            <div class="header">
+                <div style="margin-bottom:4px;">
+                    <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
+                    <div style="font-size:8px;color:#64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                </div>
+                <h1>Water Quality Compliance Certificate</h1>
+                <p>AquaMonitor WQMS &middot; Real-time IoT Telemetry Certification &middot; DOH PNSDW A.O. No. 2017-0010</p>
+            </div>
+
+            <div class="content-body">
+                <div class="meta-grid">
+                    <div class="meta-item"><span class="meta-label">Facility Selected</span><span class="meta-value">${report.fountain_name} (ID: ${report.fountain_id})</span></div>
+                    <div class="meta-item"><span class="meta-label">Fountain Location</span><span class="meta-value">${report.location}</span></div>
+                    <div class="meta-item"><span class="meta-label">Certification Date &amp; Time</span><span class="meta-value">${formatPhilippineDateTime(report.created_at,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span></div>
+                    <div class="meta-item"><span class="meta-label">Samples Logged</span><span class="meta-value">${report.readings_count} Telemetry Snapshots</span></div>
+                </div>
+
+                <div class="compliance-banner">Overall Safety Class: ${overallCompliance}</div>
+
+                ${actionPlan ? `
+                <div class="action-plan">
+                    <div class="action-plan-title">&nbsp; Recommended Action Plan</div>
+                    <div class="action-plan-headline" style="color:${actionPlan.severity==='critical'?'#dc2626':actionPlan.severity==='warning'?'#d97706':'#14b8a6'};">${actionPlan.headline}</div>
+                    <div class="action-plan-list">${actionPlan.actions.map(a=>`<div class="action-plan-item">&#8226; ${a}</div>`).join('')}</div>
+                </div>
+                ` : ''}
+
+                <div class="section-title">Telemetry Parameter Analytics</div>
+                <table class="cert-table">
+                    <thead><tr><th>Parameter</th><th>Calculated Avg.</th><th>DOH PNSDW Range</th><th>Deviation</th><th>Result</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight:600;">pH Level</td>
+                            <td style="font-weight:700;color:${phColor};">${avgPh}</td>
+                            <td>6.5 – 8.5 pH</td>
+                            <td style="font-size:7.5px;color:#64748b;">${avgPhRaw!==null&&avgPhRaw!==undefined?Math.abs(Number(avgPhRaw)-7.0).toFixed(2)+' from neutral':'—'}</td>
+                            <td><span class="status-badge ${phStatus==='CRITICAL'?'status-fail':(phStatus==='WARNING'?'status-warn':'status-pass')}">${phStatus==='CRITICAL'?'FAIL':(phStatus==='WARNING'?'WARNING':'PASS')}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:600;">Turbidity</td>
+                            <td style="font-weight:700;color:${turbColor};">${avgTurb} NTU</td>
+                            <td>0.0 – 5.0 NTU</td>
+                            <td style="font-size:7.5px;color:#64748b;">${avgTurbRaw!==null&&avgTurbRaw!==undefined?(Number(avgTurbRaw)>5?'+'+(Number(avgTurbRaw)-5).toFixed(1)+' above limit':'Within range'):'—'}</td>
+                            <td><span class="status-badge ${turbStatus==='CRITICAL'?'status-fail':(turbStatus==='WARNING'?'status-warn':'status-pass')}">${turbStatus==='CRITICAL'?'FAIL':(turbStatus==='WARNING'?'WARNING':'PASS')}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:600;">Temperature</td>
+                            <td style="font-weight:700;color:${tempColor};">${avgTemp}&deg;C</td>
+                            <td>15.0 – 30.0&deg;C</td>
+                            <td style="font-size:7.5px;color:#64748b;">${avgTempRaw!==null&&avgTempRaw!==undefined?(Number(avgTempRaw)>30?'+'+(Number(avgTempRaw)-30).toFixed(1)+'&deg;C above':Number(avgTempRaw)<15?(Number(avgTempRaw)-15).toFixed(1)+'&deg;C below':'Within range'):'—'}</td>
+                            <td><span class="status-badge ${tempStatus==='CRITICAL'?'status-fail':(tempStatus==='WARNING'?'status-warn':'status-pass')}">${tempStatus==='CRITICAL'?'FAIL':(tempStatus==='WARNING'?'WARNING':'PASS')}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:600;">TDS</td>
+                            <td style="font-weight:700;color:${tdsColor};">${avgTdsText}${hasTds?' ppm':''}</td>
+                            <td>0.0 – 500.0 ppm</td>
+                            <td style="font-size:7.5px;color:#64748b;">${hasTds?(Number(avgTdsRaw)>500?'+'+(Number(avgTdsRaw)-500).toFixed(0)+' above limit':'Within range'):'No sensor data'}</td>
+                            <td><span class="status-badge ${!hasTds?'status-fail':(tdsStatus==='CRITICAL'?'status-fail':(tdsStatus==='WARNING'?'status-warn':'status-pass'))}">${!hasTds?'N/A':(tdsStatus==='CRITICAL'?'FAIL':(tdsStatus==='WARNING'?'WARNING':'PASS'))}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="section-title">Parameter Findings Summary</div>
+                <div class="findings-grid">
+                    <div class="finding-card"><div class="finding-card-label">pH Level Assessment</div><div class="finding-card-value" style="color:${phColor};">${phStatus==='CRITICAL'?(avgPhRaw<6.5?'Acidic — below threshold. Action required.':'Alkaline — exceeds limit. Review chemistry.'):(phStatus==='WARNING'?(avgPhRaw<7.0?'Mildly acidic — marginal range. Monitor closely.':'Mildly alkaline — approaching upper limit.'):'Optimal — within DOH PNSDW acceptable range.')}</div></div>
+                    <div class="finding-card"><div class="finding-card-label">Turbidity Assessment</div><div class="finding-card-value" style="color:${turbColor};">${turbStatus==='CRITICAL'?'Turbid — clarity compromised. Suspend &amp; inspect.':(turbStatus==='WARNING'?'Slightly cloudy — filter check recommended.':'Clear — excellent water clarity. Meets standards.')}</div></div>
+                    <div class="finding-card"><div class="finding-card-label">Temperature Assessment</div><div class="finding-card-value" style="color:${tempColor};">${tempStatus==='CRITICAL'?(avgTempRaw>33?'Overheated — exceeds safe limit. Check cooling.':'Overcooled — below acceptable range.'):(tempStatus==='WARNING'?(avgTempRaw<15?'Cool — marginally low. Monitor.':'Warm — approaching upper limit.'):'Optimal — safe drinking temperature range.')}</div></div>
+                    <div class="finding-card"><div class="finding-card-label">TDS Assessment</div><div class="finding-card-value" style="color:${tdsColor};">${!hasTds?'No TDS sensor data for this reporting period.':(tdsStatus==='CRITICAL'?'Contaminated — exceeds safe limit. Check filter.':(tdsStatus==='WARNING'?'Elevated minerals — approaching threshold.':'Optimal — mineral content within acceptable range.'))}</div></div>
+                </div>
+
+                <div class="section-title">DOH PNSDW Standards Reference (A.O. 2017-0010)</div>
+                <table class="standards-table">
+                    <thead><tr><th style="text-align:left;">Parameter</th><th>Acceptable Limit</th><th>Warning Zone</th><th>Critical Threshold</th><th>Unit</th></tr></thead>
+                    <tbody>
+                        <tr><td>pH Level</td><td>6.5 – 8.5</td><td>6.35–6.5 / 8.5–9.0</td><td>&lt;6.35 or &gt;9.0</td><td>pH units</td></tr>
+                        <tr><td>Turbidity</td><td>&le; 5.0</td><td>5.0 – 5.5</td><td>&gt; 5.5</td><td>NTU</td></tr>
+                        <tr><td>Temperature</td><td>15.0 – 30.0</td><td>13.5–15.0 / 30–33</td><td>&lt;13.5 or &gt;33.0</td><td>&deg;C</td></tr>
+                        <tr><td>Total Dissolved Solids</td><td>&le; 500</td><td>500 – 550</td><td>&gt; 550</td><td>ppm (mg/L)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="section-title">Report Generation Details</div>
+                <div class="reviewer-section">
+                    <div class="reviewer-item"><span class="reviewer-label">Generated By</span><span class="reviewer-value">${report.generated_by_name||'System (Automated)'}</span></div>
+                    <div class="reviewer-item"><span class="reviewer-label">Downloaded By</span><span class="reviewer-value">${(()=>{try{const s=JSON.parse(localStorage.getItem('aqua_monitor_user_session')||'{}');return s.name||'Portal User';}catch(e){return'Portal User';}})()}</span></div>
+                    <div class="reviewer-item"><span class="reviewer-label">Email Address</span><span class="reviewer-value">${(()=>{try{const s=JSON.parse(localStorage.getItem('aqua_monitor_user_session')||'{}');return s.email||'—';}catch(e){return'—';}})()}</span></div>
+                    <div class="reviewer-item"><span class="reviewer-label">Report Code</span><span class="reviewer-value">${report.report_code||formatReportId(report.id,report.created_at)}</span></div>
+                    <div class="reviewer-item"><span class="reviewer-label">Certification Period</span><span class="reviewer-value">${formatPhilippineDateTime(report.created_at,{month:'long',day:'numeric',year:'numeric'})}</span></div>
+                    <div class="reviewer-item"><span class="reviewer-label">Download Timestamp</span><span class="reviewer-value">${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span></div>
+                </div>
+
+                <div class="section-title">Monitoring Session Summary</div>
+                <table class="stats-table">
+                    <thead><tr><th>Parameter</th><th>Average Reading</th><th>Unit</th><th>Snapshots</th><th>Result</th></tr></thead>
+                    <tbody>
+                        <tr><td>pH Level</td><td>${avgPh}</td><td>pH</td><td>${report.readings_count || 0}</td><td>${displayStatus(phStatus)}</td></tr>
+                        <tr><td>Turbidity</td><td>${avgTurb}</td><td>NTU</td><td>${report.readings_count || 0}</td><td>${displayStatus(turbStatus)}</td></tr>
+                        <tr><td>Temperature</td><td>${avgTemp}</td><td>&deg;C</td><td>${report.readings_count || 0}</td><td>${displayStatus(tempStatus)}</td></tr>
+                        <tr><td>Total Dissolved Solids</td><td>${avgTdsText}</td><td>ppm</td><td>${report.readings_count || 0}</td><td>${displayStatus(tdsStatus)}</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="cert-statement">
+                    <div class="cert-statement-title">&#9632; Official Certification Statement</div>
+                    <div class="cert-statement-body">This document certifies that <strong>${report.fountain_name}</strong> located at <strong>${report.location}</strong> has undergone continuous, automated water quality monitoring via the AquaMonitor WQMS IoT platform. All monitoring was conducted in accordance with the Philippine National Standards for Drinking Water (PNSDW) under DOH Administrative Order No. 2017-0010. The findings presented herein are derived from telemetric data captured autonomously by calibrated sensor nodes and validated by the system's built-in analysis engine. This certificate is intended for internal compliance tracking and institutional records purposes.</div>
+                </div>
+
+                <div class="disclaimer-box">
+                    <strong>Compliance Note:</strong> Continuous automated telemetry per DOH PNSDW A.O. No. 2017-0010. Data logged via AquaMonitor IoT sensor nodes at campus drinking fountains.&nbsp;
+                    <strong>Disclaimer:</strong> Machine-generated based on real-time sensor readings. Supplementary laboratory testing is recommended for regulatory submission and official compliance verification.
+                </div>
+            </div>
+
+            <div class="footer">
+                <div>
+                    <strong>Platform ID:</strong> WQMS-CERT-${report.id}-${Date.now().toString().slice(-6)}&nbsp;&nbsp;
+                    <strong>Facility:</strong> ${report.fountain_name} — ${report.location}<br>
+                    Generated Autonomously &middot; AquaMonitor WQMS &middot; OLFU Antipolo Campus Water Quality Monitoring System
+                </div>
+                <div style="text-align:center;">
+                    <div class="signature-line">Authorized WQMS Signature</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+window.getCertificateHTML = getCertificateHTML;
 
 window.triggerReportDownload = async function(reportId, checkbox) {
     if (!checkbox.checked) return;
@@ -253,401 +679,22 @@ window.triggerReportDownload = async function(reportId, checkbox) {
     if (!report) return;
 
     try {
-        showNotification(`Preparing official compliance certificate for ${report.fountain_name}...`, 'info');
-
-        const formatVal = (val, decimals) => (val !== null && val !== undefined && !Number.isNaN(Number(val))) ? Number(val).toFixed(decimals) : '--';
-
-        const avgPhRaw = report.ph_avg;
-        const avgTurbRaw = report.turbidity_avg;
-        const avgTempRaw = report.temperature_avg;
-        const avgTdsRaw = report.tds_avg;
-        
-        const avgPh = formatVal(avgPhRaw, 2);
-        const avgTurb = formatVal(avgTurbRaw, 1);
-        const avgTemp = formatVal(avgTempRaw, 1);
-        const hasTds = avgTdsRaw !== null && avgTdsRaw !== undefined && !Number.isNaN(Number(avgTdsRaw));
-        const avgTdsText = hasTds ? Number(avgTdsRaw).toFixed(0) : 'N/A';
-
-        // Match the dashboard color bands: ideal = teal, warning = amber, critical = red
-        const phStatus = avgPhRaw >= 6.5 && avgPhRaw <= 8.5 ? 'IDEAL' : ((avgPhRaw >= 6.35 && avgPhRaw < 6.5) || (avgPhRaw > 8.5 && avgPhRaw <= 9.0) ? 'WARNING' : 'CRITICAL');
-        const turbStatus = avgTurbRaw >= 0.0 && avgTurbRaw <= 5.0 ? 'IDEAL' : (avgTurbRaw > 5.0 && avgTurbRaw <= 5.5 ? 'WARNING' : 'CRITICAL');
-        const tempStatus = avgTempRaw >= 15.0 && avgTempRaw <= 30.0 ? 'IDEAL' : (((avgTempRaw >= 13.5 && avgTempRaw < 15.0) || (avgTempRaw > 30.0 && avgTempRaw <= 33.0)) ? 'WARNING' : 'CRITICAL');
-        const tdsStatus = hasTds ? (avgTdsRaw >= 0.0 && avgTdsRaw <= 500.0 ? 'IDEAL' : (avgTdsRaw > 500.0 && avgTdsRaw <= 550.0 ? 'WARNING' : 'CRITICAL')) : 'MISSING';
-        const displayStatus = status => status === 'IDEAL' ? 'PASS' : (status === 'MISSING' ? 'NO DATA' : status);
-
-        const isPhSafe = phStatus !== 'CRITICAL';
-        const isTurbSafe = turbStatus !== 'CRITICAL';
-        const isTempSafe = tempStatus !== 'CRITICAL';
-        const isTdsSafe = tdsStatus !== 'CRITICAL' && tdsStatus !== 'MISSING';
-        const isTurbIdeal = turbStatus === 'IDEAL';
-        const isTempIdeal = tempStatus === 'IDEAL';
-        const isTdsIdeal = tdsStatus === 'IDEAL';
-
-        // Color helper
-        const phColor = phStatus === 'CRITICAL' ? '#dc2626' : (phStatus === 'WARNING' ? '#d97706' : '#14b8a6');
-        const turbColor = turbStatus === 'CRITICAL' ? '#dc2626' : (turbStatus === 'WARNING' ? '#d97706' : '#14b8a6');
-        const tempColor = tempStatus === 'CRITICAL' ? '#dc2626' : (tempStatus === 'WARNING' ? '#d97706' : '#14b8a6');
-        const tdsColor = !hasTds ? '#64748b' : (tdsStatus === 'CRITICAL' ? '#dc2626' : (tdsStatus === 'WARNING' ? '#d97706' : '#14b8a6'));
-
-        const hasCritical = phStatus === 'CRITICAL' || turbStatus === 'CRITICAL' || tempStatus === 'CRITICAL' || tdsStatus === 'CRITICAL';
-        const hasWarning = phStatus === 'WARNING' || turbStatus === 'WARNING' || tempStatus === 'WARNING' || tdsStatus === 'WARNING';
-        const overallCompliance = hasCritical ? 'NON-COMPLIANT (CRITICAL)' : (hasWarning ? 'COMPLIANT WITH WARNINGS' : 'COMPLIANT (PASS)');
-        const overallColor = hasCritical ? '#dc2626' : (hasWarning ? '#d97706' : '#14b8a6');
-
-        const actionPlan = window.WQMSActionGuidance?.buildReportActionPlan?.({
-            ph: avgPhRaw,
-            turbidity: avgTurbRaw,
-            temperature: avgTempRaw,
-            tds: avgTdsRaw
-        });
-
-        const htmlContent = `
-            <style>
-                @page { size: A4 portrait; margin: 0 !important; }
-                html, body {
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: #ffffff !important;
-                }
-                * { box-sizing: border-box !important; }
-                .certificate-container {
-                    width: 210mm !important;
-                    max-width: 210mm !important;
-                    height: 296mm !important;
-                    max-height: 296mm !important;
-                    border: 3px double #cbd5e1;
-                    padding: 9mm 12mm;
-                    border-radius: 0 !important;
-                    background: #ffffff;
-                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-                    color: #1e293b;
-                    box-sizing: border-box !important;
-                    margin: 0 !important;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden !important;
-                    page-break-inside: avoid !important;
-                    page-break-before: avoid !important;
-                    page-break-after: avoid !important;
-                }
-                .header {
-                    text-align: center;
-                    border-bottom: 2px solid #e2e8f0;
-                    padding-bottom: 4px;
-                    margin-bottom: 5px;
-                }
-                .header h1 {
-                    font-family: 'Poppins', sans-serif;
-                    font-size: 14px;
-                    font-weight: 700;
-                    color: #0f172a;
-                    margin: 0 0 1px 0;
-                    letter-spacing: 0.04em;
-                    text-transform: uppercase;
-                }
-                .header p {
-                    font-size: 8.5px;
-                    color: #64748b;
-                    margin: 0;
-                    font-weight: 600;
-                    letter-spacing: 0.06em;
-                    text-transform: uppercase;
-                }
-                .content-body {
-                    flex: 1 1 auto;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .meta-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 5px 10px;
-                    margin-bottom: 7px;
-                    background: #f8fafc;
-                    padding: 7px 10px;
-                    border-radius: 5px;
-                    border: 1px solid #e2e8f0;
-                }
-                .meta-item {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .meta-label {
-                    font-size: 8px;
-                    font-weight: 700;
-                    color: #64748b;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    margin-bottom: 2px;
-                }
-                .meta-value {
-                    font-size: 11px;
-                    font-weight: 600;
-                    color: #0f172a;
-                }
-                .compliance-banner {
-                    background: ${overallColor}10;
-                    border: 1.5px solid ${overallColor};
-                    color: ${overallColor};
-                    padding: 7px 10px;
-                    border-radius: 5px;
-                    text-align: center;
-                    font-size: 12px;
-                    font-weight: 800;
-                    letter-spacing: 0.05em;
-                    margin-bottom: 7px;
-                    text-transform: uppercase;
-                }
-                .section-title {
-                    font-family: 'Poppins', sans-serif;
-                    font-size: 9px;
-                    font-weight: 700;
-                    color: #0f172a;
-                    margin-top: 5px;
-                    margin-bottom: 4px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    border-left: 3px solid #3b82f6;
-                    padding-left: 6px;
-                }
-                .cert-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 6px;
-                    background: transparent;
-                }
-                .cert-table th {
-                    background: #f1f5f9;
-                    color: #475569;
-                    font-weight: 700;
-                    font-size: 8px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    text-align: left;
-                    padding: 4px 6px;
-                    border: 1px solid #e2e8f0;
-                }
-                .cert-table td {
-                    padding: 4px 6px;
-                    font-size: 9px;
-                    border: 1px solid #e2e8f0;
-                    color: #1e293b;
-                    text-align: left;
-                }
-                .action-plan {
-                    margin-bottom: 6px;
-                    border: 1px solid #fde68a;
-                    border-radius: 5px;
-                    background: #fffbeb;
-                    padding: 6px 9px;
-                }
-                .action-plan-title {
-                    font-family: 'Poppins', sans-serif;
-                    font-size: 7.5px;
-                    font-weight: 700;
-                    color: #92400e;
-                    margin-bottom: 1px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                }
-                .action-plan-headline {
-                    font-size: 8px;
-                    font-weight: 700;
-                    margin-bottom: 2px;
-                }
-                .action-plan-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
-                .action-plan-item {
-                    background: white;
-                    border: 1px solid #fde68a;
-                    border-radius: 3px;
-                    padding: 2px 5px;
-                    font-size: 7.5px;
-                    line-height: 1.3;
-                    color: #334155;
-                }
-                .status-badge {
-                    display: inline-block;
-                    padding: 1px 5px;
-                    border-radius: 3px;
-                    font-size: 7.5px;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                }
-                .status-pass { background: rgba(20,184,166,0.1); color: #14b8a6; }
-                .status-warn { background: rgba(217,119,6,0.1); color: #d97706; }
-                .status-fail { background: rgba(220,38,38,0.1); color: #dc2626; }
-                .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin-bottom: 6px; }
-                .finding-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px 9px; }
-                .finding-card-label { font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-                .finding-card-value { font-size: 8.5px; font-weight: 600; line-height: 1.35; }
-                .reviewer-section {
-                    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px;
-                    padding: 7px 10px; margin-bottom: 6px;
-                    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px 10px;
-                }
-                .reviewer-item { display: flex; flex-direction: column; }
-                .reviewer-label { font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-                .reviewer-value { font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                .standards-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-                .standards-table th { background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 7px; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 5px; border: 1px solid #bfdbfe; text-align: center; }
-                .standards-table td { padding: 2px 5px; font-size: 7.5px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
-                .standards-table td:first-child { text-align: left; font-weight: 600; }
-                .sensor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px 8px; margin-bottom: 5px; }
-                .sensor-item { display: flex; flex-direction: column; }
-                .sensor-label { font-size: 6.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px; }
-                .sensor-value { font-size: 8px; font-weight: 600; color: #0f172a; }
-                .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-                .stats-table th { background: #f1f5f9; color: #475569; font-weight: 700; font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 5px; border: 1px solid #e2e8f0; text-align: center; }
-                .stats-table th:first-child { text-align: left; }
-                .stats-table td { padding: 3px 5px; font-size: 8px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
-                .stats-table td:first-child { text-align: left; font-weight: 600; color: #1e293b; }
-                .cert-statement { border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; padding: 6px 10px; margin-bottom: 5px; }
-                .cert-statement-title { font-family: 'Poppins', sans-serif; font-size: 7.5px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-                .cert-statement-body { font-size: 7.5px; color: #334155; line-height: 1.5; }
-                .disclaimer-box { border: 1px dashed #cbd5e1; padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; font-size: 7px; color: #64748b; line-height: 1.4; background: #fafafa; }
-                .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7.5px; color: #64748b; border-top: 1.5px solid #e2e8f0; padding-top: 5px; }
-                .signature-line { width: 130px; border-top: 1.5px solid #94a3b8; margin-top: 6px; text-align: center; padding-top: 2px; font-weight: 600; font-size: 7.5px; }
-            </style>
-            <div class="certificate-container">
-                <div class="header">
-                    <div style="margin-bottom:4px;">
-                        <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
-                        <div style="font-size:8px;color:#64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
-                    </div>
-                    <h1>Water Quality Compliance Certificate</h1>
-                    <p>AquaMonitor WQMS &middot; Real-time IoT Telemetry Certification &middot; DOH PNSDW A.O. No. 2017-0010</p>
-                </div>
-
-                <div class="content-body">
-                    <div class="meta-grid">
-                        <div class="meta-item"><span class="meta-label">Facility Selected</span><span class="meta-value">${report.fountain_name} (ID: ${report.fountain_id})</span></div>
-                        <div class="meta-item"><span class="meta-label">Fountain Location</span><span class="meta-value">${report.location}</span></div>
-                        <div class="meta-item"><span class="meta-label">Certification Date &amp; Time</span><span class="meta-value">${parseBackendDate(report.created_at).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric', timeZone:'Asia/Manila' })}</span></div>
-                        <div class="meta-item"><span class="meta-label">Samples Logged</span><span class="meta-value">${report.readings_count} Telemetry Snapshots</span></div>
-                    </div>
-
-                    <div class="compliance-banner">Overall Safety Class: ${overallCompliance}</div>
-
-                    ${actionPlan ? `
-                    <div class="action-plan">
-                        <div class="action-plan-title">&nbsp; Recommended Action Plan</div>
-                        <div class="action-plan-headline" style="color:${actionPlan.severity==='critical'?'#dc2626':actionPlan.severity==='warning'?'#d97706':'#14b8a6'};">${actionPlan.headline}</div>
-                        <div class="action-plan-list">${actionPlan.actions.map(a=>`<div class="action-plan-item">&#8226; ${a}</div>`).join('')}</div>
-                    </div>
-                    ` : ''}
-
-                    <div class="section-title">Telemetry Parameter Analytics</div>
-                    <table class="cert-table">
-                        <thead><tr><th>Parameter</th><th>Calculated Avg.</th><th>DOH PNSDW Range</th><th>Deviation</th><th>Result</th></tr></thead>
-                        <tbody>
-                            <tr>
-                                <td style="font-weight:600;">pH Level</td>
-                                <td style="font-weight:700;color:${phColor};">${avgPh}</td>
-                                <td>6.5 – 8.5 pH</td>
-                                <td style="font-size:7.5px;color:#64748b;">${avgPhRaw!==null&&avgPhRaw!==undefined?Math.abs(Number(avgPhRaw)-7.0).toFixed(2)+' from neutral':'—'}</td>
-                                <td><span class="status-badge ${phStatus==='CRITICAL'?'status-fail':(phStatus==='WARNING'?'status-warn':'status-pass')}">${phStatus==='CRITICAL'?'FAIL':(phStatus==='WARNING'?'WARNING':'PASS')}</span></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight:600;">Turbidity</td>
-                                <td style="font-weight:700;color:${turbColor};">${avgTurb} NTU</td>
-                                <td>0.0 – 5.0 NTU</td>
-                                <td style="font-size:7.5px;color:#64748b;">${avgTurbRaw!==null&&avgTurbRaw!==undefined?(Number(avgTurbRaw)>5?'+'+(Number(avgTurbRaw)-5).toFixed(1)+' above limit':'Within range'):'—'}</td>
-                                <td><span class="status-badge ${turbStatus==='CRITICAL'?'status-fail':(turbStatus==='WARNING'?'status-warn':'status-pass')}">${turbStatus==='CRITICAL'?'FAIL':(turbStatus==='WARNING'?'WARNING':'PASS')}</span></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight:600;">Temperature</td>
-                                <td style="font-weight:700;color:${tempColor};">${avgTemp}&deg;C</td>
-                                <td>15.0 – 30.0&deg;C</td>
-                                <td style="font-size:7.5px;color:#64748b;">${avgTempRaw!==null&&avgTempRaw!==undefined?(Number(avgTempRaw)>30?'+'+(Number(avgTempRaw)-30).toFixed(1)+'&deg;C above':Number(avgTempRaw)<15?(Number(avgTempRaw)-15).toFixed(1)+'&deg;C below':'Within range'):'—'}</td>
-                                <td><span class="status-badge ${tempStatus==='CRITICAL'?'status-fail':(tempStatus==='WARNING'?'status-warn':'status-pass')}">${tempStatus==='CRITICAL'?'FAIL':(tempStatus==='WARNING'?'WARNING':'PASS')}</span></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight:600;">TDS</td>
-                                <td style="font-weight:700;color:${tdsColor};">${avgTdsText}${hasTds?' ppm':''}</td>
-                                <td>0.0 – 500.0 ppm</td>
-                                <td style="font-size:7.5px;color:#64748b;">${hasTds?(Number(avgTdsRaw)>500?'+'+(Number(avgTdsRaw)-500).toFixed(0)+' above limit':'Within range'):'No sensor data'}</td>
-                                <td><span class="status-badge ${!hasTds?'status-fail':(tdsStatus==='CRITICAL'?'status-fail':(tdsStatus==='WARNING'?'status-warn':'status-pass'))}">${!hasTds?'N/A':(tdsStatus==='CRITICAL'?'FAIL':(tdsStatus==='WARNING'?'WARNING':'PASS'))}</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="section-title">Parameter Findings Summary</div>
-                    <div class="findings-grid">
-                        <div class="finding-card"><div class="finding-card-label">pH Level Assessment</div><div class="finding-card-value" style="color:${phColor};">${phStatus==='CRITICAL'?(avgPhRaw<6.5?'Acidic — below threshold. Action required.':'Alkaline — exceeds limit. Review chemistry.'):(phStatus==='WARNING'?(avgPhRaw<7.0?'Mildly acidic — marginal range. Monitor closely.':'Mildly alkaline — approaching upper limit.'):'Optimal — within DOH PNSDW acceptable range.')}</div></div>
-                        <div class="finding-card"><div class="finding-card-label">Turbidity Assessment</div><div class="finding-card-value" style="color:${turbColor};">${turbStatus==='CRITICAL'?'Turbid — clarity compromised. Suspend &amp; inspect.':(turbStatus==='WARNING'?'Slightly cloudy — filter check recommended.':'Clear — excellent water clarity. Meets standards.')}</div></div>
-                        <div class="finding-card"><div class="finding-card-label">Temperature Assessment</div><div class="finding-card-value" style="color:${tempColor};">${tempStatus==='CRITICAL'?(avgTempRaw>33?'Overheated — exceeds safe limit. Check cooling.':'Overcooled — below acceptable range.'):(tempStatus==='WARNING'?(avgTempRaw<15?'Cool — marginally low. Monitor.':'Warm — approaching upper limit.'):'Optimal — safe drinking temperature range.')}</div></div>
-                        <div class="finding-card"><div class="finding-card-label">TDS Assessment</div><div class="finding-card-value" style="color:${tdsColor};">${!hasTds?'No TDS sensor data for this reporting period.':(tdsStatus==='CRITICAL'?'Contaminated — exceeds safe limit. Check filter.':(tdsStatus==='WARNING'?'Elevated minerals — approaching threshold.':'Optimal — mineral content within acceptable range.'))}</div></div>
-                    </div>
-
-                    <div class="section-title">DOH PNSDW Standards Reference (A.O. 2017-0010)</div>
-                    <table class="standards-table">
-                        <thead><tr><th style="text-align:left;">Parameter</th><th>Acceptable Limit</th><th>Warning Zone</th><th>Critical Threshold</th><th>Unit</th></tr></thead>
-                        <tbody>
-                            <tr><td>pH Level</td><td>6.5 – 8.5</td><td>6.35–6.5 / 8.5–9.0</td><td>&lt;6.35 or &gt;9.0</td><td>pH units</td></tr>
-                            <tr><td>Turbidity</td><td>&le; 5.0</td><td>5.0 – 5.5</td><td>&gt; 5.5</td><td>NTU</td></tr>
-                            <tr><td>Temperature</td><td>15.0 – 30.0</td><td>13.5–15.0 / 30–33</td><td>&lt;13.5 or &gt;33.0</td><td>&deg;C</td></tr>
-                            <tr><td>Total Dissolved Solids</td><td>&le; 500</td><td>500 – 550</td><td>&gt; 550</td><td>ppm (mg/L)</td></tr>
-                        </tbody>
-                    </table>
-
-                    <div class="section-title">Report Generation Details</div>
-                    <div class="reviewer-section">
-                        <div class="reviewer-item"><span class="reviewer-label">Generated By</span><span class="reviewer-value">${report.generated_by_name||'System (Automated)'}</span></div>
-                        <div class="reviewer-item"><span class="reviewer-label">Downloaded By</span><span class="reviewer-value">${(()=>{try{const s=JSON.parse(localStorage.getItem('aqua_monitor_user_session')||'{}');return s.name||'Portal User';}catch(e){return'Portal User';}})()}</span></div>
-                        <div class="reviewer-item"><span class="reviewer-label">Email Address</span><span class="reviewer-value">${(()=>{try{const s=JSON.parse(localStorage.getItem('aqua_monitor_user_session')||'{}');return s.email||'—';}catch(e){return'—';}})()}</span></div>
-                        <div class="reviewer-item"><span class="reviewer-label">Report Code</span><span class="reviewer-value">${report.report_code||`WQMS-${report.id}-${Date.now().toString().slice(-6)}`}</span></div>
-                        <div class="reviewer-item"><span class="reviewer-label">Certification Period</span><span class="reviewer-value">${parseBackendDate(report.created_at).toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Manila'})}</span></div>
-                        <div class="reviewer-item"><span class="reviewer-label">Download Timestamp</span><span class="reviewer-value">${new Date().toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}</span></div>
-                    </div>
-
-                    <div class="section-title">Monitoring Session Summary</div>
-                    <table class="stats-table">
-                        <thead><tr><th>Parameter</th><th>Average Reading</th><th>Unit</th><th>Snapshots</th><th>Result</th></tr></thead>
-                        <tbody>
-                            <tr><td>pH Level</td><td>${avgPh}</td><td>pH</td><td>${report.readings_count || 0}</td><td>${displayStatus(phStatus)}</td></tr>
-                            <tr><td>Turbidity</td><td>${avgTurb}</td><td>NTU</td><td>${report.readings_count || 0}</td><td>${displayStatus(turbStatus)}</td></tr>
-                            <tr><td>Temperature</td><td>${avgTemp}</td><td>&deg;C</td><td>${report.readings_count || 0}</td><td>${displayStatus(tempStatus)}</td></tr>
-                            <tr><td>Total Dissolved Solids</td><td>${avgTdsText}</td><td>ppm</td><td>${report.readings_count || 0}</td><td>${displayStatus(tdsStatus)}</td></tr>
-                        </tbody>
-                    </table>
-
-                    <div class="cert-statement">
-                        <div class="cert-statement-title">&#9632; Official Certification Statement</div>
-                        <div class="cert-statement-body">This document certifies that <strong>${report.fountain_name}</strong> located at <strong>${report.location}</strong> has undergone continuous, automated water quality monitoring via the AquaMonitor WQMS IoT platform. All monitoring was conducted in accordance with the Philippine National Standards for Drinking Water (PNSDW) under DOH Administrative Order No. 2017-0010. The findings presented herein are derived from telemetric data captured autonomously by calibrated sensor nodes and validated by the system's built-in analysis engine. This certificate is intended for internal compliance tracking and institutional records purposes.</div>
-                    </div>
-
-                    <div class="disclaimer-box">
-                        <strong>Compliance Note:</strong> Continuous automated telemetry per DOH PNSDW A.O. No. 2017-0010. Data logged via AquaMonitor IoT sensor nodes at campus drinking fountains.&nbsp;
-                        <strong>Disclaimer:</strong> Machine-generated based on real-time sensor readings. Supplementary laboratory testing is recommended for regulatory submission and official compliance verification.
-                    </div>
-                </div>
-
-                <div class="footer">
-                    <div>
-                        <strong>Report ID:</strong> ${report.report_code||`WQMS-${report.id}-${Date.now().toString().slice(-6)}`}&nbsp;&nbsp;
-                        <strong>Facility:</strong> ${report.fountain_name} — ${report.location}<br>
-                        Generated Autonomously &middot; AquaMonitor WQMS &middot; OLFU Antipolo Campus Water Quality Monitoring System
-                    </div>
-                    <div style="text-align:center;">
-                        <div class="signature-line">Authorized WQMS Signature</div>
-                    </div>
-                </div>
-            </div>
-        `;
+        if (typeof showNotification === 'function') {
+            showNotification(`Preparing official compliance certificate for ${report.fountain_name}...`, 'info');
+        }
 
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'absolute';
         tempDiv.style.top = '0';
         tempDiv.style.left = '0';
         tempDiv.style.width = '210mm';
+        tempDiv.style.margin = '0';
+        tempDiv.style.padding = '0';
+        tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.background = '#ffffff';
         tempDiv.style.zIndex = '-99999';
 
-        tempDiv.innerHTML = htmlContent;
+        tempDiv.innerHTML = getCertificateHTML(report);
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
 
@@ -661,16 +708,17 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0,
-                windowWidth: 794
+                scrollY: 0
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: 'avoid-all' }
+            pagebreak:    { mode: ['css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(container).save().then(() => {
             document.body.removeChild(tempDiv);
-            showNotification('Compliance PDF downloaded successfully!', 'success');
+            if (typeof showNotification === 'function') {
+                showNotification('Compliance PDF downloaded successfully!', 'success');
+            }
             const updatedDownloads = getStoredDownloadCount() + 1;
             setStoredDownloadCount(updatedDownloads);
             const downloadVal = document.getElementById('reportDownloadsValue');
@@ -696,7 +744,9 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         }).catch(err => {
             console.error("PDF generation failed:", err);
             if (tempDiv.parentNode) document.body.removeChild(tempDiv);
-            showNotification('Failed to save PDF.', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('Failed to save PDF.', 'error');
+            }
         });
 
         // Reset checkbox checkmark
@@ -706,10 +756,12 @@ window.triggerReportDownload = async function(reportId, checkbox) {
 
     } catch (error) {
         console.error('Failed to generate compliance report:', error);
-        showNotification('Failed to generate compliance report. Please try again.', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Failed to generate compliance report. Please try again.', 'error');
+        }
         checkbox.checked = false;
     }
-}
+};
 
 /**
  * Utility for toast notifications
