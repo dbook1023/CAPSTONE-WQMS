@@ -312,10 +312,11 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 * { box-sizing: border-box !important; }
                 .certificate-container {
                     width: 210mm !important;
+                    max-width: 210mm !important;
                     height: 296mm !important;
                     max-height: 296mm !important;
                     border: 3px double #cbd5e1;
-                    padding: 8mm 11mm;
+                    padding: 9mm 12mm;
                     border-radius: 0 !important;
                     background: #ffffff;
                     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -479,31 +480,36 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 .status-pass { background: rgba(20,184,166,0.1); color: #14b8a6; }
                 .status-warn { background: rgba(217,119,6,0.1); color: #d97706; }
                 .status-fail { background: rgba(220,38,38,0.1); color: #dc2626; }
-                .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 6px; margin-bottom: 4px; }
-                .finding-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 7px; }
-                .finding-card-label { font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1px; }
-                .finding-card-value { font-size: 8px; font-weight: 600; line-height: 1.3; }
+                .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin-bottom: 6px; }
+                .finding-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 6px 9px; }
+                .finding-card-label { font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+                .finding-card-value { font-size: 8.5px; font-weight: 600; line-height: 1.35; }
                 .reviewer-section {
-                    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;
-                    padding: 4px 7px; margin-bottom: 4px;
-                    display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px 8px;
+                    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px;
+                    padding: 7px 10px; margin-bottom: 6px;
+                    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px 10px;
                 }
                 .reviewer-item { display: flex; flex-direction: column; }
-                .reviewer-label { font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1px; }
-                .reviewer-value { font-size: 8.5px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                .standards-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+                .reviewer-label { font-size: 7.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+                .reviewer-value { font-size: 9px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .standards-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
                 .standards-table th { background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 7px; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 5px; border: 1px solid #bfdbfe; text-align: center; }
                 .standards-table td { padding: 2px 5px; font-size: 7.5px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
                 .standards-table td:first-child { text-align: left; font-weight: 600; }
-                .sensor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 6px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 4px 7px; margin-bottom: 4px; }
+                .sensor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px 8px; margin-bottom: 5px; }
                 .sensor-item { display: flex; flex-direction: column; }
-                .sensor-label { font-size: 6.5px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px; }
-                .sensor-value { font-size: 8px; font-weight: 700; color: #15803d; }
-                .disclaimer-box { border: 1px dashed #cbd5e1; padding: 3px 7px; border-radius: 4px; margin-bottom: 4px; font-size: 7px; color: #64748b; line-height: 1.35; background: #fafafa; }
-                .footer {
-                    margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;
-                    font-size: 7.5px; color: #64748b; border-top: 1.5px solid #e2e8f0; padding-top: 4px;
-                }
+                .sensor-label { font-size: 6.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px; }
+                .sensor-value { font-size: 8px; font-weight: 600; color: #0f172a; }
+                .stats-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+                .stats-table th { background: #f1f5f9; color: #475569; font-weight: 700; font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 5px; border: 1px solid #e2e8f0; text-align: center; }
+                .stats-table th:first-child { text-align: left; }
+                .stats-table td { padding: 3px 5px; font-size: 8px; border: 1px solid #e2e8f0; color: #334155; text-align: center; }
+                .stats-table td:first-child { text-align: left; font-weight: 600; color: #1e293b; }
+                .cert-statement { border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; padding: 6px 10px; margin-bottom: 5px; }
+                .cert-statement-title { font-family: 'Poppins', sans-serif; font-size: 7.5px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+                .cert-statement-body { font-size: 7.5px; color: #334155; line-height: 1.5; }
+                .disclaimer-box { border: 1px dashed #cbd5e1; padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; font-size: 7px; color: #64748b; line-height: 1.4; background: #fafafa; }
+                .footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7.5px; color: #64748b; border-top: 1.5px solid #e2e8f0; padding-top: 5px; }
                 .signature-line { width: 130px; border-top: 1.5px solid #94a3b8; margin-top: 6px; text-align: center; padding-top: 2px; font-weight: 600; font-size: 7.5px; }
             </style>
             <div class="certificate-container">
@@ -655,7 +661,8 @@ window.triggerReportDownload = async function(reportId, checkbox) {
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
-                scrollY: 0
+                scrollY: 0,
+                windowWidth: 794
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: 'avoid-all' }

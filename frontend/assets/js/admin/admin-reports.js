@@ -997,7 +997,7 @@ function setupFiltersAndGenerate() {
 
 function generateSummaryPdf(data, range, fountainVal) {
     const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'fixed';
+    tempDiv.style.position = 'absolute';
     tempDiv.style.left = '0';
     tempDiv.style.top = '0';
     tempDiv.style.width = '210mm';
@@ -1265,10 +1265,11 @@ function generateSummaryPdf(data, range, fountainVal) {
             useCORS: true,
             logging: false,
             scrollX: 0,
-            scrollY: 0
+            scrollY: 0,
+            windowWidth: 794
         },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
+        pagebreak:    { mode: ['avoid-all'] }
     };
 
     html2pdf().set(opt).from(container).save().then(() => {
