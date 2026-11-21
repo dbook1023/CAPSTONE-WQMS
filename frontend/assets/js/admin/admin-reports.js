@@ -332,6 +332,23 @@ window.unarchiveReport = async function(reportId) {
     }
 }
 
+// Preload university logo for instant rendering in generated PDF reports
+const _preloadOlfuLogo = new Image();
+_preloadOlfuLogo.src = '../assets/images/olfu_logo.png';
+
+async function ensureImagesLoaded(container) {
+    const images = Array.from(container.querySelectorAll('img'));
+    if (!images.length) return;
+    await Promise.all(images.map(img => {
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise(resolve => {
+            img.addEventListener('load', resolve, { once: true });
+            img.addEventListener('error', resolve, { once: true });
+            setTimeout(resolve, 800);
+        });
+    }));
+}
+
 function getCertificateHTML(report) {
     const formatVal = (val, decimals) => (val !== null && val !== undefined && !Number.isNaN(Number(val))) ? Number(val).toFixed(decimals) : '--';
 
@@ -405,10 +422,33 @@ function getCertificateHTML(report) {
                 box-sizing: border-box !important;
             }
             .header {
-                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 border-bottom: 2px solid #e2e8f0;
                 padding-bottom: 5px;
                 margin-bottom: 6px;
+                gap: 16px;
+            }
+            .header-logo-box {
+                width: 82px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .header-logo-box img {
+                height: 78px;
+                max-width: 82px;
+                object-fit: contain;
+                display: block;
+            }
+            .header-center {
+                text-align: center;
+            }
+            .header-spacer {
+                width: 82px;
+                flex-shrink: 0;
             }
             .header h1 {
                 font-family: 'Poppins', sans-serif;
@@ -640,12 +680,18 @@ function getCertificateHTML(report) {
         </style>
         <div class="certificate-container">
             <div class="header">
-                <div style="margin-bottom:4px;">
-                    <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
-                    <div style="font-size:8px;color:#64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                <div class="header-logo-box">
+                    <img src="../assets/images/olfu_logo.png" alt="OLFU Logo">
                 </div>
-                <h1>Water Quality Compliance Certificate</h1>
-                <p>AquaMonitor WQMS &middot; Real-time IoT Telemetry Certification &middot; DOH PNSDW A.O. No. 2017-0010</p>
+                <div class="header-center">
+                    <div style="margin-bottom:4px;">
+                        <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
+                        <div style="font-size:8px;color:#64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                    </div>
+                    <h1>Water Quality Compliance Certificate</h1>
+                    <p>AquaMonitor WQMS &middot; Real-time IoT Telemetry Certification &middot; DOH PNSDW A.O. No. 2017-0010</p>
+                </div>
+                <div class="header-spacer" aria-hidden="true"></div>
             </div>
 
             <div class="content-body">
@@ -794,6 +840,7 @@ window.triggerReportDownload = async function(reportId, checkbox) {
         tempDiv.innerHTML = getCertificateHTML(report);
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
+        await ensureImagesLoaded(tempDiv);
 
         const reportCode = report.report_code || formatReportId(report.id, report.created_at);
         const opt = {
@@ -995,7 +1042,7 @@ function setupFiltersAndGenerate() {
     }
 }
 
-function generateSummaryPdf(data, range, fountainVal) {
+async function generateSummaryPdf(data, range, fountainVal) {
     const tempDiv = document.createElement('div');
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '0';
@@ -1148,10 +1195,33 @@ function generateSummaryPdf(data, range, fountainVal) {
                 box-sizing: border-box !important;
             }
             .summary-header {
-                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 border-bottom: 2px solid #e2e8f0;
                 padding-bottom: 5px;
                 margin-bottom: 6px;
+                gap: 16px;
+            }
+            .summary-logo-box {
+                width: 82px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .summary-logo-box img {
+                height: 78px;
+                max-width: 82px;
+                object-fit: contain;
+                display: block;
+            }
+            .summary-center {
+                text-align: center;
+            }
+            .summary-spacer {
+                width: 82px;
+                flex-shrink: 0;
             }
             .summary-header h1 {
                 font-family: 'Poppins', sans-serif;
@@ -1222,12 +1292,18 @@ function generateSummaryPdf(data, range, fountainVal) {
         </style>
         <div class="summary-pdf-root">
             <div class="summary-header">
-                <div style="margin-bottom: 4px;">
-                    <div style="font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
-                    <div style="font-size: 8px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                <div class="summary-logo-box">
+                    <img src="../assets/images/olfu_logo.png" alt="OLFU Logo">
                 </div>
-                <h1>Water Quality Operations Summary</h1>
-                <p>AquaMonitor WQMS &middot; ${rangeLabel} Performance Audit Certificate &middot; DOH PNSDW A.O. No. 2017-0010</p>
+                <div class="summary-center">
+                    <div style="margin-bottom: 4px;">
+                        <div style="font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
+                        <div style="font-size: 8px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                    </div>
+                    <h1>Water Quality Operations Summary</h1>
+                    <p>AquaMonitor WQMS &middot; ${rangeLabel} Performance Audit Certificate &middot; DOH PNSDW A.O. No. 2017-0010</p>
+                </div>
+                <div class="summary-spacer" aria-hidden="true"></div>
             </div>
 
             <div class="summary-content">
@@ -1344,6 +1420,7 @@ function generateSummaryPdf(data, range, fountainVal) {
     tempDiv.innerHTML = htmlContent;
     document.body.appendChild(tempDiv);
     const container = tempDiv.querySelector('.summary-pdf-root');
+    await ensureImagesLoaded(tempDiv);
 
     const opt = {
         margin:       0,
