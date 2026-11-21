@@ -24,6 +24,23 @@ let currentVirtualTimeMs = Date.now();
 let maxLiveTimestampMs = 0;
 
 
+// Preload university logo for instant rendering in generated PDF reports
+const _preloadOlfuLogo = new Image();
+_preloadOlfuLogo.src = '../assets/images/olfu_logo.png';
+
+async function ensureImagesLoaded(container) {
+    const images = Array.from(container.querySelectorAll('img'));
+    if (!images.length) return;
+    await Promise.all(images.map(img => {
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise(resolve => {
+            img.addEventListener('load', resolve, { once: true });
+            img.addEventListener('error', resolve, { once: true });
+            setTimeout(resolve, 800);
+        });
+    }));
+}
+
 function getOrdinalIndicator(n) {
     if (!n) return '0 Readings';
     const s = ["th", "st", "nd", "rd"];
@@ -638,7 +655,7 @@ function setupEventListeners() {
     }
 
     if (downloadReportBtn) {
-        downloadReportBtn.addEventListener('click', () => {
+        downloadReportBtn.addEventListener('click', async () => {
             if (!selectedFountain || !sessionData.ph || sessionData.ph.length === 0) {
                 showNotification('No session data available to generate certificate.', 'warning');
                 return;
@@ -846,26 +863,49 @@ function setupEventListeners() {
                     page-break-after: avoid !important;
                 }
                 .header {
-                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     border-bottom: 2px solid #e2e8f0;
-                    padding-bottom: 6px;
+                    padding-bottom: 5px;
                     margin-bottom: 6px;
+                    gap: 16px;
+                }
+                .header-logo-box {
+                    width: 82px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                .header-logo-box img {
+                    height: 78px;
+                    max-width: 82px;
+                    object-fit: contain;
+                    display: block;
+                }
+                .header-center {
+                    text-align: center;
+                }
+                .header-spacer {
+                    width: 82px;
+                    flex-shrink: 0;
                 }
                 .header h1 {
                     font-family: 'Poppins', sans-serif;
-                    font-size: 15px;
+                    font-size: 14px;
                     font-weight: 700;
                     color: #0f172a;
-                    margin: 0 0 2px 0;
+                    margin: 0 0 1px 0;
                     letter-spacing: 0.04em;
                     text-transform: uppercase;
                 }
                 .header p {
-                    font-size: 9px;
+                    font-size: 8.5px;
                     color: #64748b;
                     margin: 0;
                     font-weight: 600;
-                    letter-spacing: 0.08em;
+                    letter-spacing: 0.06em;
                     text-transform: uppercase;
                 }
                 .content-body {
@@ -1088,12 +1128,18 @@ function setupEventListeners() {
             </style>
             <div class="certificate-container">
                 <div class="header">
-                    <div style="margin-bottom: 8px;">
-                        <div style="font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University - Antipolo Campus</div>
-                        <div style="font-size: 9px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal</div>
+                    <div class="header-logo-box">
+                        <img src="../assets/images/olfu_logo.png" alt="OLFU Logo">
                     </div>
-                    <h1>Water Quality Compliance Certificate</h1>
-                    <p>AquaMonitor WQMS Real-time Certification Platform</p>
+                    <div class="header-center">
+                        <div style="margin-bottom: 4px;">
+                            <div style="font-family: 'Poppins', sans-serif; font-size: 13.5px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Our Lady of Fatima University — Antipolo Campus</div>
+                            <div style="font-size: 8px; color: #64748b;">Km. 23 Sumulong Highway, Brgy. Sta. Cruz, Antipolo City, Rizal 1870 &nbsp;|&nbsp; www.fatima.edu.ph</div>
+                        </div>
+                        <h1>Water Quality Compliance Certificate</h1>
+                        <p>AquaMonitor WQMS &middot; Real-time IoT Telemetry Certification &middot; DOH PNSDW A.O. No. 2017-0010</p>
+                    </div>
+                    <div class="header-spacer" aria-hidden="true"></div>
                 </div>
 
                 <div class="content-body">
@@ -1232,6 +1278,7 @@ function setupEventListeners() {
         tempDiv.innerHTML = htmlContent;
         document.body.appendChild(tempDiv);
         const container = tempDiv.querySelector('.certificate-container');
+        await ensureImagesLoaded(tempDiv);
 
         const reportCode = savedReport?.report_code || formatReportId(savedReport?.id || selectedFountain.id, savedReport?.created_at || new Date());
         const opt = {
