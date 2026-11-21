@@ -773,7 +773,7 @@ function setupEventListeners() {
         }
     }
 
-    function triggerPdfDownload(savedReport = null) {
+    async function triggerPdfDownload(savedReport = null) {
         showNotification('Generating official Water Quality Certificate PDF...', 'success');
         
         const avg = (arr) => arr.length ? (arr.reduce((a, b) => a + b) / arr.length).toFixed(2) : '--';

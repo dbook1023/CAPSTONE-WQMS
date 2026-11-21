@@ -8,12 +8,13 @@
     'use strict';
 
     const SOUND_CANDIDATE_PATHS = [
-        '../assets/sounds/mixkit-alert-bells-echo-765.wav',
-        '../../assets/sounds/mixkit-alert-bells-echo-765.wav',
-        '../frontend/assets/sounds/mixkit-alert-bells-echo-765.wav',
-        '/WQMS/frontend/assets/sounds/mixkit-alert-bells-echo-765.wav',
-        '/WQMS/assets/sounds/mixkit-alert-bells-echo-765.wav',
-        'assets/sounds/mixkit-alert-bells-echo-765.wav'
+        '../assets/sounds/alert_sound.mp3',
+        '../../assets/sounds/alert_sound.mp3',
+        '../frontend/assets/sounds/alert_sound.mp3',
+        '/WQMS/frontend/assets/sounds/alert_sound.mp3',
+        '/WQMS/assets/sounds/alert_sound.mp3',
+        'assets/sounds/alert_sound.mp3',
+        '/assets/sounds/alert_sound.mp3'
     ];
 
     class AlertSoundManager {
@@ -63,6 +64,17 @@
                     if (!this._playPromisePending) {
                         this.isLooping = false;
                         this._emit();
+                    }
+                });
+
+                // Guarantee continuous looping across browsers when audio reaches end
+                this.audio.addEventListener('ended', () => {
+                    if (this.isLooping && !this.muted) {
+                        this.audio.currentTime = 0;
+                        const p = this.audio.play();
+                        if (p !== undefined) {
+                            p.catch(e => console.warn('[AlertSound] Loop restart error:', e));
+                        }
                     }
                 });
             } catch (err) {
