@@ -312,7 +312,7 @@
         if (!events || events.length === 0) {
             return `
                 <div style="border: 1px dashed #10b981; background: #ecfdf5; border-radius: 4px; padding: 4px 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 7px;">
-                    <span style="font-size: 11px;">🛡️</span>
+                    
                     <div>
                         <div style="font-size: 7.5px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.04em;">Zero Threshold Excursions Recorded</div>
                         <div style="font-size: 7px; color: #047857; line-height: 1.25;">All monitored readings remained strictly within DOH PNSDW safe tolerances throughout this period. No abnormal spikes or corrective interventions were triggered.</div>
@@ -326,7 +326,7 @@
             const isSpike = e.type === 'SPIKE';
             const badgeBg = isSpike ? (e.status === 'CRITICAL' ? 'rgba(220, 38, 38, 0.12)' : 'rgba(217, 119, 6, 0.12)') : 'rgba(16, 185, 129, 0.12)';
             const badgeColor = isSpike ? (e.status === 'CRITICAL' ? '#dc2626' : '#d97706') : '#059669';
-            const badgeText = isSpike ? '⚠️ SPIKE' : '✅ NORMALIZED';
+            const badgeText = isSpike ? 'SPIKE' : 'NORMALIZED';
 
             return `
                 <tr>
