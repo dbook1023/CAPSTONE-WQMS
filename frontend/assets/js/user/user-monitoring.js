@@ -274,8 +274,8 @@ function recordMonitoringSpikeEvents(latest) {
     if (!latest) return;
     const ts = latest.timestamp ? new Date(latest.timestamp) : new Date();
     const timeFormatted = !isNaN(ts.getTime())
-        ? ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
-        : new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        ? ts.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+        : new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
     const params = [
         { key: 'ph', name: 'pH', val: parseFloat(latest.ph), suffix: ' pH' },

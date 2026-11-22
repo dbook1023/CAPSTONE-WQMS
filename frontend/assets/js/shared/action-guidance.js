@@ -264,7 +264,7 @@
             const rawTs = log.timestamp || log.created_at;
             const dt = rawTs ? new Date(rawTs) : new Date();
             const timeStr = !isNaN(dt.getTime())
-                ? dt.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+                ? dt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
                 : '--:--';
 
             paramConfigs.forEach(cfg => {
