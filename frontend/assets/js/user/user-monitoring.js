@@ -22,6 +22,8 @@ let lastProcessedTimeMs = Date.now();
 let sessionStartTimeMs = Date.now();
 let currentVirtualTimeMs = Date.now();
 let maxLiveTimestampMs = 0;
+let sessionSpikeEvents = [];
+let lastParamSafetyStatus = { ph: 'IDEAL', turbidity: 'IDEAL', temperature: 'IDEAL', tds: 'IDEAL' };
 
 
 // Preload university logo for instant rendering in generated PDF reports
@@ -268,6 +270,54 @@ function updateSingleMetricCard(fountainId, domKey, val, suffix) {
 }
 
 // ── AUDIO ALERT & CRITICAL BANNER HELPERS ──────────────────────
+function recordMonitoringSpikeEvents(latest) {
+    if (!latest) return;
+    const ts = latest.timestamp ? new Date(latest.timestamp) : new Date();
+    const timeFormatted = !isNaN(ts.getTime())
+        ? ts.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+        : new Date().toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+    const params = [
+        { key: 'ph', name: 'pH', val: parseFloat(latest.ph), suffix: ' pH' },
+        { key: 'turbidity', name: 'Turbidity', val: parseFloat(latest.turbidity !== undefined && latest.turbidity !== null ? latest.turbidity : latest.ntu), suffix: ' NTU' },
+        { key: 'temperature', name: 'Temperature', val: parseFloat(latest.temperature !== undefined && latest.temperature !== null ? latest.temperature : latest.temp), suffix: '°C' },
+        { key: 'tds', name: 'TDS', val: parseFloat(latest.tds), suffix: ' ppm' }
+    ];
+
+    params.forEach(p => {
+        if (isNaN(p.val)) return;
+        const currentStatus = getParameterSafetyStatus(p.key, p.val);
+        const prevStatus = lastParamSafetyStatus[p.key] || 'IDEAL';
+
+        if (prevStatus === 'IDEAL' && (currentStatus === 'WARNING' || currentStatus === 'CRITICAL')) {
+            const actionText = window.WQMSActionGuidance?.getSpikeAction?.(p.key, p.val, currentStatus) || 'Excursion recorded. Dispensing suspended and inspection logged.';
+            sessionSpikeEvents.push({
+                time: timeFormatted,
+                timestamp: ts.toISOString(),
+                paramKey: p.key,
+                paramName: p.name,
+                type: 'SPIKE',
+                status: currentStatus,
+                valFormatted: (p.key === 'tds' ? Math.round(p.val) : p.val.toFixed(2)) + p.suffix,
+                action: actionText
+            });
+        } else if ((prevStatus === 'WARNING' || prevStatus === 'CRITICAL') && currentStatus === 'IDEAL') {
+            const actionText = window.WQMSActionGuidance?.getNormalizationAction?.(p.key, p.val) || 'Potable parameter normalized. Continuous monitoring resumed.';
+            sessionSpikeEvents.push({
+                time: timeFormatted,
+                timestamp: ts.toISOString(),
+                paramKey: p.key,
+                paramName: p.name,
+                type: 'NORMALIZED',
+                status: 'IDEAL',
+                valFormatted: (p.key === 'tds' ? Math.round(p.val) : p.val.toFixed(2)) + p.suffix,
+                action: actionText
+            });
+        }
+        lastParamSafetyStatus[p.key] = currentStatus;
+    });
+}
+
 function evaluateLiveAlertStatus(latest) {
     if (!selectedFountain || !isReading) return;
     if (String(latest.fountain_id) !== String(selectedFountain.id)) return;
@@ -488,6 +538,13 @@ function processLiveReading(latest) {
                 evaluateLiveAlertStatus(latest);
             } catch (e) {
                 console.warn('Failed to evaluate live alert status:', e);
+            }
+
+            // Track spike & normalization events with timestamps & actions
+            try {
+                recordMonitoringSpikeEvents(latest);
+            } catch (e) {
+                console.warn('Failed to record monitoring spike event:', e);
             }
         }
     }
@@ -1233,6 +1290,9 @@ function setupEventListeners() {
                             <div class="finding-card-value" style="color: ${tdsColor};">${isNaN(avgTdsRaw) ? 'No TDS data available for this session.' : (tdsStatus === 'CRITICAL' ? 'Contaminated — exceeds safe limit. Check filter.' : (tdsStatus === 'WARNING' ? 'Elevated minerals — approaching threshold.' : 'Optimal — mineral content within acceptable range.'))}</div>
                         </div>
                     </div>
+
+                    <div class="section-title">Parameter Event Timeline & Corrective Action Log</div>
+                    ${window.WQMSActionGuidance?.renderEventTimelineHtml?.(sessionSpikeEvents) || ''}
 
                     <div class="section-title">Report Generation Details</div>
                     <div class="reviewer-section">
@@ -2052,6 +2112,8 @@ function resetLiveViewSession() {
     currentVirtualTimeMs = Date.now();
     maxLiveTimestampMs = Date.now();
     latestTelemetry = { ph: null, turbidity: null, temperature: null, tds: null };
+    sessionSpikeEvents = [];
+    lastParamSafetyStatus = { ph: 'IDEAL', turbidity: 'IDEAL', temperature: 'IDEAL', tds: 'IDEAL' };
 
     updateComparisonTable();
 

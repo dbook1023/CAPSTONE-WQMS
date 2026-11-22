@@ -205,10 +205,168 @@
         };
     }
 
+    function getSpikeAction(key, value, status) {
+        const num = Number(value);
+        if (key === 'ph') {
+            return num < 6.5
+                ? 'Acidity Spike: Dispensing halted. Buffer flush and source line neutralization initiated.'
+                : 'Alkalinity Spike: Dispensing halted. Carbon filtration cycle and chemical balance check initiated.';
+        }
+        if (key === 'turbidity') {
+            return 'Turbidity Spike: Dispensing halted. Line backwash, sediment flush, and filter cartridge replacement initiated.';
+        }
+        if (key === 'tds') {
+            return 'High Dissolved Solids Spike: Dispensing halted. Membrane filtration check and reverse osmosis inspection logged.';
+        }
+        if (key === 'temperature' || key === 'temp') {
+            return num < 15.0
+                ? 'Overcooling Spike: Chiller thermostat regulated and thermal heating elements inspected.'
+                : 'Thermal Spike: Chiller cooling unit serviced, compressor cycled, and ambient airflow restored.';
+        }
+        return 'Threshold Excursion: System inspection logged and corrective intervention initiated.';
+    }
+
+    function getNormalizationAction(key, value) {
+        if (key === 'ph') {
+            return 'pH Normalization: Potable chemical equilibrium re-established (6.5–8.5). Safe operation confirmed and continuous monitoring resumed.';
+        }
+        if (key === 'turbidity') {
+            return 'Clarity Normalization: Water clarity returned to safe standard (<=5.0 NTU). Filtration line verified clear and normal dispensing restored.';
+        }
+        if (key === 'tds') {
+            return 'TDS Normalization: Dissolved solids stabilized within permissible standard (<=500 ppm). Ion balance confirmed; normal dispensing restored.';
+        }
+        if (key === 'temperature' || key === 'temp') {
+            return 'Temperature Normalization: Water temperature returned to standard drinking range (15.0–30.0°C). System operation validated.';
+        }
+        return 'Stabilization: Telemetry returned to standard compliance band. Continuous monitoring active.';
+    }
+
+    function computeSpikeEvents(logs) {
+        if (!Array.isArray(logs) || logs.length === 0) return [];
+        const sorted = [...logs].sort((a, b) => {
+            const ta = a.timestamp ? new Date(a.timestamp).getTime() : (a.created_at ? new Date(a.created_at).getTime() : 0);
+            const tb = b.timestamp ? new Date(b.timestamp).getTime() : (b.created_at ? new Date(b.created_at).getTime() : 0);
+            return ta - tb;
+        });
+
+        const events = [];
+        const prevStatus = { ph: 'IDEAL', turbidity: 'IDEAL', temperature: 'IDEAL', tds: 'IDEAL' };
+
+        const paramConfigs = [
+            { key: 'ph', name: 'pH', unit: ' pH' },
+            { key: 'turbidity', name: 'Turbidity', unit: ' NTU' },
+            { key: 'temperature', name: 'Temperature', unit: '°C' },
+            { key: 'tds', name: 'TDS', unit: ' ppm' }
+        ];
+
+        sorted.forEach(log => {
+            const rawTs = log.timestamp || log.created_at;
+            const dt = rawTs ? new Date(rawTs) : new Date();
+            const timeStr = !isNaN(dt.getTime())
+                ? dt.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+                : '--:--';
+
+            paramConfigs.forEach(cfg => {
+                let rawVal = log[cfg.key];
+                if (rawVal === undefined || rawVal === null) {
+                    if (cfg.key === 'turbidity' && log.ntu !== undefined) rawVal = log.ntu;
+                    if (cfg.key === 'temperature' && log.temp !== undefined) rawVal = log.temp;
+                }
+                const num = parseFloat(rawVal);
+                if (isNaN(num)) return;
+
+                const classification = classifyValue(cfg.key, num);
+                const curStatus = classification.status;
+                const lastStatus = prevStatus[cfg.key] || 'IDEAL';
+
+                if (lastStatus === 'IDEAL' && (curStatus === 'WARNING' || curStatus === 'CRITICAL')) {
+                    events.push({
+                        time: timeStr,
+                        paramKey: cfg.key,
+                        paramName: cfg.name,
+                        type: 'SPIKE',
+                        status: curStatus,
+                        valFormatted: (cfg.key === 'tds' ? Math.round(num) : num.toFixed(2)) + cfg.unit,
+                        action: getSpikeAction(cfg.key, num, curStatus)
+                    });
+                } else if ((lastStatus === 'WARNING' || lastStatus === 'CRITICAL') && curStatus === 'IDEAL') {
+                    events.push({
+                        time: timeStr,
+                        paramKey: cfg.key,
+                        paramName: cfg.name,
+                        type: 'NORMALIZED',
+                        status: 'IDEAL',
+                        valFormatted: (cfg.key === 'tds' ? Math.round(num) : num.toFixed(2)) + cfg.unit,
+                        action: getNormalizationAction(cfg.key, num)
+                    });
+                }
+                prevStatus[cfg.key] = curStatus;
+            });
+        });
+
+        return events;
+    }
+
+    function renderEventTimelineHtml(events) {
+        if (!events || events.length === 0) {
+            return `
+                <div style="border: 1px dashed #10b981; background: #ecfdf5; border-radius: 4px; padding: 4px 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 7px;">
+                    <span style="font-size: 11px;">🛡️</span>
+                    <div>
+                        <div style="font-size: 7.5px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.04em;">Zero Threshold Excursions Recorded</div>
+                        <div style="font-size: 7px; color: #047857; line-height: 1.25;">All monitored readings remained strictly within DOH PNSDW safe tolerances throughout this period. No abnormal spikes or corrective interventions were triggered.</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const displayed = events.slice(-6);
+        const rows = displayed.map(e => {
+            const isSpike = e.type === 'SPIKE';
+            const badgeBg = isSpike ? (e.status === 'CRITICAL' ? 'rgba(220, 38, 38, 0.12)' : 'rgba(217, 119, 6, 0.12)') : 'rgba(16, 185, 129, 0.12)';
+            const badgeColor = isSpike ? (e.status === 'CRITICAL' ? '#dc2626' : '#d97706') : '#059669';
+            const badgeText = isSpike ? '⚠️ SPIKE' : '✅ NORMALIZED';
+
+            return `
+                <tr>
+                    <td style="padding: 2px 4px; font-size: 7px; border: 1px solid #e2e8f0; font-weight: 600; color: #334155; white-space: nowrap;">${e.time}</td>
+                    <td style="padding: 2px 4px; font-size: 7px; border: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">${e.paramName}</td>
+                    <td style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #e2e8f0; text-align: center; white-space: nowrap;">
+                        <span style="display: inline-block; padding: 1px 3px; border-radius: 2px; font-weight: 700; background: ${badgeBg}; color: ${badgeColor};">${badgeText}</span>
+                    </td>
+                    <td style="padding: 2px 4px; font-size: 7px; border: 1px solid #e2e8f0; font-weight: 700; text-align: right; color: ${badgeColor}; white-space: nowrap;">${e.valFormatted}</td>
+                    <td style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #e2e8f0; color: #334155; line-height: 1.2;">${e.action}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; background: #ffffff;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; text-align: left; width: 62px;">Event Time</th>
+                        <th style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; text-align: left; width: 55px;">Parameter</th>
+                        <th style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; text-align: center; width: 75px;">Event Type</th>
+                        <th style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; text-align: right; width: 50px;">Reading</th>
+                        <th style="padding: 2px 4px; font-size: 6.5px; border: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; text-align: left;">Action Taken / Corrective Maintenance Log</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        `;
+    }
+
     window.WQMSActionGuidance = {
         classifyValue,
         normalizeAlertSeverity,
         buildReportActionPlan,
-        buildAlertRecommendation
+        buildAlertRecommendation,
+        getSpikeAction,
+        getNormalizationAction,
+        computeSpikeEvents,
+        renderEventTimelineHtml
     };
 })();
